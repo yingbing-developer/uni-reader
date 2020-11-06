@@ -1,0 +1,585 @@
+<template>
+	<view class="read-menu" @touchmove.stop.prevent="" v-if="bookInfo">
+		<view class="mask" @tap="hide"></view>
+		
+		<!-- 顶部 -->
+		<view class="read-top" ref="readTop" @touchmove.stop.prevent="">
+			<nav-bar :title="bookInfo.name" bgColor="#333333" titleColor="#EFEFEF">
+				<view class="nav-right" slot="right">
+					<view @tap="addBookmark">
+						<c-icon name="bookmark" :size="42" color="#EFEFEF"></c-icon>
+					</view>
+				</view>
+			</nav-bar>
+		</view>
+		
+		<!-- 底部设置 -->
+		<view class="read-board" ref="readBottom" @touchmove.stop.prevent="">
+			<!-- 阅读进度 -->
+			<view class="percent">
+				<view class="percent-box">
+					<text class="percent-text">{{progress}}%</text>
+				</view>
+				<view class="percentAfter">
+					<view class="percent-arrow"></view>
+				</view>
+			</view>
+			
+			<view class="readBoardContent">
+				
+				<!-- 阅读进度 -->
+				<view class="read-board-line">
+					<view class="progress-btn progress-prev">
+						<view @tap="prevPages">
+							<c-icon name="arrow-left" :size="45" color="#EFEFEF"></c-icon>
+						</view>
+					</view>
+					<view class="progress">
+						 <c-progress :value="progress" @input="upRecord" itemShow></c-progress>
+					</view>
+					<view class="progress-btn progress-next">
+						<view @tap="nextPages">
+							<c-icon name="arrow-right" :size="45" color="#EFEFEF"></c-icon>
+						</view>
+					</view>
+				</view>
+				
+				<view class="read-board-line">
+					<view class="chapter-box btn-actived" @tap="prevChapter">
+						<text class="chapter-text">上一章节</text>
+					</view>
+					<view class="chapter-box btn-actived" @tap="nextChapter">
+						<text class="chapter-text">下一章节</text>
+					</view>
+				</view>
+				
+				<view class="read-board-line">
+					<!-- 亮度调整 -->
+					<view class="half-box">
+						<view class="light-btn">
+							<c-icon name="light" :size="45" color="#EFEFEF"></c-icon>
+						</view>
+						<view class="progress">
+							 <c-progress v-model="lightPercent" itemShow></c-progress>
+						</view>
+						<view class="light-btn">
+							<c-icon name="light-fill" :size="34.5" color="#EFEFEF"></c-icon>
+						</view>
+					</view>
+					
+					<!-- 字体调整 -->
+					<view class="half-box font-box">
+						<view class="font-btn actived" @tap="downFontSize">
+							<c-icon name="font-down" color="#8A8A8A"></c-icon>
+						</view>
+						<text class="font-text">{{readMode.fontSize}}</text>
+						<view class="font-btn actived" @tap="upFontSize">
+							<c-icon name="font-up" color="#8A8A8A"></c-icon>
+						</view>
+					</view>
+				</view>
+				
+				<view class="read-board-line bottom-line">
+					<view class="bottom-box">
+						<view class="bottom-item" @tap="openMenuSubNvue('catalog')">
+							<c-icon name="menu" :size="42" color="#8A8A8A"></c-icon>
+							<text class="bottom-name">目录</text>
+						</view>
+					</view>
+					<view class="bottom-box">
+						<view class="bottom-item" @tap="openMenuSubNvue('bookmark')">
+							<c-icon name="pushpin-fill" :size="42" color="#8A8A8A"></c-icon>
+							<text class="bottom-name">书签</text>
+						</view>
+					</view>
+					<view class="bottom-box">
+						<view class="bottom-item" @tap="routePush('/pages/setting/index')">
+							<c-icon name="setting" :size="42" color="#8A8A8A"></c-icon>
+							<text class="bottom-name">设置</text>
+						</view>
+					</view>
+					<view class="bottom-box">
+						<view class="bottom-item" v-if="skinMode == 'default'" @tap="changeSkin('night')">
+							<c-icon name="night" :size="42" color="#8A8A8A"></c-icon>
+							<text class="bottom-name">夜间</text>
+						</view>
+						<view class="bottom-item" v-if="skinMode == 'night'" @tap="changeSkin('default')">
+							<c-icon name="light" :size="45" color="#8A8A8A"></c-icon>
+							<text class="bottom-name">日间</text>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import { mapGetters, mapMutations } from 'vuex'
+	import { skinMixin } from '@/common/mixin/index.js'
+	import { indexOf } from '@/common/js/util.js'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CProgress from '@/components/progress/progress.nvue'
+	import NavBar from '@/components/nav-bar/nav-bar.nvue'
+	const animation = weex.requireModule('animation');
+	export default {
+		mixins: [skinMixin],
+		data () {
+			return {
+				//书签
+				markTitle: '',
+				//章节目录
+				catalog: [],
+				//文件路径
+				path: '',
+				duration: 200,
+				lightPercent: 0,
+				scroll: [{
+					title: '上下滚动',
+					value: 'scroll'
+				},{
+					title: '左右翻页',
+					value: 'paging'
+				}]
+			}
+		},
+		computed: {
+			...mapGetters(['bookList', 'readMode', 'bookmarks']),
+			bookInfo () {
+				return this.bookList[indexOf(this.bookList, this.path, 'path')];
+			},
+			pageIndex () {
+				return this.bookInfo.pageIndex
+			},
+			light () {
+				return parseFloat(this.readMode.light) * 100;
+			},
+			progress () {
+				if ( this.bookInfo.record == 0 ) {
+					return 0
+				} else {
+					return parseFloat(((this.bookInfo.record / this.bookInfo.length) * 100).toFixed(2))
+				}
+			},
+			//当前章节
+			chapterNow () {
+				for ( let i in this.catalog ) {
+					if ( i < this.catalog.length - 1 ) {
+						if ( this.bookInfo.record >= this.catalog[i].index && this.bookInfo.record < this.catalog[parseInt(i) + 1].index ) {
+							return parseInt(i)
+						}
+					} else {
+						if ( this.bookInfo.record >= this.catalog[i].index) {
+							return parseInt(i)
+						}
+					}
+				}
+			},
+			//书签
+			bookmark () {
+				let arr = []
+				arr = this.bookmarks.filter((item) => {
+					if ( item.path == this.path ) {
+						return item;
+					}
+				})
+				return arr;
+			}
+		},
+		beforeCreate() {
+			
+			//监听子窗体显示传参
+			uni.$on('setting-popup', (data) => {  
+			    this.markTitle = data.markTitle;
+				this.catalog = data.catalog;
+				this.path = data.path;
+				setTimeout(() => {
+					this.show();
+				}, 200)
+			})
+			
+			uni.$on('setting', (data) => {
+				//清空书签
+				if ( data.type == 'clearMark' ) {
+					this.clearMark();
+				}
+			})
+			
+			//监听父组件通知子窗体关闭
+			uni.$on('setting-hide', (data) => {
+				this.hide()
+			})
+			
+			//监听父组件传书签值
+			uni.$on('setting-mark', (data) => {
+				this.markTitle = data.markTitle;
+			})
+		},
+		created () {
+			this.lightPercent = this.light;
+		},
+		methods: {
+			...mapMutations(['changeFontSize', 'changeLight', 'updateBookRecord', 'saveBookmark', 'clearBookmark']),
+			show () {
+				uni.$emit('setting-isShow', {
+					show: true
+				});
+				animation.transition(this.$refs.readTop, {
+				    styles: {
+						transform: 'translateY(0)'
+				    },
+				    duration: 300, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.readBottom, {
+				    styles: {
+						transform: 'translateY(0)'
+				    },
+				    duration: 300, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				
+			},
+			hide () {
+				animation.transition(this.$refs.readTop, {
+				    styles: {
+						transform: 'translateY(-100%)'
+				    },
+				    duration: 300, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.readBottom, {
+				    styles: {
+						transform: 'translateY(100%)'
+				    },
+				    duration: 300, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					uni.$emit('setting-isShow', {
+						show: false
+					});
+					const subNvue = uni.getSubNVueById('setting');
+					subNvue.hide();
+				})
+			},
+			//增大字体
+			upFontSize () {
+				if ( this.readMode.fontSize >= 40 ) {
+					return;
+				}
+				this.changeFontSize(this.readMode.fontSize + 2);
+			},
+			//减小字体
+			downFontSize () {
+				if ( this.readMode.fontSize <= 14 ) {
+					return;
+				}
+				this.changeFontSize(this.readMode.fontSize - 2);
+			},
+			//上个章节
+			prevChapter () {
+				if ( this.catalog[this.chapterNow - 1] ) {
+					this.updateBookRecord({
+						path: this.path,
+						record: this.catalog[this.chapterNow - 1].index
+					});
+				} else {
+					uni.showToast({
+						icon: 'none',
+						title: '前面已经没有章节了'
+					})
+				}
+			},
+			//下个章节
+			nextChapter () {
+				let flag = this.chapterNow >= 0 ? this.catalog[this.chapterNow + 1] : this.catalog[0];
+				if ( flag ) {
+					this.updateBookRecord({
+						path: this.path,
+						record: flag.index
+					});
+				} else {
+					uni.showToast({
+						icon: 'none',
+						title: '后面已经没有章节了'
+					})
+				}
+			},
+			//后退0.1%
+			prevPages () {
+				let percent = this.progress - 0.1;
+				if ( percent < 0 ) {
+					percent = 0;
+					uni.showToast({
+						title: '前面已经没有了',
+						icon: 'none'
+					})
+				}
+				this.upRecord(percent);
+			},
+			//前进0.1%
+			nextPages() {
+				let percent = this.progress + 0.1;
+				if ( percent > 100 ) {
+					percent = 100;
+					uni.showToast({
+						title: '后面已经没有了',
+						icon: 'none'
+					})
+				}
+				this.upRecord(percent);
+			},
+			//添加书签
+			addBookmark () {
+				this.saveBookmark({
+					path: this.path,
+					index: this.bookInfo.record,
+					title: this.markTitle
+				})
+			},
+			//清空书签
+			clearMark () {
+				uni.showModal({
+					title: '清空提示！',
+					content: '确认要清空本书籍保存的书签吗？',
+					success: (res) => {
+						if ( res.confirm ) {
+							this.clearBookmark(this.path);
+							uni.$emit('page-popup', {
+								path: this.path,
+							    title: '书签',
+							    list: this.bookmark,
+								showClear: this.bookmark.length > 0 ? true : false
+							});
+						}
+					}
+				})
+			},
+			upRecord (percent) {
+				if ( this.timer ) {
+					clearTimeout(this.timer);
+				}
+				this.timer = setTimeout(() => {
+					let record = parseInt((percent / 100) * this.bookInfo.length);
+					this.updateBookRecord({
+						path: this.path,
+						record: record
+					})
+				}, 100)
+			},
+			//打开章节/书签目录子窗体
+			openMenuSubNvue (type) {
+				const subNvue = uni.getSubNVueById('catalog');
+				//向子窗体传值
+				uni.$emit('page-popup', {  
+					path: this.path,
+				    title: type == 'catalog' ? '章节' : type == 'bookmark' ? '书签' : '',
+				    list: type == 'catalog' ? this.catalog : type == 'bookmark' ? this.bookmark : [],
+					showClear: type == 'bookmark' && this.bookmark.length > 0 ? true : false
+				});
+				// 打开 nvue 子窗体 
+				subNvue.show('slide-in-right', 400);
+			},
+			routePush (url) {
+				//路由防抖
+				if ( this.routeDisabled ) {
+					return;
+				}
+				this.routeDisabled = true;
+				uni.navigateTo({
+					url: url,
+					complete: (res) => {
+						this.routeDisabled = false;
+					}
+				})
+			}
+		},
+		beforeDestroy () {
+			uni.$off('setting-popup');
+			uni.$off('setting-hide');
+			uni.$off('setting-mark');
+			uni.$off('setting');
+		},
+		watch: {
+			light (val) {
+				this.lightPercent = val;
+			},
+			lightPercent (val) {
+				this.changeLight((val / 100).toFixed(2));
+			}
+		},
+		components: {
+			CIcon,
+			CProgress,
+			NavBar
+		}
+	}
+</script>
+
+<style scoped>
+	.btn-actived:active {
+		background-color: #8A8A8A!important;
+		
+	}
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.read-top {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		transform: translateY(-200rpx);
+	}
+	.nav-right {
+		flex-direction: row;
+		justify-content: flex-end;
+		align-items: center;
+		flex: 1;
+	}
+	.read-board {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		transform: translateY(600rpx);
+	}
+	.readBoardContent {
+		background-color: #333333;
+	}
+	.percent {
+		height: 90rpx;
+		align-items: center;
+	}
+	.percent-box {
+		background-color: #333333;
+		align-items: center;
+		justify-content: center;
+		border-radius: 5rpx;
+		width: 110rpx;
+		height: 70rpx;
+	}
+	.percent-text {
+		color: #EFEFEF;
+		font-size: 25rpx;
+	}
+	.percentAfter {
+		width: 25rpx;
+		height: 15rpx;
+		position: relative;
+	}
+	.percent-arrow {
+		position: absolute;
+		top: -13rpx;
+		left: 5rpx;
+		width: 20rpx;
+		height: 20rpx;
+		transform-origin: center center;
+		transform: rotateZ(45deg);
+		background-color: #333333;
+	}
+	.read-board-line {
+		flex-direction: row;
+		padding: 0 10px;
+		border-bottom-width: 1px;
+		border-bottom-color: #3D3D3D;
+		border-bottom-style: solid;
+		height: 100rpx;
+		align-items: center;
+	}
+	.progress-btn {
+		flex-direction: column;
+		justify-content: center;
+		width: 90rpx;
+	}
+	.progress-prev {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.progress-next {
+		flex-direction: column;
+		align-items: flex-end;
+	}
+	.progress {
+		flex-direction: column;
+		flex: 1;
+		justify-content: center;
+	}
+	.half-box {
+		flex: 1;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+	}
+	.light-btn {
+		justify-content: center;
+		align-items: center;
+		width: 70rpx;
+	}
+	.font-btn {
+		flex-direction: column;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #8A8A8A;
+		flex: 1;
+		height: 70rpx;
+		border-radius: 5px;
+		margin: 0 5px;
+		justify-content: center;
+		align-items: center;
+	}
+	.font-text {
+		color: #8A8A8A;
+		font-size: 28rpx;
+		margin: 5px;
+	}
+	.chapter-box {
+		flex-direction: column;
+		margin: 0 5px;
+		flex: 1;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #8A8A8A;
+		height: 65rpx;
+		justify-content: center;
+		align-items: center;
+		border-radius: 5px;
+	}
+	.chapter-text {
+		font-size: 28rpx;
+		color: #8A8A8A;
+	}
+	.bottom-line {
+		justify-content: space-between;
+		height: 110rpx;
+	}
+	.bottom-box {
+		flex: 1;
+		justify-content: center;
+		align-items: center;
+	}
+	.bottom-item {
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		flex: 1;
+		padding: 12rpx 0;
+	}
+	.bottom-name {
+		color: #8A8A8A;
+		font-size: 28rpx;
+		margin-top: 10rpx;
+	}
+</style>

@@ -1,0 +1,83 @@
+<template>
+	<view ref="button" v-if="isShow" elevation="3" class="button" :style="{'background-color': skinColor.itemColor}">
+		<slot></slot>
+	</view>
+</template>
+
+<script>
+	const animation = weex.requireModule('animation');
+	import { skinMixin } from '@/common/mixin/index.js'
+	export default {
+		mixins: [skinMixin],
+		props: {
+			show: {
+				type: Boolean,
+				default: true
+			}
+		},
+		data () {
+			return {
+				isShow: true
+			}
+		},
+		mounted () {
+			if ( !this.show ) {
+				this.hideBtn();
+			} else {
+				this.showBtn();
+			}
+		},
+		methods: {
+			hideBtn () {
+				animation.transition(this.$refs.button, {
+				    styles: {
+						transform: 'scale(0)'
+				    },
+				    duration: 300, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					this.isShow = false;
+				})
+			},
+			showBtn () {
+				this.isShow = true;
+				this.$nextTick(() => {
+					animation.transition(this.$refs.button, {
+					    styles: {
+							transform: 'scale(1)'
+					    },
+					    duration: 300, //ms
+					    timingFunction: 'ease',
+					    needLayout:false,
+					    delay: 0 //ms
+					})
+				})
+			}
+		},
+		watch: {
+			show (val) {
+				if ( !val ) {
+					this.hideBtn();
+				} else {
+					this.showBtn();
+				}
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.button {
+		width: 90rpx;
+		height: 90rpx;
+		transform: scale(0);
+		border-radius: 100rpx;
+		box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+		justify-content: center;
+		align-items: center;
+		margin-top: 7.5rpx;
+		margin-bottom: 7.5px;
+	}
+</style>

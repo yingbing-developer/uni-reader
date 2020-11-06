@@ -1,0 +1,42 @@
+{
+    "name": "IOYingBingPluginGetFileList",
+    "id": "IO-YingBing-Plugin-GetFileList",
+    "version": "1.0",
+    "description": "获取本地文件列表",
+    "_dp_type":"nativeplugin",
+    "_dp_nativeplugin":{
+        "android": {
+            "plugins": [
+                {
+                    "type": "module",
+                    "name": "IO-YingBing-Plugin-GetFileList",
+                    "class": "io.uniplugin.GetFileList"
+                }
+            ],
+            "hooksClass": "",
+            "integrateType": "aar",
+            "dependencies": [
+            ],
+            "compileOptions": {  //可选，Java编译参数配置
+                "sourceCompatibility": "1.8",
+                "targetCompatibility": "1.8"
+            },
+            "abis": [
+				"armeabi-v7a",
+				"x86"
+            ],
+            "minSdkVersion": "22",
+            "useAndroidX": false,   //可选，是否兼容使用AndroidX
+            "permissions": [
+                
+            ],
+            "parameters": {
+                "插件需要配置的参数名称, 如appid": {
+                    "des": "__UNI__8A96B42",
+                    "key": "",
+                    "placeholder": ""
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,170 @@
+<template>
+	<view class="detail">
+		<nav-bar title="书籍介绍"></nav-bar>
+		<view class="book-info">
+			<image class="book-img" src="../../static/logo.png" mode="aspectFill"></image>
+			<view class="book-info-right">
+				<text class="book-name">{{bookList[bookIndex].name}}</text>
+				<view class="book-intro">
+					<text class="book-intro-title">内容简介</text>
+					<text class="book-intro-text">我是一个我是一个我是一个我是一个我是一个我是一个我是一个我是一个我是一个我是一个我是一个我是一个</text>
+				</view>
+			</view>
+		</view>
+		<view class="btns">
+			<view class="old-btn btn">
+				<text class="btn-text old-btn-text">上次读到第3章</text>
+			</view>
+			<view class="new-btn btn" @tap="routePush('/pages/read/index?path=' + path)">
+				<text class="btn-text new-btn-text">开始阅读</text>
+			</view>
+		</view>
+		<text class="catalog-title">书籍目录</text>
+		<list class="catalog" :bounce="false">
+			<cell v-for="(item, index) in catalog" :key="item">
+				<view class="catalog-list actived" :class="{'record': index == 2}">
+					<text class="catalog-text">第{{item}}章 取东西</text>
+					<text class="record-text" v-if="index == 2">上次阅读</text>
+				</view>
+			</cell>
+		</list>
+	</view>
+</template>
+
+<script>
+	import { mapGetters } from 'vuex'
+	import { indexOf } from '@/common/js/util.js'
+	export default {
+		data () {
+			return {
+				catalog: [1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+				routeDisabled: false
+			}
+		},
+		computed: {
+			...mapGetters(['bookList']),
+			path () {
+				const pages = getCurrentPages();
+				const page = pages[pages.length - 1];
+				return page.options.path;
+			},
+			bookIndex () {
+				return indexOf(this.bookList, this.path, 'path');
+			}
+		},
+		methods: {
+			routePush (url) {
+				//路由防抖
+				if ( this.routeDisabled ) {
+					return;
+				}
+				this.routeDisabled = true;
+				uni.navigateTo({
+					url: url,
+					success: (res) => {
+						this.routeDisabled = false;
+					}
+				})
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.detail {
+		background-color: #FAFAFA;
+	}
+	.book-info {
+		flex-direction: row;
+		padding: 20px;
+	}
+	.book-img {
+		width: 150px;
+		height: 180px;
+	}
+	.book-info-right {
+		flex: 1;
+		padding: 0 15px;
+		justify-content: center;
+	}
+	.book-name {
+		font-size: 20px;
+		font-weight: bold;
+		color: #333333;
+	}
+	.book-intro-title {
+		font-size: 16px;
+		color: #333333;
+		margin-top: 15px;
+	}
+	.book-intro-text {
+		margin-top: 10px;
+		font-size: 14px;
+		color: #999999;
+		lines: 3;
+		text-overflow: ellipsis;
+	}
+	.btns {
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 0 20px;
+	}
+	.btn {
+		flex: 1;
+		height: 75rpx;
+		justify-content: center;
+		align-items: center;
+		border-radius: 5px;
+		border-color: #21C088;
+		border-style: solid;
+		border-width: 1px;
+	}
+	.btn-text {
+		font-size: 16px;
+	}
+	.new-btn {
+		margin-left: 10px;
+	}
+	.new-btn-text {
+		color: #21C088;
+	}
+	.old-btn {
+		margin-right: 10px;
+		background-color: #21C088;
+	}
+	.old-btn-text {
+		color: #FFFFFF;
+	}
+	.catalog-title {
+		font-size: 16px;
+		font-weight: bold;
+		color: #333333;
+		margin-top: 15px;
+		padding: 0 20px;
+		margin-bottom: 15px;
+	}
+	.catalog {
+		padding: 0 20px;
+	}
+	.catalog-list {
+		border-color: #EEEEEE;
+		border-style: solid;
+		border-width: 1px;
+		padding: 10px;
+		margin-bottom: 10px;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.catalog-text {
+		font-size: 16px;
+		color: #898989;
+	}
+	.record {
+		background-color: #EEEEEE;
+	}
+	.record-text {
+		font-size: 16px;
+		color: #DD524D;
+	}
+</style>

@@ -1,0 +1,351 @@
+<template>
+	<view class="index" :style="{'background-color': skinColor.bgColor}">
+		<nav-bar title="好用阅读器" :backShow="false" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+			<view class="nav-left" slot="left" @tap="$refs.leftMenu.show()">
+				<c-icon name="menu" size="37.5" :color="skinColor.iconColor"></c-icon>
+			</view>
+			<view class="nav-right" slot="right">
+				<view @tap="routePush('/pages/search/index')">
+					<c-icon name="search" size="37.5" :color="skinColor.iconColor"></c-icon>
+				</view>
+				<view @tap="opearteFilter">
+					<c-icon name="filter" size="37.5" :color="skinColor.iconColor"></c-icon>
+				</view>
+				<!-- <view>
+					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
+				</view> -->
+			</view>
+		</nav-bar>
+		<c-search v-if="showFilter" @confirm="setNameFilter"></c-search>
+		<view class="tabs" :style="{'background-color': skinColor.navColor}">
+			<view class="tab" @tap="changeTab(index)" v-for="(item, index) in tabs" :key="index">
+				<text class="tab-title" :style="{'color': skinColor.iconColor}">{{item.title}}</text>
+			</view>
+			<view class="tab-line" :style="{'background-color': skinColor.bgColor, transform: `translateX(${currentTab * 375}rpx)`}"></view>
+		</view>
+		<list-scroll :column-count="3" @scroll="scroll" :list="list" :scrollable="scrollable" :line-height="305">
+			<no-data slot="fixed" v-if="list.length <= 0" :title="noDataTitle"></no-data>
+			<view class="fixed" slot="fixed">
+				<view @tap="changeReadStatus">
+					<fixed-button :show="btnShow">
+						<c-icon name="history" size="40" :color="skinColor.iconColor" v-if="!tabs[currentTab].isReaded"></c-icon>
+						<c-icon name="read" size="47.5" :color="skinColor.iconColor" v-if="tabs[currentTab].isReaded"></c-icon>
+					</fixed-button>
+				</view>
+				<view @tap="clear" v-if="list.length > 0">
+					<fixed-button :show="btnShow">
+						<c-icon name="waste-fill" size="40" :color="skinColor.iconColor"></c-icon>
+					</fixed-button>
+				</view>
+				<view @tap="scrollTop">
+					<fixed-button :show="Math.abs(oldOffsetY) > 300">
+						<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
+					</fixed-button>
+				</view>
+			</view>
+			<view slot="listTop" ref="listTop"></view>
+			<template v-slot="{item}">
+				<view class="book" @tap="readBook(item.path)" @longpress="showAction(item.path)">
+					<image class="book-img" :src="item.image" mode="aspectFill"></image>
+					<view class="book-mask" :style="{opacity: skinColor.imgMask}"></view>
+					<view class="book-bottom">
+						<text class="book-name">{{item.name}}</text>
+						<view class="b-bottom">
+							<text class="book-progress">已阅读至 {{ item | progress }}%</text>
+						</view>
+					</view>
+				</view>
+			</template>
+		</list-scroll>
+		<view class="touch" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend"></view>
+		
+		<!-- 抽屉菜单 -->
+		<c-menu v-model="currentTab" :translate="menuLate" :opacity="menuOpac" ref="leftMenu"></c-menu>
+		<!-- 操作列表 -->
+		<action-sheet ref="action" :list="actions" @select="selectAction"></action-sheet>
+	</view>
+</template>
+
+<script>
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CMenu from '@/pages/menu/menu.nvue'
+	import CSearch from '@/components/search/search.nvue'
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import NoData from '@/components/no-data/no-data.nvue'
+	import ActionSheet from '@/components/action-sheet/action-sheet.nvue'
+	import { skinMixin, menuTouchMixin } from '@/common/mixin/index.js'
+	import { indexOf } from '@/common/js/util.js'
+	import { mapGetters, mapMutations } from 'vuex'
+	const dom = weex.requireModule('dom');
+	export default {
+		mixins: [skinMixin, menuTouchMixin],
+		data () {
+			return {
+				currentTab: 0,
+				tabs: [{
+					title: '小说',
+					isReaded: false
+				},{
+					title: '漫画',
+					isReaded: false
+				}],
+				//滚动距离
+				oldOffsetY: 0,
+				//是否显示浮动按钮
+				btnShow: true,
+				//是否禁用路由函数
+				routeDisabled: false,
+				//操作列表
+				actions: [],
+				//触发操作列表的图书路径
+				actionPath: '',
+				//名称过滤
+				nameFilter: '',
+				//是否显示过滤器
+				showFilter: false
+			}
+		},
+		filters: {
+			progress (value) {
+				if ( value.record == 0 ) {
+					return 0
+				} else {
+					return ((value.record / value.length) * 100).toFixed(2);
+				}
+			}
+		},
+		computed: {
+			...mapGetters(['bookList']),
+			noDataTitle () {
+				if ( this.currentTab == 0 ) {
+					return this.tabs[this.currentTab].isReaded ? '没有读完的书籍哦！' : '没有正在阅读的书籍哦！';
+				} else {
+					return this.tabs[this.currentTab].isReaded ? '没有看完的漫画哦！' : '没有正在看的漫画哦！';
+				}
+			},
+			list () {
+				let list = this.currentTab == 0 ? this.bookList : [];
+				let arr = list.filter((item) => {
+					if ( item.name.indexOf(this.nameFilter) > -1 && item.isReaded == this.tabs[this.currentTab].isReaded ) {
+						return item;
+					}
+				})
+				return arr.sort((a, b) => {
+					return b.lastReadTime - a.lastReadTime;
+				});
+			}
+		},
+		created () {
+			this.actions = [{
+				title: '删除',
+				value: 'delete'
+			}]
+		},
+		methods: {
+			...mapMutations(['deleteBook', 'clearBooks']),
+			scroll (e) {
+				//如果列表向上滑动，隐藏浮动按钮，否则显示浮动按钮
+				if ( e.contentOffset.y < this.oldOffsetY ) {
+					this.btnShow = false;
+				} else {
+					this.btnShow = true;
+				}
+				//如果列表y轴偏移为0，则显示浮动按钮
+				if ( e.contentOffset.y == 0 ) {
+					this.btnShow = true;
+				}
+				this.oldOffsetY = e.contentOffset.y;
+			},
+			clear () {
+				uni.showModal({
+					title: '操作提示',
+					content: '是否清空当前所有书籍？',
+					success: (res) => {
+						if ( res.confirm ) {
+							let type = this.current == 0 ? false : true;
+							this.clearBooks(type);
+						}
+					}
+				})
+			},
+			showAction (path) {
+				this.actionPath = path;
+				this.$refs.action.show();
+			},
+			selectAction (e) {
+				if ( e == 'delete' ) {
+					let name = this.bookList[indexOf(this.bookList, this.actionPath, 'path')].name;
+					uni.showModal({
+						title: '操作提示',
+						content: '是否删除  ' + name + '  ？',
+						success: (res) => {
+							if ( res.confirm ) {
+								this.deleteBook(this.actionPath);
+								this.actionPath = '';
+							}
+						}
+					})
+				}
+			},
+			changeReadStatus () {
+				this.$set(this.tabs[this.currentTab], 'isReaded', !this.tabs[this.currentTab].isReaded);
+			},
+			changeTab (current) {
+				this.currentTab = current;
+			},
+			//打开/隐藏名称过滤器
+			opearteFilter () {
+				this.showFilter = !this.showFilter;
+			},
+			//设置名称过滤
+			setNameFilter (e) {
+				this.nameFilter = e;
+			},
+			scrollTop () {
+				dom.scrollToElement(this.$refs.listTop, {animated: false});
+			},
+			//读取书籍
+			readBook (path) {
+				let fd = plus.android.newObject("java.io.File", path);
+				if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
+					plus.nativeUI.toast("文件路径不存在！", {verticalAlign: 'center'});
+					this.deleteBook(path);
+					return;
+				}
+				let index = indexOf(this.bookList, path, 'path');
+				this.routePush('/pages/read/index?index=' + index);
+			},
+			routePush (url) {
+				//路由防抖
+				if ( this.routeDisabled ) {
+					return;
+				}
+				this.routeDisabled = true;
+				uni.navigateTo({
+					url: url,
+					complete: (res) => {
+						this.routeDisabled = false;
+					}
+				})
+			}
+		},
+		onBackPress(event) {
+			if ( this.$refs.leftMenu.isShow ) {
+				this.$refs.leftMenu.hide();
+				return true;
+			}
+			if ( this.$refs.action.isShow ) {
+				this.$refs.action.hide();
+				return true;
+			}
+			return false;
+		},
+		components: {
+			CIcon,
+			CMenu,
+			NoData,
+			ActionSheet,
+			CSearch,
+			ListScroll
+		}
+	}
+</script>
+
+<style scoped>
+	.tabs {
+		flex-direction: row;
+		justify-content: center;
+		position: relative;
+	}
+	.tab {
+		flex: 1;
+		height: 75rpx;
+		justify-content: center;
+		align-items: center;
+	}
+	.tab-title {
+		font-size: 28rpx;
+	}
+	.tab-line {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		height: 5rpx;
+		width: 375rpx;
+		transition: transform .3s;
+	}
+	.content {
+		flex: 1;
+	}
+	.touch {
+		position: fixed;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		width: 15rpx;
+	}
+	.book {
+		width: 250rpx;
+		margin-top: 20rpx;
+		position: relative;
+		height: 285rpx;
+	}
+	.book-img {
+		position: absolute;
+		top: 0;
+		left: 10rpx;
+		right: 10rpx;
+		bottom: 0;
+	}
+	.book-mask {
+		position: absolute;
+		top: 0;
+		left: 10rpx;
+		right: 10rpx;
+		bottom: 0;
+		background-color: #000000;
+	}
+	.book-bottom {
+		position: absolute;
+		bottom: 0;
+		left: 10rpx;
+		right: 10rpx;
+		height: 100rpx;
+		background-color: rgba(0,0,0,0.5);
+		justify-content: space-between;
+		padding: 18rpx 7.5rpx;
+	}
+	.book-name {
+		font-size: 24rpx;
+		color: #FFFFFF;
+		lines:1;
+		text-overflow:ellipsis;
+		text-align: center;
+	}
+	.b-bottom {
+		flex-direction: row;
+		justify-content: center;
+	}
+	.book-progress {
+		font-size: 22rpx;
+		color: #EEEEEE;
+	}
+	.nav-left {
+		margin-right: 60rpx;
+	}
+	.nav-right {
+		width: 120rpx;
+		height: 100%;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.fixed {
+		position: fixed;
+		bottom: 20px;
+		right: 20px;
+		width: 90rpx;
+		align-items: center;
+		justify-content: flex-end;
+	}
+</style>

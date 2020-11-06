@@ -1,0 +1,139 @@
+<template>
+	<view class="nav-bar" :style="{'background-color': bgColor}">
+		<view class="bar" :style="{'height': barHeight}"></view>
+		<view class="nav">
+			<view class="left">
+				<view class="back" v-if="backShow" @tap="back">
+					<c-icon name="arrow-left" :size="45" :color="backColor"></c-icon>
+				</view>
+				<slot name="left">
+				</slot>
+			</view>
+			<view class="center">
+				<text class="title" :style="{'color': titleColor}">{{title}}</text>
+				<slot name="center"></slot>
+			</view>
+			<view class="right">
+				<slot name="right">
+				</slot>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	export default {
+		props: {
+			bgColor: {
+				type: String,
+				default: '#2196F5'
+			},
+			backShow: {
+				type: Boolean,
+				default: true
+			},
+			backColor: {
+				type: String,
+				default: '#FFFFFF'
+			},
+			title: {
+				type: String,
+				default: ''
+			},
+			titleColor: {
+				type: String,
+				default: '#FFFFFF'
+			}
+		},
+		data () {
+			return {
+				barHeight: '',
+				//返回键防抖
+				backDisabled: false
+			}
+		},
+		created () {
+			this.init();
+		},
+		methods: {
+			init () {
+				uni.getSystemInfo({
+					success: (res) => {//根据状态栏高度, 进行导航栏顶部适配
+						this.barHeight = `${res.statusBarHeight + 4}px`;
+					}
+				})
+			},
+			back () {
+				//返回键防抖
+				if ( this.backDisabled ) {
+					return;
+				}
+				this.backDisabled = true;
+				uni.navigateBack({
+					delta: 1
+				})
+			}
+		},
+		components: {
+			CIcon
+		}
+	}
+</script>
+
+<style scoped>
+	.nav-bar {
+		/* #ifndef APP-NVUE */
+		display: flex;
+		width: 100vw;
+		/* #endif */
+		flex-direction: column;
+	}
+	.nav {
+		/* #ifndef APP-NVUE */
+		display: flex;
+		width: 100%;
+		box-sizing: border-box;
+		/* #endif */
+		height: 100rpx;
+		flex-direction: row;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+	.back {
+		/* #ifndef APP-NVUE */
+		display: flex;
+		/* #endif */
+		flex-direction: row;
+		width: 66rpx;
+		height: 66rpx;
+		justify-content: flex-start;
+		align-items: center;
+		margin-right: 60rpx;
+	}
+	.title {
+		font-size: 35rpx;
+		/* #ifdef APP-NVUE */
+		text-overflow: ellipsis;
+		lines: 1;
+		/* #endif */
+		/* #ifndef APP-NVUE */
+		white-space:nowrap;/* 规定文本是否折行 */
+		overflow: hidden;/* 规定超出内容宽度的元素隐藏 */
+		text-overflow: ellipsis;
+		/* #endif */
+	}
+	.left, .center, .right {
+		/* #ifndef APP-NVUE */
+		display: flex;
+		/* #endif */
+		flex-direction: row;
+		align-items: center;
+	}
+	.left {
+		width: 100rpx;
+	}
+	.center {
+		flex: 1;
+	}
+</style>

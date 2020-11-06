@@ -1,0 +1,38 @@
+<template>
+	<view class="no-data">
+		<image class="no-img" src="@/static/no-data.png" mode="aspectFit"></image>
+		<text class="no-title">{{title}}</text>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			title: {
+				type: String,
+				default: '你还没有导入书籍'
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.no-data {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		align-items: center;
+		justify-content: center;
+	}
+	.no-img {
+		width: 300rpx;
+		height: 150rpx;
+	}
+	.no-title {
+		font-size: 27rpx;
+		margin-top: 15rpx;
+		color: #666666;
+	}
+</style>

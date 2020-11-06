@@ -1,0 +1,79 @@
+<template>
+	<view ref="inputBox" class="input-box" :style="{'background-color': skinColor.navColor}">
+		<view class="search-box" :style="{'background-color': skinColor.menuBgColor}">
+			<view class="search-icon">
+				<c-icon name="search" size="37.5" color="#DEDEDD"></c-icon>
+			</view>
+			<input :auto-focus="false" :adjust-position="false" confirm-type="搜索" @confirm="confirm" class="search-input" type="text" v-model="filterContent" :style="{color: skinColor.titleColor}" />
+			<view class="clear-icon" v-if="filterContent.length > 0" @tap="clearFilterContent">
+				<c-icon name="clear-fill" size="37.5" color="#DEDEDD"></c-icon>
+			</view>
+		</view>
+		<text v-if="filterContent.length > 0" class="search-btn" :style="{color: skinColor.iconColor}" @tap="confirm">搜索</text>
+	</view>
+</template>
+
+<script>
+	import { skinMixin } from '@/common/mixin/index.js'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	export default {
+		mixins: [skinMixin],
+		data () {
+			return {
+				//过滤内容
+				filterContent: ''
+			}
+		},
+		methods: {
+			//清空过滤内容
+			clearFilterContent () {
+				this.filterContent = '';
+			},
+			confirm () {
+				this.$emit('confirm', this.filterContent)
+			}
+		},
+		watch: {
+			filterContent (val) {
+				if ( val.length <= 0 ) {
+					this.$emit('confirm', '');
+				}
+			}
+		},
+		components: {
+			CIcon
+		}
+	}
+</script>
+
+<style scoped>
+	.input-box {
+		height: 95rpx;
+		padding-left: 30rpx;
+		padding-right: 30rpx;
+		flex-direction: row;
+		align-items: center;
+		position: relative;
+	}
+	.search-box {
+		border-radius: 85rpx;
+		flex-direction: row;
+		align-items: center;
+		padding: 0 15rpx;
+		flex: 1;
+	}
+	.search-icon {
+		margin-right: 12rpx;
+	}
+	.clear-icon {
+		margin-left: 12rpx;
+	}
+	.search-input {
+		font-size: 27rpx;
+		flex: 1;
+	}
+	.search-btn {
+		font-size: 30rpx;
+		margin-left: 15rpx;
+	}
+</style>

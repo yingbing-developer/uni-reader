@@ -1,0 +1,349 @@
+<template>
+	<view class="menu"
+	v-if="isShow"
+	@touchstart="touchstart"
+	@touchmove.stop.prevent="touchmove"
+	@touchend="touchend">
+		<!-- 遮罩层 -->
+		<view class="mask" ref="mask" :style="{'opacity': maskOpacity}" @touchstart="maskHide"></view>
+		<view class="popup"
+		ref="popup"
+		:style="{'background-color': skinColor.menuBgColor, 'transform': 'translateX(' + popuplate + 'rpx)'}"
+		@touchmove.stop.prevent="">
+			<view class="top-img">
+				<image class="bg" src="@/static/menuBack.png" mode="aspectFill"></image>
+				<view class="top-mask" :style="{opacity: skinColor.imgMask}"></view>
+			</view>
+			<!-- 列表切换 -->
+			<view class="list actived" :style="{'background-color': current == index ? skinColor.menuActiveBgColor : ''}" @tap="changeCurrent(index)" v-for="(item, index) in navs" :key="index">
+				<view class="icon">
+					<c-icon :name="item.icon" :size="item.size" :color="current == index ? skinColor.menuActiveColor : skinColor.menuIconColor"></c-icon>
+				</view>
+				<text class="title" :style="{color: current == index ? skinColor.menuActiveColor : skinColor.menuTitleColor}">{{item.title}}</text>
+			</view>
+			<view class="hr" :style="{'background-color': skinColor.gapColor}"></view>
+			<!-- 夜间模式切换 -->
+			<view class="list actived" @tap="changeMode">
+				<view class="icon">
+					<c-icon :name="modeIcon" size="37.5" :color="skinColor.menuIconColor"></c-icon>
+				</view>
+				<text class="title" :style="{color: skinColor.menuTitleColor}">{{modeName}}</text>
+			</view>
+			<!-- 功能页面 -->
+			<view class="list actived" v-for="(item, index) in options" :key="index" @tap="clickOptions(item)">
+				<view class="icon">
+					<c-icon :name="item.icon" :size="item.size" :color="skinColor.menuIconColor"></c-icon>
+				</view>
+				<text class="title" :style="{color: skinColor.menuTitleColor}">{{item.title}}</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const animation = weex.requireModule('animation');
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import { skinMixin } from '@/common/mixin/index.js'
+	export default {
+		mixins: [skinMixin],
+		props: {
+			value: {
+				type: Number,
+				default: 0
+			},
+			translate: {
+				type: Number,
+				default: 0
+			},
+			opacity: {
+				type: Number,
+				default: 0
+			}
+		},
+		data () {
+			return {
+				anima: {
+					duration: 400,
+					late: -540,
+					opac: 0.5
+				},
+				isShow: false,
+				maskOpacity: 0,
+				isMaskHide: false,
+				routeDisabled: false,
+				popuplate: -540,
+				pointX: 0,
+				touchTime: 0,
+				current: 0,
+				mulriple: 1,
+				navs: [{
+					icon: 'books-fill',
+					size: 34.5,
+					title: '小说列表'
+				},{
+					icon: 'history-fill',
+					size: 37.5,
+					title: '漫画列表'
+				}],
+				options:[{
+					icon: 'setting-fill',
+					size: 34.5,
+					title: '设置'
+				},{
+					icon: 'about',
+					size: 33,
+					title: '关于'
+				}]
+			}
+		},
+		created () {
+			uni.getSystemInfo({
+				success: (res) => {//计算出屏幕宽度和750的倍数
+					this.mulriple = 750 / res.screenWidth;
+				}
+			})
+		},
+		computed: {
+			modeName () {
+				return this.skinMode == 'default' ? '夜间模式' : '日间模式';
+			},
+			modeIcon () {
+				return this.skinMode == 'default' ? 'night' : 'light-fill';
+			}
+		},
+		methods: {
+			changeCurrent (val) {
+				this.current = val;
+				this.hide();
+			},
+			changeMode () {
+				const skin = this.skinMode == 'default' ? 'night' : 'default';
+				this.changeSkin(skin);
+			},
+			maskHide () {
+				this.isMaskHide = true;
+			},
+			//仅仅显示组件，并不显示菜单和遮罩层
+			open () {
+				this.isShow = true;
+			},
+			//显示出菜单和遮罩层
+			show () {
+				this.isShow = true;
+				this.$nextTick(() => {
+					animation.transition(this.$refs.mask, {
+					    styles: {
+							opacity: this.anima.opac
+					    },
+					    duration: this.anima.duration, //ms
+					    timingFunction: 'ease',
+					    needLayout:false,
+					    delay: 0 //ms
+					}, (res) => {
+						this.maskOpacity = this.anima.opac;
+					})
+					animation.transition(this.$refs.popup, {
+					    styles: {
+							transform: 'translateX(0)'
+					    },
+					    duration: this.anima.duration, //ms
+					    timingFunction: 'ease',
+					    needLayout:false,
+					    delay: 0 //ms
+					}, (res) => {
+						this.popuplate = 0;
+					})
+				})
+			},
+			//关闭全部
+			hide () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					this.maskOpacity = 0;
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateX(' + this.anima.late + 'rpx)'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					this.isShow = false;
+					this.popuplate = this.anima.late;
+				})
+			},
+			touchstart (e) {
+				if ( e.touches.length > 1 ) {
+					return;
+				}
+				this.touchTime = 0;
+				this.pointX = 0;
+				const touch = e.touches[0];
+				this.pointX = touch.pageX;
+				this.timer = setInterval(() => {
+					this.touchTime += 0.1;
+				}, 100)
+			},
+			touchmove (e) {
+				const touch = e.touches[0];
+				this.popuplate = 0 - this.mulriple * (this.pointX - touch.pageX);
+				if ( this.popuplate <= -540 ) {
+					this.popuplate = -540;
+				}
+				if ( this.popuplate >= 0 ) {
+					this.popuplate = 0;
+				}
+				this.maskOpacity = Math.abs(this.anima.late - this.popuplate) / Math.abs(this.anima.late) * this.anima.opac;
+				if ( this.maskOpacity <= 0 ) {
+					this.maskOpacity = 0;
+				}
+				if ( this.maskOpacity >= this.anima.opac ) {
+					this.maskOpacity = this.anima.opac;
+				}
+			},
+			touchend (e) {
+				if ( this.timer ) {
+					clearInterval(this.timer);
+				}
+				if ( this.popuplate <= -300 || (this.touchTime <= 0.3 && this.popuplate < -100) || (this.isMaskHide && this.popuplate > -10) ) {
+					this.hide();
+				} else {
+					this.show();
+				}
+				setTimeout(() => {
+					this.touchTime = 0;
+					this.pointX = 0;
+					this.isMaskHide = false;
+				}, 20)
+			},
+			clickOptions (item) {
+				if ( item.title == '关于' ) {
+					this.routePush('/pages/about/index');
+				}
+				if ( item.title == '设置' ) {
+					this.routePush('/pages/setting/index');
+				}
+			},
+			routePush (url) {
+				//路由防抖
+				if ( this.routeDisabled ) {
+					return;
+				}
+				this.routeDisabled = true;
+				uni.navigateTo({
+					url: url,
+					complete: (res) => {
+						this.routeDisabled = false;
+					}
+				})
+			}
+		},
+		watch: {
+			current (val) {
+				this.$emit('input', val);
+			},
+			translate (val) {
+				this.popuplate = val + this.anima.late;
+				if ( this.popuplate > 0 ) {
+					this.popuplate = 0;
+				}
+			},
+			opacity (val) {
+				this.maskOpacity = val;
+				if ( this.maskOpacity > this.anima.opac ) {
+					this.maskOpacity = this.anima.opac
+				}
+			},
+			value (val) {
+				this.current = val;
+			}
+		},
+		components: {
+			CIcon
+		}
+	}
+</script>
+
+<style scoped>
+	.menu {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #000000;
+	}
+	.popup {
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		width: 540rpx;
+		box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+	}
+	.top-img {
+		height: 350rpx;
+		position: relative;
+		margin-bottom: 15rpx;
+	}
+	.bg {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #666;
+	}
+	.top-mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #000;
+	}
+	.hr {
+		height: 1px;
+		/* background-color: #E0E0E0; */		margin-top: 15rpx;
+		margin-bottom: 15rpx;
+	}
+	.list {
+		flex-direction: row;
+		align-items: center;
+		height: 90rpx;
+	}
+	.list-right {
+		flex: 1;
+		align-items: flex-end;
+	}
+	.list-actived {
+		background-color: #DDDDDD;
+	}
+	.list-actived-2 {
+		background-color: #343434;
+	}
+	.icon {
+		width: 52.5rpx;
+		margin-left: 30rpx;
+		margin-right: 52.5rpx;
+	}
+	.title {
+		font-size: 27rpx;
+	}
+</style>

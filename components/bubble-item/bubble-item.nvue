@@ -1,0 +1,30 @@
+<template>
+	<view class="bubble-item">
+		<text class="list-text" :style="{color: skinColor.menuTitleColor}">{{title}}</text>
+	</view>
+</template>
+
+<script>
+	import { skinMixin } from '@/common/mixin/index.js'
+	export default {
+		mixins: [skinMixin],
+		props: {
+			title: {
+				type: String,
+				default: ''
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.bubble-item {
+		height: 75rpx;
+		align-items: flex-start;
+		justify-content: center;
+		padding-left: 60rpx;
+	}
+	.list-text {
+		font-size: 27rpx;
+	}
+</style>

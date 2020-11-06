@@ -1,0 +1,24 @@
+<template>
+	<view class="bar" :style="{'height': barHeight}"></view>
+</template>
+
+<script>
+	export default {
+		data () {
+			return {
+				barHeight: ''
+			}
+		},
+		created () {
+			uni.getSystemInfo({
+				success: (res) => {//根据状态栏高度, 进行导航栏顶部适配
+					this.barHeight = `${res.statusBarHeight + 4}px`;
+				}
+			})
+		}
+	}
+</script>
+
+<style>
+
+</style>

@@ -1,0 +1,121 @@
+<template>
+	<view class="bubble" v-if="isShow">
+		<view class="mask" ref="mask" @tap="hide"></view>
+		<view class="container" :style="{'top': barTop}">
+			<view class="popup" ref="popup" :style="{'background-color': skinColor.menuBgColor}">
+				<slot></slot>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const animation = weex.requireModule('animation');
+	import { skinMixin } from '@/common/mixin/index.js'
+	export default {
+		mixins: [skinMixin],
+		data () {
+			return {
+				barTop: '',
+				isShow: false,
+				anima: {
+					opac: 0.4,
+					duration: 300
+				}
+			}
+		},
+		created () {
+			this.init();
+		},
+		methods: {
+			init () {
+				uni.getSystemInfo({
+					success: (res) => {//根据状态栏高度, 进行导航栏顶部适配
+						this.barTop = `${res.statusBarHeight + 4}px`;
+					}
+				})
+			},
+			show () {
+				this.isShow = true;
+				this.$nextTick(() => {
+					animation.transition(this.$refs.mask, {
+					    styles: {
+							opacity: this.anima.opac
+					    },
+					    duration: this.anima.duration, //ms
+					    timingFunction: 'ease',
+					    needLayout:false,
+					    delay: 0 //ms
+					})
+					animation.transition(this.$refs.popup, {
+					    styles: {
+							transformOrigin: 'right right',
+							transform: 'scale(1)'
+					    },
+					    duration: this.anima.duration, //ms
+					    timingFunction: 'ease',
+					    needLayout:false,
+					    delay: 0 //ms
+					})
+				})
+			},
+			hide () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transformOrigin: 'right right',
+						transform: 'scale(0)'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					this.isShow = false;
+					this.$emit('cancel');
+				})
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.bubble {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.container {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+	}
+	.mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #000000;
+		opacity: 0;
+	}
+	.popup {
+		position: absolute;
+		top: 0;
+		right: 15rpx;
+		width: 300rpx;
+		transform: scale(0);
+		border-radius: 4.5rpx;
+	}
+</style>

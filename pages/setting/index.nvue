@@ -1,0 +1,118 @@
+<template>
+	<view class="setting" :style="{'background-color': skinColor.bgColor}">
+		<nav-bar title="阅读设置" :backColor="skinColor.iconColor" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor"></nav-bar>
+		<list>
+			<cell>
+				<view class="list" :style="{'border-bottom-color': skinColor.gapColor}">
+					<text class="list-title" :style="{'color': skinColor.titleColor}">阅读方式</text>
+					<view class="list-right">
+						<text
+						@tap="changePageMode(item.value)"
+						:style="{
+							'background-color': readMode.pageMode == item.value ? skinColor.activeBgColor : '',
+							'color': readMode.pageMode == item.value ? skinColor.activeColor : skinColor.titleColor
+						}"
+						class="lr-text" v-for="(item, index) in pages"
+						:key="index">{{item.title}}</text>
+					</view>
+				</view>
+			</cell>
+			<cell>
+				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
+					<text class="list-title" :style="{'color': skinColor.titleColor}">翻页动画</text>
+					<view class="list-right list-bottom">
+						<text
+						@tap="changeReadDuration(item.value)"
+						:style="{
+							'background-color': readMode.duration == item.value ? skinColor.activeBgColor : '',
+							'color': readMode.duration == item.value ? skinColor.activeColor : skinColor.titleColor
+						}"
+						class="lr-text" v-for="(item, index) in times"
+						:key="index">{{item.title}}</text>
+					</view>
+				</view>
+			</cell>
+		</list>
+	</view>
+</template>
+
+<script>
+	import { skinMixin } from '@/common/mixin/index.js'
+	import { mapGetters, mapMutations } from 'vuex'
+	export default {
+		mixins:[skinMixin],
+		data () {
+			return {
+				pages: [{
+					title: '点击翻页',
+					value: 'click'
+				},{
+					title: '左右滑动',
+					value: 'L2RTrans'
+				},{
+					title: '上下滑动',
+					value: 'U2DTrans'
+				}],
+				times: [{
+					title: '关闭',
+					value: 0
+				},{
+					title: '0.1s',
+					value: 100
+				},{
+					title: '0.2s',
+					value: 200
+				},{
+					title: '0.3s',
+					value: 300
+				},{
+					title: '0.4s',
+					value: 400
+				},{
+					title: '0.5s',
+					value: 500
+				},{
+					title: '0.6s',
+					value: 600
+				}]
+			}
+		},
+		computed: {
+			...mapGetters(['readMode'])
+		},
+		methods: {
+			...mapMutations(['change', 'changePageMode', 'changeReadDuration'])
+		}
+	}
+</script>
+
+<style scoped>
+	.list {
+		padding: 30rpx 30rpx;
+		border-bottom-width: 1px;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.list2 {
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: flex-start;
+	}
+	.list-title {
+		font-size: 32rpx;
+	}
+	.list-right {
+		flex-direction: row;
+		align-items: center;
+	}
+	.lr-text {
+		font-size: 26rpx;
+		border-radius: 10rpx;
+		padding: 10rpx 20rpx;
+	}
+	.list-bottom {
+		margin-top: 30rpx;
+		flex-wrap: wrap;
+	}
+</style>
