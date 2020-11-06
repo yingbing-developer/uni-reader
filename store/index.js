@@ -3,18 +3,19 @@ import Vuex from 'vuex'
 import { indexOf, suffix, dateFormat, removeSuffix, randomString } from '@/common/js/util.js'
 Vue.use(Vuex)
 const SKIN = 'UNI_READER_SKIN'
-const BOOKS = 'UNI_READER_BOOK'
-const COMIC = 'UNI_READER_COMIC'
-const PATH = 'UNI_READER_PATH'
-const READ = 'UNI_READER_READ'
-const MARK = 'UNI_READER_MARK'
+const BOOKS = 'UNI_READER_BOOK_LIST'
+const BOOKPATH = 'UNI_READER_BOOK_PATH'
+const BOOKREAD = 'UNI_READER_BOOK_READ'
+const BOOKMARK = 'UNI_READER_BOOK_MARK'
+const COMICPATH = 'UNI_READER_COMIC_PATH'
 const store = new Vuex.Store({
     state: {
 		skin: uni.getStorageSync(SKIN) || 'default', //皮肤
-		books: uni.getStorageSync(BOOKS) || [],//导入的书籍列表
-		read: uni.getStorageSync(READ) || {pageMode: 'L2RTrans', duration: 200, fontSize: 20, light: 1},//阅读模式包含字体大小，翻页方式和动画时间
-		path: uni.getStorageSync(PATH) || '',//上次访问的文件夹路径
-		bookmark: uni.getStorageSync(MARK) || []//书签
+		books: uni.getStorageSync(BOOKS) || [],//书籍列表(包括小说和漫画)
+		bookRead: uni.getStorageSync(BOOKREAD) || {pageMode: 'L2RTrans', duration: 200, fontSize: 20, light: 1},//小说阅读模式包含字体大小，翻页方式和动画时间
+		bookPath: uni.getStorageSync(BOOKPATH) || '',//上次访问的小说文件夹路径
+		bookmark: uni.getStorageSync(BOOKMARK) || [],//小说书签
+		comicPath: uni.getStorageSync(COMICPATH) || ''//上次访问的漫画文件夹路径
 	},
 	getters: {
 		//当前皮肤模式
@@ -73,11 +74,14 @@ const store = new Vuex.Store({
 		bookmarks (state) {
 			return state.bookmark;
 		},
-		pathHistory (state) {
-			return state.path;
+		bookPathHistory (state) {
+			return state.bookPath;
 		},
-		readMode (state) {
-			return state.read;
+		bookReadMode (state) {
+			return state.bookRead;
+		},
+		comicPathHistory (state) {
+			return state.comicPath;
 		}
 	},
     mutations: {
@@ -92,15 +96,16 @@ const store = new Vuex.Store({
 				let time = new Date().getTime();
 				state.books.push({
 					name: removeSuffix(books[i].name),
-					image: '/static/cover/cover_' + Math.floor(Math.random()*6 + 1) + '.png',
+					image: books.image ? books[i].image : '/static/cover/cover_' + Math.floor(Math.random()*6 + 1) + '.png',
 					creatime: time,
 					time: dateFormat(time).split(' ')[0],
 					path: books[i].path,
-					size: books[i].size,
 					length: 0,
 					record: 0,
 					lastReadTime: time,
-					isReaded: false
+					isReaded: false,
+					//书籍类型 默认小说story
+					type: books[i].type || 'story'
 				})
 			}
 			uni.setStorageSync(BOOKS, state.books);
@@ -114,9 +119,9 @@ const store = new Vuex.Store({
 			}
 		},
 		//清空指定类型的所有书籍
-		clearBooks (state, type) {
+		clearBooks (state, types) {
 			state.books = state.books.filter((item) => {
-				if ( item.isReaded != type ) {
+				if ( item.isReaded != types.isReaded && item.type != types.type ) {
 					return item;
 				}
 			})
@@ -146,32 +151,32 @@ const store = new Vuex.Store({
 			state.books[index].lastReadTime = new Date().getTime();
 			uni.setStorageSync(BOOKS, state.books);
 		},
-		//更新访问的文件夹路径
-		updatePath (state, path) {
-			state.path = path;
-			uni.setStorageSync(PATH, state.path);
+		//更新访问的小说文件夹路径
+		updateBookPath (state, path) {
+			state.bookPath = path;
+			uni.setStorageSync(BOOKPATH, state.bookPath);
 		},
-		//改变字体大小
-		changeFontSize (state, fontSize) {
-			state.read.fontSize = fontSize;
-			uni.setStorageSync(READ, state.read);
+		//改变小说阅读页字体大小
+		changeBookFontSize (state, fontSize) {
+			state.bookRead.fontSize = fontSize;
+			uni.setStorageSync(BOOKREAD, state.bookRead);
 		},
-		//改变翻页模式
-		changePageMode (state, scroll) {
-			state.read.pageMode = scroll;
-			uni.setStorageSync(READ, state.read);
+		//改变小说翻页模式
+		changeBookPageMode (state, scroll) {
+			state.bookRead.pageMode = scroll;
+			uni.setStorageSync(BOOKREAD, state.bookRead);
 		},
-		//改变翻页时间
-		changeReadDuration (state, duration) {
-			state.read.duration = duration;
-			uni.setStorageSync(READ, state.read);
+		//改变小说翻页时间
+		changeBookReadDuration (state, duration) {
+			state.bookRead.duration = duration;
+			uni.setStorageSync(BOOKREAD, state.bookRead);
 		},
-		//改变阅读页亮度
-		changeLight (state, light) {
-			state.read.light = light;
-			uni.setStorageSync(READ, state.read);
+		//改变小说阅读页亮度
+		changeBookLight (state, light) {
+			state.bookRead.light = light;
+			uni.setStorageSync(BOOKREAD, state.bookRead);
 		},
-		//保存书签
+		//保存小说书签
 		saveBookmark (state, mark) {
 			//检测此书签是否重复
 			let flag = state.bookmark.some((item) => {
@@ -179,7 +184,7 @@ const store = new Vuex.Store({
 			})
 			if ( !flag ) {
 				state.bookmark.push(mark);
-				uni.setStorageSync(MARK, state.bookmark);
+				uni.setStorageSync(BOOKMARK, state.bookmark);
 				uni.showToast({
 					icon: 'none',
 					title: '添加书签成功'
@@ -191,14 +196,21 @@ const store = new Vuex.Store({
 				})
 			}
 		},
-		//清空书签
+		//清空小说书签
 		clearBookmark (state, path) {
 			state.bookmark = state.bookmark.filter((item) => {
 				if ( item.path != path ) {
 					return item
 				}
 			});
-			uni.setStorageSync(MARK, state.bookmark);
+			uni.setStorageSync(BOOKMARK, state.bookmark);
+		},
+		updateComicPath (state, path) {
+			state.comicPath = path;			uni.setStorageSync(COMICPATH, state.comicPath);
+		},
+		clearComicPath (state) {
+			state.comicPath = '';
+			uni.setStorageSync(COMICPATH, state.comicPath);
 		}
 	},
     actions: {}

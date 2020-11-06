@@ -10,7 +10,7 @@
 		
 		<!-- 文本内容区域 -->
 		<view class="pageBox">
-			<swiper :disable-touch="readMode.pageMode == 'click'" :vertical="readMode.pageMode == 'U2DTrans'" :style="{'height': swiperHeight + 'px'}" :current="page" :duration="duration" @change="changePage">
+			<swiper :disable-touch="bookReadMode.pageMode == 'click'" :vertical="bookReadMode.pageMode == 'U2DTrans'" :style="{'height': swiperHeight + 'px'}" :current="page" :duration="duration" @change="changePage">
 				<swiper-item class="pageItem" v-for="(item, index) in pages" :key="index">
 					<page
 					ref="page"
@@ -29,13 +29,13 @@
 		</view>
 		
 		<!-- 触摸区域 -->
-		<view class="touch-box touch-prev" @tap="pageClick(0)" v-if="readMode.pageMode == 'click'">
+		<view class="touch-box touch-prev" @tap="pageClick(0)" v-if="bookReadMode.pageMode == 'click'">
 			上一页
 		</view>
 		<view class="touch-box touch-menu" @tap="openSettingNvue">
 			菜单
 		</view>
-		<view class="touch-box touch-next" @tap="pageClick(pages.length - 1)" v-if="readMode.pageMode == 'click'">
+		<view class="touch-box touch-next" @tap="pageClick(pages.length - 1)" v-if="bookReadMode.pageMode == 'click'">
 			下一页
 		</view>
 	</view>
@@ -75,7 +75,7 @@
 			}
 		},
 		computed: {
-			...mapGetters(['readMode', 'bookList']),
+			...mapGetters(['bookReadMode', 'bookList']),
 			//书籍信息
 			bookInfo () {
 				const pages = getCurrentPages();
@@ -92,10 +92,10 @@
 				return this.bookInfo.path;
 			},
 			fontSize () {
-				return this.readMode.fontSize;
+				return this.bookReadMode.fontSize;
 			},
 			readDuration () {
-				return this.readMode.duration;
+				return this.bookReadMode.duration;
 			},
 			progress () {
 				if ( this.bookInfo.record == 0 ) {
@@ -105,7 +105,7 @@
 				}
 			},
 			light () {
-				return (100 - ((1 - this.readMode.light) * 50)).toFixed(2);
+				return (100 - ((1 - this.bookReadMode.light) * 50)).toFixed(2);
 			}
 		},
 		created () {
@@ -130,44 +130,44 @@
 			getContent () {
 				
 				//获取内容 正式用
-				let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
-				let readTxt = new ReadTxt();
-				this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
-				plus.nativeUI.closeWaiting();
-				//更新文本总长度
-				this.updateBookLength({
-					path: this.path,
-					length: this.bookContent.length
-				})
-				//获取章节目录
-				this.getCatalog();
-				//初始化页面
-				this.initPage();
+				// let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
+				// let readTxt = new ReadTxt();
+				// this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
+				// plus.nativeUI.closeWaiting();
+				// //更新文本总长度
+				// this.updateBookLength({
+				// 	path: this.path,
+				// 	length: this.bookContent.length
+				// })
+				// //获取章节目录
+				// this.getCatalog();
+				// //初始化页面
+				// this.initPage();
 				
 				// 获取内容 调试用
-				// plus.io.resolveLocalFileSystemURL('file://' + this.path, ( entry ) => {
-				// 	entry.file( ( file ) => {
-				// 		let reader = new plus.io.FileReader();
-				// 		reader.onloadend = ( e ) => {
-				// 			plus.nativeUI.closeWaiting();
-				// 			this.bookContent = e.target.result;
-				// 			//更新文本总长度
-				// 			this.updateBookLength({
-				// 				path: this.path,
-				// 				length: this.bookContent.length
-				// 			})
-				// 			//获取章节目录
-				// 			this.getCatalog();
-				// 			//初始化页面
-				// 			this.initPage();
-				// 		};
-				// 		reader.readAsText( file, 'gb2312' );
-				// 	}, ( fail ) => {
-				// 		console.log("Request file system failed: " + fail.message);
-				// 	});
-				// }, ( fail ) => {
-				// 	console.log( "Request file system failed: " + fail.message );
-				// });
+				plus.io.resolveLocalFileSystemURL('file://' + this.path, ( entry ) => {
+					entry.file( ( file ) => {
+						let reader = new plus.io.FileReader();
+						reader.onloadend = ( e ) => {
+							plus.nativeUI.closeWaiting();
+							this.bookContent = e.target.result;
+							//更新文本总长度
+							this.updateBookLength({
+								path: this.path,
+								length: this.bookContent.length
+							})
+							//获取章节目录
+							this.getCatalog();
+							//初始化页面
+							this.initPage();
+						};
+						reader.readAsText( file, 'gb2312' );
+					}, ( fail ) => {
+						console.log("Request file system failed: " + fail.message);
+					});
+				}, ( fail ) => {
+					console.log( "Request file system failed: " + fail.message );
+				});
 			},
 			//获取章节目录
 			getCatalog () {

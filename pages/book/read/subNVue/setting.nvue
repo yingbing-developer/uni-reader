@@ -72,7 +72,7 @@
 						<view class="font-btn actived" @tap="downFontSize">
 							<c-icon name="font-down" color="#8A8A8A"></c-icon>
 						</view>
-						<text class="font-text">{{readMode.fontSize}}</text>
+						<text class="font-text">{{bookReadMode.fontSize}}</text>
 						<view class="font-btn actived" @tap="upFontSize">
 							<c-icon name="font-up" color="#8A8A8A"></c-icon>
 						</view>
@@ -144,7 +144,7 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'readMode', 'bookmarks']),
+			...mapGetters(['bookList', 'bookReadMode', 'bookmarks']),
 			bookInfo () {
 				return this.bookList[indexOf(this.bookList, this.path, 'path')];
 			},
@@ -152,7 +152,7 @@
 				return this.bookInfo.pageIndex
 			},
 			light () {
-				return parseFloat(this.readMode.light) * 100;
+				return parseFloat(this.bookReadMode.light) * 100;
 			},
 			progress () {
 				if ( this.bookInfo.record == 0 ) {
@@ -219,7 +219,7 @@
 			this.lightPercent = this.light;
 		},
 		methods: {
-			...mapMutations(['changeFontSize', 'changeLight', 'updateBookRecord', 'saveBookmark', 'clearBookmark']),
+			...mapMutations(['changeBookFontSize', 'changeBookLight', 'updateBookRecord', 'saveBookmark', 'clearBookmark']),
 			show () {
 				uni.$emit('setting-isShow', {
 					show: true
@@ -272,17 +272,17 @@
 			},
 			//增大字体
 			upFontSize () {
-				if ( this.readMode.fontSize >= 40 ) {
+				if ( this.bookReadMode.fontSize >= 40 ) {
 					return;
 				}
-				this.changeFontSize(this.readMode.fontSize + 2);
+				this.changeBookFontSize(this.bookReadMode.fontSize + 2);
 			},
 			//减小字体
 			downFontSize () {
-				if ( this.readMode.fontSize <= 14 ) {
+				if ( this.bookReadMode.fontSize <= 14 ) {
 					return;
 				}
-				this.changeFontSize(this.readMode.fontSize - 2);
+				this.changeBookFontSize(this.bookReadMode.fontSize - 2);
 			},
 			//上个章节
 			prevChapter () {
@@ -413,7 +413,7 @@
 				this.lightPercent = val;
 			},
 			lightPercent (val) {
-				this.changeLight((val / 100).toFixed(2));
+				this.changeBookLight((val / 100).toFixed(2));
 			}
 		},
 		components: {

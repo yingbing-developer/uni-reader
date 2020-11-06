@@ -7,9 +7,47 @@
 				"disableScroll": true // 不嵌套 scroller
 			}
 		},
-		//本地搜索页
+		//小说添加页
 		{
-			"path": "pages/search/index",
+			"path": "pages/book/search/index",
+			"style": {
+				"navigationStyle": "custom",
+				"disableScroll": true // 不嵌套 scroller
+			}
+		},
+		//小说阅读页
+		{
+			"path": "pages/book/read/index",
+			"style": {
+				"navigationStyle": "custom",
+				"disableScroll": "true",
+				"app-plus": {
+				    "subNVues":[{
+				        "id": "catalog", // 唯一标识
+				        "path": "pages/book/read/subNVue/catalog", // 页面路径
+				        "type": "popup",  //这里不需要
+				        "style": {
+							"mask": "rgba(0,0,0,0.3)",
+				            "width": "750upx",
+				            "height": "100%",
+							"background": "transparent"
+				        }
+				    },{
+				        "id": "setting", // 唯一标识
+				        "path": "pages/book/read/subNVue/setting", // 页面路径
+				        "style": {
+							"mask": "rgba(0,0,0,0)",
+				            "width": "750upx",
+				            "height": "100%",
+							"background": "transparent"
+				        }
+				    }]
+				}
+			}
+		},
+		//漫画添加页
+		{
+			"path": "pages/comic/search/index",
 			"style": {
 				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
@@ -21,36 +59,6 @@
 			"style": {
 				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
-			}
-		},
-		//阅读页
-		{
-			"path": "pages/read/index",
-			"style": {
-				"navigationStyle": "custom",
-				"disableScroll": "true",
-				"app-plus": {
-				    "subNVues":[{
-				        "id": "catalog", // 唯一标识
-				        "path": "pages/read/subNVue/catalog", // 页面路径
-				        "type": "popup",  //这里不需要
-				        "style": {
-							"mask": "rgba(0,0,0,0.3)",
-				            "width": "750upx",
-				            "height": "100%",
-							"background": "transparent"
-				        }
-				    },{
-				        "id": "setting", // 唯一标识
-				        "path": "pages/read/subNVue/setting", // 页面路径
-				        "style": {
-							"mask": "rgba(0,0,0,0)",
-				            "width": "750upx",
-				            "height": "100%",
-							"background": "transparent"
-				        }
-				    }]
-				}
 			}
 		},
 		//关于软件

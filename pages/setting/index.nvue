@@ -7,10 +7,10 @@
 					<text class="list-title" :style="{'color': skinColor.titleColor}">阅读方式</text>
 					<view class="list-right">
 						<text
-						@tap="changePageMode(item.value)"
+						@tap="changeBookPageMode(item.value)"
 						:style="{
-							'background-color': readMode.pageMode == item.value ? skinColor.activeBgColor : '',
-							'color': readMode.pageMode == item.value ? skinColor.activeColor : skinColor.titleColor
+							'background-color': bookReadMode.pageMode == item.value ? skinColor.activeBgColor : '',
+							'color': bookReadMode.pageMode == item.value ? skinColor.activeColor : skinColor.titleColor
 						}"
 						class="lr-text" v-for="(item, index) in pages"
 						:key="index">{{item.title}}</text>
@@ -22,10 +22,10 @@
 					<text class="list-title" :style="{'color': skinColor.titleColor}">翻页动画</text>
 					<view class="list-right list-bottom">
 						<text
-						@tap="changeReadDuration(item.value)"
+						@tap="changeBookReadDuration(item.value)"
 						:style="{
-							'background-color': readMode.duration == item.value ? skinColor.activeBgColor : '',
-							'color': readMode.duration == item.value ? skinColor.activeColor : skinColor.titleColor
+							'background-color': bookReadMode.duration == item.value ? skinColor.activeBgColor : '',
+							'color': bookReadMode.duration == item.value ? skinColor.activeColor : skinColor.titleColor
 						}"
 						class="lr-text" v-for="(item, index) in times"
 						:key="index">{{item.title}}</text>
@@ -78,10 +78,10 @@
 			}
 		},
 		computed: {
-			...mapGetters(['readMode'])
+			...mapGetters(['bookReadMode'])
 		},
 		methods: {
-			...mapMutations(['change', 'changePageMode', 'changeReadDuration'])
+			...mapMutations(['changeBookPageMode', 'changeBookReadDuration'])
 		}
 	}
 </script>

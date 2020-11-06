@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 public class GetFileList {
 
 
-    public String getFiles(String path) throws IOException, JSONException {
+    public String getFiles(String path, Boolean isGetFile) throws IOException, JSONException {
         File file = new File(path);
         File[] files = file.listFiles();
         JSONArray folderJsonArray = new JSONArray();
@@ -36,7 +36,7 @@ public class GetFileList {
                     jsonObject.put("createTime",value.lastModified());
                     folderJsonArray.put(jsonObject);
                 }
-                if (value.isFile()) {
+                if (value.isFile() && isGetFile) {
                     if ("txt".equals(this.getFileType(value))) {
                         jsonObject.put("name", value.getName());
                         jsonObject.put("path", value.getPath());

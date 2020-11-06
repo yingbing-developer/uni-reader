@@ -1,9 +1,6 @@
 <template>
 	<view class="search" :style="{'background-color': skinColor.bgColor}">
 		<nav-bar title="添加书籍" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
-			<!-- <view slot="right" @tap="showFilterBox">
-				<c-icon name="filter" size="37.5" :color="skinColor.iconColor"></c-icon>
-			</view> -->
 			<view class="nav-right" slot="right">
 				<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
 				<view @tap="$refs.bubble.show()">
@@ -110,7 +107,7 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'pathHistory']),
+			...mapGetters(['bookList', 'bookPathHistory']),
 			listSync () {
 				let arr = this.list.filter((item) => {
 					if ( item.name.indexOf(this.nameFilter) > -1 ) {
@@ -128,12 +125,12 @@
 				})
 			} else {
 				setTimeout(() => {
-					this.getFileSystem(plus.android.newObject("java.io.File", this.pathHistory));
+					this.getFileSystem(plus.android.newObject("java.io.File", this.bookPathHistory));
 				}, 300)
 			}
 		},
 		methods: {
-			...mapMutations(['addBooks', 'deleteBook', 'updatePath']),
+			...mapMutations(['addBooks', 'deleteBook', 'updateBookPath']),
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},
@@ -201,7 +198,11 @@
 					//根据文件路径判断文件有没有被导入过
 					let index = indexOf(this.list, this.checkes[i], 'path');
 					if ( this.isLead(this.list[index].path) == -1 ) {
-						books.push(this.list[index]);
+						books.push({
+							name: this.list[index].name,
+							type: 'story',
+							path: this.list[index].path
+						});
 					} else {
 						err++;
 					}
@@ -455,50 +456,50 @@
 			//根据文件对象获取文件列表
 			getFileSystem (ff) {
 				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
-				this.updatePath(plus.android.invoke(fd, 'getPath'));
+				this.updateBookPath(plus.android.invoke(fd, 'getPath'));
 				
 				//获取文件列表 正式用
-				let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-				let getFile = new GetFileList();
-				let str = getFile.getFiles(plus.android.invoke(fd, 'getPath'));
-				let list = str.split('::');
-				let folder = JSON.parse(JSON.parse(JSON.stringify(list[0])));
-				let file = JSON.parse(JSON.parse(JSON.stringify(list[1])));
+				// let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+				// let getFile = new GetFileList();
+				// let str = getFile.getFiles(plus.android.invoke(fd, 'getPath'), true);
+				// let list = str.split('::');
+				// let folder = JSON.parse(JSON.parse(JSON.stringify(list[0])));
+				// let file = JSON.parse(JSON.parse(JSON.stringify(list[1])));
 				
 				//获取文件列表 调试用
-				// let list = plus.android.invoke(fd, "listFiles");
-				// let len = list ? list.length : 0;
-				// let file = [];
-				// let folder = [];
-				// for(let i=0; i<len; i++){
-				//     // 过滤隐藏文件  
-				//     if ( !plus.android.invoke(list[i],"isHidden") ){
-				// 		let name = plus.android.invoke(list[i], 'getName');
-				// 		if ( plus.android.invoke(list[i],"isDirectory") ){
-				// 			folder.push({
-				// 				name: name,
-				// 				type: 'folder',
-				// 				size: '0B',
-				// 				time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 				createTime: plus.android.invoke(list[i],"lastModified"),
-				// 				path: plus.android.invoke(list[i],"getPath")
-				// 			})
-				// 		    // 文件夹
-				// 		} else{
-				// 			//是否是txt文件
-				// 		    if ( plus.android.invoke(name, "endsWith", '.txt') ) {
-				// 		    	file.push({
-				// 					name: name,
-				// 					type: suffix(name),
-				// 					size: this.readFileSize(list[i]),
-				// 					time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 					createTime: plus.android.invoke(list[i],"lastModified"),
-				// 					path: plus.android.invoke(list[i],"getPath")
-				// 				})
-				// 		    }
-				// 		}  
-				//     }
-				// }
+				let list = plus.android.invoke(fd, "listFiles");
+				let len = list ? list.length : 0;
+				let file = [];
+				let folder = [];
+				for(let i=0; i<len; i++){
+				    // 过滤隐藏文件  
+				    if ( !plus.android.invoke(list[i],"isHidden") ){
+						let name = plus.android.invoke(list[i], 'getName');
+						if ( plus.android.invoke(list[i],"isDirectory") ){
+							folder.push({
+								name: name,
+								type: 'folder',
+								size: '0B',
+								time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+								createTime: plus.android.invoke(list[i],"lastModified"),
+								path: plus.android.invoke(list[i],"getPath")
+							})
+						    // 文件夹
+						} else{
+							//是否是txt文件
+						    if ( plus.android.invoke(name, "endsWith", '.txt') ) {
+						    	file.push({
+									name: name,
+									type: suffix(name),
+									size: this.readFileSize(list[i]),
+									time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+									createTime: plus.android.invoke(list[i],"lastModified"),
+									path: plus.android.invoke(list[i],"getPath")
+								})
+						    }
+						}  
+				    }
+				}
 				
 				
 				file.sort((a, b) => {
@@ -513,24 +514,24 @@
 			scrollTop () {
 				dom.scrollToElement(this.$refs.listTop, {animated: false});
 			},
-			// readFileSize (file) {
-			//     let fileSize = plus.android.newObject("java.io.FileInputStream", file);
-			// 	let available = plus.android.invoke(fileSize, 'available');
-			// 	let size = available != 'null' ? available : 0;
-			// 	let fileSizeString;
-			// 	if(size == 0){
-			// 		fileSizeString = "0B";
-			// 	}else if(size < 1024){
-			// 		fileSizeString = size + "B";
-			// 	}else if(size < 1048576){
-			// 		fileSizeString = (size/1024).toFixed(2) + "KB";
-			// 	}else if (size < 1073741824){
-			// 		fileSizeString = (size/1048576).toFixed(2) + "MB";
-			// 	}else{
-			// 		fileSizeString = (size/1073741824).toFixed(2) + "GB";
-			// 	}
-			// 	return fileSizeString;
-			// },
+			readFileSize (file) {
+			    let fileSize = plus.android.newObject("java.io.FileInputStream", file);
+				let available = plus.android.invoke(fileSize, 'available');
+				let size = available != 'null' ? available : 0;
+				let fileSizeString;
+				if(size == 0){
+					fileSizeString = "0B";
+				}else if(size < 1024){
+					fileSizeString = size + "B";
+				}else if(size < 1048576){
+					fileSizeString = (size/1024).toFixed(2) + "KB";
+				}else if (size < 1073741824){
+					fileSizeString = (size/1048576).toFixed(2) + "MB";
+				}else{
+					fileSizeString = (size/1073741824).toFixed(2) + "GB";
+				}
+				return fileSizeString;
+			},
 			//根据文件路径判断当前文件是否已经导入,返回下标
 			isLead (path) {
 				return indexOf(this.bookList, path, 'path');

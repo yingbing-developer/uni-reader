@@ -5,7 +5,7 @@
 				<c-icon name="menu" size="37.5" :color="skinColor.iconColor"></c-icon>
 			</view>
 			<view class="nav-right" slot="right">
-				<view @tap="routePush('/pages/search/index')">
+				<view @tap="searchBook">
 					<c-icon name="search" size="37.5" :color="skinColor.iconColor"></c-icon>
 				</view>
 				<view @tap="opearteFilter">
@@ -21,7 +21,7 @@
 			<view class="tab" @tap="changeTab(index)" v-for="(item, index) in tabs" :key="index">
 				<text class="tab-title" :style="{'color': skinColor.iconColor}">{{item.title}}</text>
 			</view>
-			<view class="tab-line" :style="{'background-color': skinColor.bgColor, transform: `translateX(${currentTab * 375}rpx)`}"></view>
+			<view class="tab-line" :style="{'background-color': skinColor.iconColor, transform: `translateX(${currentTab * 375}rpx)`}"></view>
 		</view>
 		<list-scroll :column-count="3" @scroll="scroll" :list="list" :scrollable="scrollable" :line-height="305">
 			<no-data slot="fixed" v-if="list.length <= 0" :title="noDataTitle"></no-data>
@@ -118,15 +118,15 @@
 			...mapGetters(['bookList']),
 			noDataTitle () {
 				if ( this.currentTab == 0 ) {
-					return this.tabs[this.currentTab].isReaded ? '没有读完的书籍哦！' : '没有正在阅读的书籍哦！';
+					return this.tabs[this.currentTab].isReaded ? '没有读完的小说哦！' : '没有正在阅读的小说哦！';
 				} else {
 					return this.tabs[this.currentTab].isReaded ? '没有看完的漫画哦！' : '没有正在看的漫画哦！';
 				}
 			},
 			list () {
-				let list = this.currentTab == 0 ? this.bookList : [];
-				let arr = list.filter((item) => {
-					if ( item.name.indexOf(this.nameFilter) > -1 && item.isReaded == this.tabs[this.currentTab].isReaded ) {
+				let type = this.currentTab == 0 ? 'story' : 'comic';
+				let arr = this.bookList.filter((item) => {
+					if ( item.name.indexOf(this.nameFilter) > -1 && item.isReaded == this.tabs[this.currentTab].isReaded && item.type == type ) {
 						return item;
 					}
 				})
@@ -213,7 +213,14 @@
 					return;
 				}
 				let index = indexOf(this.bookList, path, 'path');
-				this.routePush('/pages/read/index?index=' + index);
+				this.routePush('/pages/book/read/index?index=' + index);
+			},
+			searchBook () {
+				if ( this.currentTab == 0 ) {
+					this.routePush('/pages/book/search/index');
+				} else {
+					this.routePush('/pages/comic/search/index');
+				}
 			},
 			routePush (url) {
 				//路由防抖
@@ -272,7 +279,7 @@
 		left: 0;
 		height: 5rpx;
 		width: 375rpx;
-		transition: transform .3s;
+		transition: transform 0.3s;
 	}
 	.content {
 		flex: 1;

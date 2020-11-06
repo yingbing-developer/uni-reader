@@ -4,7 +4,7 @@
 			<view class="search-icon">
 				<c-icon name="search" size="37.5" color="#DEDEDD"></c-icon>
 			</view>
-			<input :auto-focus="false" :adjust-position="false" confirm-type="搜索" @confirm="confirm" class="search-input" type="text" v-model="filterContent" :style="{color: skinColor.titleColor}" />
+			<input :adjust-position="false" confirm-type="搜索" @confirm="confirm" class="search-input" type="text" v-model="filterContent" :style="{color: skinColor.titleColor}" />
 			<view class="clear-icon" v-if="filterContent.length > 0" @tap="clearFilterContent">
 				<c-icon name="clear-fill" size="37.5" color="#DEDEDD"></c-icon>
 			</view>
