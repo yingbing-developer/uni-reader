@@ -45,7 +45,6 @@
 	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
 	import { indexOf } from '@/common/js/util.js'
-	import NavBar from '@/components/nav-bar/nav-bar.nvue'
 	import GapBar from '@/components/nav-bar/nav-bar.nvue'
 	import Page from '@/components/page/page.vue'
 	//文本截取长度
@@ -143,8 +142,17 @@
 				// this.getCatalog();
 				// //初始化页面
 				// this.initPage();
+				// readTxt = '';
 				
 				// 获取内容 调试用
+				// let file = plus.android.newObject("java.io.File", 'file://' + this.path);
+				// let stream = plus.android.newObject("java.io.FileInputStream", file);
+				// let reader = plus.android.newObject("java.io.InputStreamReader", stream, 'GBK');
+				// let bufferedReader = plus.android.newObject("java.io.bufferedReader", reader);
+				// let lineTxt = null;
+				// lineTxt = plus.android.invoke(bufferedReader, 'readLine');
+				// plus.android.invoke(reader, 'close');
+				// plus.nativeUI.closeWaiting();
 				plus.io.resolveLocalFileSystemURL('file://' + this.path, ( entry ) => {
 					entry.file( ( file ) => {
 						let reader = new plus.io.FileReader();
@@ -449,7 +457,6 @@
 		},
 		components: {
 			GapBar,
-			NavBar,
 			Page
 		}
 	}

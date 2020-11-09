@@ -1,6 +1,6 @@
 <template>
 	<view class="nav-bar" :style="{'background-color': bgColor}">
-		<view class="bar" :style="{'height': barHeight}"></view>
+		<view class="bar" :style="{'height': barHeight}" v-if="gapShow"></view>
 		<view class="nav">
 			<view class="left">
 				<view class="back" v-if="backShow" @tap="back">
@@ -44,6 +44,10 @@
 			titleColor: {
 				type: String,
 				default: '#FFFFFF'
+			},
+			gapShow: {
+				type: Boolean,
+				default: true
 			}
 		},
 		data () {

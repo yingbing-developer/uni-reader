@@ -51,7 +51,8 @@
 					<view class="book-bottom">
 						<text class="book-name">{{item.name}}</text>
 						<view class="b-bottom">
-							<text class="book-progress">已阅读至 {{ item | progress }}%</text>
+							<text class="book-progress" v-if="item.type == 'story'">已阅读至 {{ item | progress }}%</text>
+							<text class="book-progress" v-if="item.type == 'comic'">已阅读至 {{ item | comicProgress }}</text>
 						</view>
 					</view>
 				</view>
@@ -112,6 +113,10 @@
 				} else {
 					return ((value.record / value.length) * 100).toFixed(2);
 				}
+			},
+			comicProgress (value) {
+				let arr = value.record.split('-');
+				return (parseInt(arr[0]) + 1) + '话 ' + (parseInt(arr[1]) + 1) + 'P'
 			}
 		},
 		computed: {
@@ -162,8 +167,12 @@
 					content: '是否清空当前所有书籍？',
 					success: (res) => {
 						if ( res.confirm ) {
-							let type = this.current == 0 ? false : true;
-							this.clearBooks(type);
+							let type = this.currentTab == 0 ? 'story' : 'comic';
+							let isReaded = this.tabs[this.currentTab].isReaded;
+							this.clearBooks({
+								type: type,
+								isReaded: isReaded
+							});
 						}
 					}
 				})
@@ -213,7 +222,17 @@
 					return;
 				}
 				let index = indexOf(this.bookList, path, 'path');
-				this.routePush('/pages/book/read/index?index=' + index);
+				if ( this.bookList[index].type == 'story' ) {
+					this.routePush('/pages/book/read/index?index=' + index);
+				} else if ( this.bookList[index].type == 'comic' ) {
+					this.routePush('/pages/comic/read/index?index=' + index);
+				} else {
+					uni.showToast({
+						title: '无法识别的书籍类型',
+						icon: 'none'
+					})
+					this.deleteBook(path);
+				}
 			},
 			searchBook () {
 				if ( this.currentTab == 0 ) {
@@ -336,6 +355,8 @@
 	.book-progress {
 		font-size: 22rpx;
 		color: #EEEEEE;
+		lines:1;
+		text-overflow:ellipsis;
 	}
 	.nav-left {
 		margin-right: 60rpx;

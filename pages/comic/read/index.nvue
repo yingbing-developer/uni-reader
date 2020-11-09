@@ -1,0 +1,154 @@
+<template>
+	<view class="read" :style="{'background-color': skinColor.bgColor}">
+		<list>
+			<cell v-for="(item, index) in comicSync" :key="index">
+				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}">
+					<image @tap="preview(item.path)" lazy-load :style="{'height': item.height}" class="comic-image" :src="item.path" mode="widthFix"></image>
+				</view>
+			</cell>
+		</list>
+		<view class="mask" :style="{opacity: skinColor.imgMask}"></view>
+		<view class="touch-box">
+			<view class="menu" @tap="showSetting">
+				<text class="menu-text">菜单</text>
+			</view>
+		</view>
+		<comic-setting ref="comicSetting" :path="comicInfo.path"></comic-setting>
+	</view>
+</template>
+
+<script>
+	import { mapGetters, mapMutations } from 'vuex'
+	import { skinMixin } from '@/common/mixin/index.js'
+	import { indexOf } from '@/common/js/util.js'
+	import ComicSetting from '../setting/index.nvue'
+	export default {
+		mixins: [skinMixin],
+		computed: {
+			...mapGetters(['bookList']),
+			//书籍信息
+			comicInfo () {
+				const pages = getCurrentPages();
+				const page = pages[pages.length - 1];
+				let index =  page.options.index;
+				return this.bookList[index];
+			},
+			//章节 第几话
+			chapter () {
+				return this.comicInfo.record.split('-')[0];
+			},
+			//章节第几张图
+			pNum () {
+				return this.comicInfo.record.split('-')[1];
+			}
+		},
+		data () {
+			return {
+				comic: [1,2,3,4,5,6,5],
+				comicSync: []
+			}
+		},
+		onReady () {
+			plus.navigator.setFullscreen(true);
+			uni.showLoading({
+				title: '读取中..'
+			})
+			setTimeout(() => {
+				this.getComicSync();
+			}, 300)
+		},
+		methods: {
+			async getComicSync () {
+				let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
+				let arr = [];
+				let list = plus.android.invoke(fd, "listFiles");
+				if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
+					let childList = plus.android.invoke(list[this.chapter], "listFiles")
+					for ( let i in childList ) {
+						let path = plus.android.invoke(childList[i], "getPath");
+						arr.push({
+							path: path,
+							height: await this.countImageHeight(path) + 'rpx'
+						})
+					}
+				} else {
+					let path = plus.android.invoke(list[this.chapter], "getPath");
+					arr.push({
+						path: path,
+						height: await this.countImageHeight(path) + 'rpx'
+					})
+				}
+				this.comicSync = arr;
+				uni.hideLoading();
+			},
+			countImageHeight (imagePath) {
+				return new Promise((resolve, reject) => {
+					uni.getImageInfo({
+						src: 'file://' + imagePath,
+						success: (image) => {
+							let power = 750 / image.width;
+							resolve(image.height * power);
+						}
+					});
+				})
+			},
+			preview (path) {
+				uni.previewImage({
+					current: 0,
+					urls: ['file://' + path]
+				});
+			},
+			showSetting () {
+				this.$refs.comicSetting.show();
+			}
+		},
+		beforeDestroy () {
+			plus.navigator.setFullscreen(false);
+		},
+		components: {
+			ComicSetting
+		}
+	}
+</script>
+
+<style scoped>
+	.comic-box {
+		width: 750rpx;
+		border-bottom-width: 1px;
+	}
+	.comic-image {
+		width: 750rpx;
+	}
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #000000;
+	}
+	.touch-box {
+		justify-content: center;
+		align-items: center;
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.menu {
+		width: 200rpx;
+		height: 200rpx;
+		border-style: dashed;
+		border-color: #FFFFFF;
+		border-width: 5rpx;
+		border-radius: 10rpx;
+		align-items: center;
+		justify-content: center;
+		background-color: rgba(255,255,255,0.5);
+		opacity: 0;
+	}
+	.menu-text {
+		font-size: 40rpx;
+	}
+</style>

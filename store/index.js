@@ -96,12 +96,12 @@ const store = new Vuex.Store({
 				let time = new Date().getTime();
 				state.books.push({
 					name: removeSuffix(books[i].name),
-					image: books.image ? books[i].image : '/static/cover/cover_' + Math.floor(Math.random()*6 + 1) + '.png',
+					image: books[i].image ? books[i].image : '/static/cover/cover_' + Math.floor(Math.random()*6 + 1) + '.png',
 					creatime: time,
 					time: dateFormat(time).split(' ')[0],
 					path: books[i].path,
-					length: 0,
-					record: 0,
+					length: books[i].length || 0,
+					record: books[i].type == 'story' ? 0 : '0-0',
 					lastReadTime: time,
 					isReaded: false,
 					//书籍类型 默认小说story

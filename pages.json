@@ -53,6 +53,14 @@
 				"disableScroll": true // 不嵌套 scroller
 			}
 		},
+		//漫画阅读页
+		{
+			"path": "pages/comic/read/index",
+			"style": {
+				"navigationStyle": "custom",
+				"disableScroll": true // 不嵌套 scroller
+			}
+		},
 		//设置页
 		{
 			"path": "pages/setting/index",

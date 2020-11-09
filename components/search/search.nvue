@@ -28,9 +28,11 @@
 			//清空过滤内容
 			clearFilterContent () {
 				this.filterContent = '';
+				uni.hideKeyboard();
 			},
 			confirm () {
-				this.$emit('confirm', this.filterContent)
+				this.$emit('confirm', this.filterContent);
+				uni.hideKeyboard();
 			}
 		},
 		watch: {

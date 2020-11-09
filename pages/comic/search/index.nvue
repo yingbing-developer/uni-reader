@@ -2,16 +2,16 @@
 	<view class="search" :style="{'background-color': skinColor.bgColor}">
 		<nav-bar title="添加漫画" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
 			<view class="nav-right" slot="right">
-				<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
+				<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{comicSync.length}})</text>
 				<view @tap="$refs.bubble.show()">
 					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
 				</view>
 			</view>
 		</nav-bar>
-		<c-search @confirm="setNameFilter"></c-search>
+		<c-search @confirm="setNameFilter" v-if="comicPathHistory"></c-search>
 		
 		<!-- 资源路径选择列表 -->
-		<list-scroll @scroll="scroll" :row-count="20" :line-height="108" :list="listSync" v-if="!comicPathHistory">
+		<list-scroll @scroll="scroll" :row-count="20" :line-height="108" :list="list" v-if="!comicPathHistory">
 			<!-- 返回项 -->
 			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
 				<view class="list-icon">
@@ -21,21 +21,18 @@
 					<text class="list-title" :style="{'color': skinColor.titleColor}">..</text>
 				</view>
 			</view>
-			<!-- 文件列表 -->
+			<!-- 文件夹列表 -->
 			<template v-slot="{item}">
-				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
-					<view class="list-icon" @tap.stop="check(item.path)">
-						<c-icon name="folder" size="75" color="#FFCA28" v-if="item.type == 'folder'"></c-icon>
-						<c-icon name="txt" size="60" color="#FFCA28" v-else></c-icon>
+				<view @tap="clickFolder(item.path)" class="list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
+					<view class="list-icon">
+						<c-icon name="folder" size="75" color="#FFCA28"></c-icon>
 					</view>
 					<view class="list-right">
 						<view class="lr-top">
 							<text class="list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-							<text v-if="isLead(item.path) > -1" class="lt-right list-text" :style="{'color': skinColor.textColor}">已导入</text>
 						</view>
 						<view class="lr-bottom">
 							<text class="list-text" :style="{'color': skinColor.textColor}">{{item.time}}</text>
-							<text class="list-text" :style="{'color': skinColor.textColor}" v-if="item.type != 'folder'">{{item.size}}</text>
 						</view>
 					</view>
 				</view>
@@ -43,34 +40,44 @@
 		</list-scroll>
 		
 		<!-- 漫画列表 -->
-		<list-scroll @scroll="scroll" :row-count="20" :line-height="108" :list="listSync" v-else>
+		<list-scroll @scroll="scroll" :row-count="5" :line-height="200" :list="comicSync" v-else>
 			<!-- 列表顶部 用于返回顶部 -->
 			<view slot="listTop" ref="listTop"></view>
-			
-			<!-- 文件列表 -->
 			<template v-slot="{item}">
-				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
-					<view class="list-icon" @tap.stop="check(item.path)">
-						<c-icon name="folder" size="75" color="#FFCA28" v-if="item.type == 'folder'"></c-icon>
-						<c-icon name="txt" size="60" color="#FFCA28" v-else></c-icon>
+				<view @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
+					<view class="comic-list-icon" @tap.stop="check(item.path)">
+						<image class="comic-image" :src="item.image" mode="widthFix"></image>
+						<view class="comic-mask" :style="{opacity: skinColor.imgMask}"></view>
 					</view>
-					<view class="list-right">
-						<view class="lr-top">
-							<text class="list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-							<text v-if="isLead(item.path) > -1" class="lt-right list-text" :style="{'color': skinColor.textColor}">已导入</text>
+					<view class="comic-list-right">
+						<view class="comic-lr-line">
+							<text class="comic-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
 						</view>
-						<view class="lr-bottom">
-							<text class="list-text" :style="{'color': skinColor.textColor}">{{item.time}}</text>
-							<text class="list-text" :style="{'color': skinColor.textColor}" v-if="item.type != 'folder'">{{item.size}}</text>
+						<view class="comic-lr-line">
+							<text class="comic-list-text" :style="{'color': skinColor.textColor}">章节：共{{item.length}}话</text>
+						</view>
+						<view class="comic-lr-line">
+							<text class="comic-list-text" :style="{'color': skinColor.textColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
+						</view>
+						<view class="comic-lr-line">
+							<text class="comic-list-text" :style="{'color': skinColor.textColor}">时间：{{item.time}}</text>
 						</view>
 					</view>
 				</view>
 			</template>
 		</list-scroll>
 		
-		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}">
+		<!-- 读取漫画资源按钮 -->
+		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}" v-if="!comicPathHistory">
 			<view class="btn" @tap="checkPath">
-				<text class="btn-text">选当前路径作为漫画资源路径</text>
+				<text class="btn-text">读取当前路径下的漫画资源</text>
+			</view>
+		</view>
+		
+		<!-- 导入漫画按钮 -->
+		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}" v-if="checkes.length > 0">
+			<view class="btn" @tap="leadBook">
+				<text class="btn-text">导入漫画</text>
 			</view>
 		</view>
 		
@@ -78,16 +85,16 @@
 		<action-sheet ref="action" :list="actions" @select="selectItem"></action-sheet>
 		<!-- 气泡弹窗 -->
 		<bubble ref="bubble">
-			<block v-if="fileLength > 0">
-				<view @tap="selectAll" v-if="checkes.length < fileLength">
+			<block v-if="comicSync.length > 0">
+				<view @tap="selectAll" v-if="checkes.length < comicSync.length">
 					<bubble-item title="全选"></bubble-item>
 				</view>
-				<view @tap="cancelAll" v-if="checkes.length == fileLength">
+				<view @tap="cancelAll" v-if="checkes.length == comicSync.length">
 					<bubble-item title="取消全选"></bubble-item>
 				</view>
 			</block>
 			<view @tap="deleteAction" v-if="checkes.length > 0">
-				<bubble-item title="删除文件"></bubble-item>
+				<bubble-item title="删除漫画"></bubble-item>
 			</view>
 			<view @tap="backRoot">
 				<bubble-item title="根目录"></bubble-item>
@@ -122,8 +129,9 @@
 			return {
 				list: [],
 				checkes: [],
-				fileLength: 0,
 				comicPath: '',
+				//漫画列表
+				comicList: [],
 				//名称过滤
 				nameFilter: '',
 				//操作列表
@@ -138,8 +146,8 @@
 		},
 		computed: {
 			...mapGetters(['bookList', 'comicPathHistory']),
-			listSync () {
-				let arr = this.list.filter((item) => {
+			comicSync () {
+				let arr = this.comicList.filter((item) => {
 					if ( item.name.indexOf(this.nameFilter) > -1 ) {
 						return item;
 					}
@@ -156,7 +164,7 @@
 			} else {
 				setTimeout(() => {
 					if ( this.comicPathHistory ) {
-						this.getComicList();
+						this.getComicList(this.comicPathHistory);
 					} else {
 						this.getFileSystem();
 					}
@@ -168,12 +176,16 @@
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},
+			//选择资源路径
 			checkPath () {
 				uni.showModal({
 					title: '操作提示！',
-					content: '确认选当前路径作为漫画资源路径吗？',
+					content: '确认读取当前路径下的漫画资源吗？',
 					success: (res) => {
 						if ( res.confirm ) {
+							uni.showLoading({
+								title: '读取中..'
+							})
 							this.updateComicPath(this.comicPath);
 							this.getComicList(this.comicPath);
 						}
@@ -192,46 +204,50 @@
 					return;
 				}
 				
-				//获取文件列表 调试用
+				//获取漫画列表 调试用
 				let list = plus.android.invoke(ff, "listFiles");
 				let len = list ? list.length : 0;
 				let folder = [];
 				for(let i=0; i<len; i++){
 				    // 过滤隐藏文件  
 				    if ( !plus.android.invoke(list[i],"isHidden") ){
-						let name = plus.android.invoke(list[i], 'getName');
 						// 文件夹
 						if ( plus.android.invoke(list[i],"isDirectory") ){
 							folder.push({
-								name: name,
-								image: '',
+								name: plus.android.invoke(list[i], 'getName'),
+								image: this.getComicImage(list[i]),
 								time: dateFormat(plus.android.invoke(list[i],"lastModified")),
 								path: plus.android.invoke(list[i],"getPath"),
-								length: 0
+								length: this.getComicLength(list[i])
 							})
 						}
 				    }
 				}
+				this.comicList = folder;
+				uni.hideLoading();
 			},
-			getComicInfo (ff) {
-				if ( ff == null && !plus.android.invoke(ff, 'exists') ) {
-					return;
-				}
-				let flag = ff.some((item) => {
-					return plus.android.invoke(item, "isDirectory");
-				})
-				let list = [];
-				if ( flag ) {
-					list = plus.android.invoke(ff, "listFiles");
+			//获取漫画章节数
+			getComicLength (ff) {
+				let list = plus.android.invoke(ff, "listFiles");
+				return list ? list.length : 0;
+			},
+			//获取漫画预览图
+			getComicImage (ff) {
+				let list = plus.android.invoke(ff, "listFiles");
+				let len = list ? list.length : 0;
+				//首个文件是文件夹
+				if ( plus.android.invoke(list[0], "isDirectory") ) {
+					let childList = plus.android.invoke(list[0], "listFiles");
+					return plus.android.invoke(childList[0],"getPath")
+				} else {
+					return plus.android.invoke(list[0],"getPath")
 				}
 			},
 			//全选文件
 			selectAll () {
 				this.checkes = [];
-				for ( let i in this.list ) {
-					if ( this.list[i].type != 'folder' ) {
-						this.checkes.push(this.list[i].path)
-					}
+				for ( let i in this.comicSync ) {
+					this.checkes.push(this.comicSync[i].path)
 				}	
 				this.$refs.bubble.hide();
 			},
@@ -250,11 +266,7 @@
 					content: '确认删除选择的文件?',
 					success: (res) => {
 						if ( res.confirm ) {
-							if ( this.checkes.length > 1 ) {
-								this.deleteFiles();
-							} else {
-								this.deleteFile(this.checkes[0]);
-							}
+							this.deleteFiles(this.checkes);
 						}
 					}
 				})
@@ -262,11 +274,6 @@
 			},
 			//选择文件
 			check (path) {
-				let flag = indexOf(this.list, path, 'path');
-				//如果为文件夹则不能选择
-				if ( this.list[flag].type == 'folder') {
-					return;
-				}
 				let index = this.checkes.indexOf(path);
 				if ( index > -1 ) {
 					this.checkes.splice(index, 1);
@@ -287,12 +294,14 @@
 				let err = 0;
 				for ( let i in this.checkes ) {
 					//根据文件路径判断文件有没有被导入过
-					let index = indexOf(this.list, this.checkes[i], 'path');
-					if ( this.isLead(this.list[index].path) == -1 ) {
+					let index = indexOf(this.comicList, this.checkes[i], 'path');
+					if ( this.isLead(this.comicList[index].path) == -1 ) {
 						books.push({
-							name: this.list[index].name,
-							type: 'story',
-							path: this.list[index].path
+							name: this.comicList[index].name,
+							image: this.comicList[index].image,
+							length: this.comicList[index].length,
+							type: 'comic',
+							path: this.comicList[index].path
 						});
 					} else {
 						err++;
@@ -318,10 +327,6 @@
 			//展示操作列表
 			showAction (path) {
 				let flag = indexOf(this.list, path, 'path');
-				//文件夹不能触发操作列表
-				if ( this.list[flag].type == 'folder' ) {
-					return;
-				}
 				this.actions = [];
 				this.actionPath = path;
 				//已经导入的文件操作列表
@@ -350,9 +355,15 @@
 				if ( val == 'push' ) {
 					//根据文件路径判断文件有没有被导入过
 					if ( this.isLead(this.actionPath) == -1 ) {
-						let flag = indexOf(this.list, this.actionPath, 'path');
+						let flag = indexOf(this.comicList, this.actionPath, 'path');
 						let books = [];
-						books.push(this.list[flag]);
+						books.push({
+							name: this.comicList[flag].name,
+							image: this.comicList[flag].image,
+							length: this.comicList[flag].length,
+							type: 'comic',
+							path: this.comicList[flag].path
+						});
 						this.addBooks(books);
 						uni.showToast({
 							title: '导入成功'
@@ -366,7 +377,7 @@
 				}
 				//选择取消导入
 				if ( val == 'pop' ) {
-					let name = this.list[indexOf(this.list, this.actionPath, 'path')].name;
+					let name = this.comicList[indexOf(this.comicList, this.actionPath, 'path')].name;
 					uni.showModal({
 						title: '操作提示',
 						content: '确认将  ' + name +'  从导入列表删除吗？',
@@ -379,59 +390,20 @@
 				}
 				//用户选择删除操作
 				if ( val == 'delete' ) {
-					let name = this.list[indexOf(this.list, this.actionPath, 'path')].name;
+					let name = this.comicList[indexOf(this.comicList, this.actionPath, 'path')].name;
 					uni.showModal({
 						title: '操作提示',
 						content: '确认要删除  ' + name + '  吗？',
 						success: (res) => {
 							if ( res.confirm ) {
-								this.deleteFile(this.actionPath);
+								this.deleteFiles([this.actionPath]);
 							}
 						}
 					})
 				}
 			},
-			//删除单个文件
-			deleteFile (path) {
-				// 如果是已经导入的文件，删除导入记录
-				let fd = plus.android.newObject("java.io.File", path);
-				if (fd != null && plus.android.invoke(fd, 'exists')) {
-					let isDeleted = plus.android.invoke(fd, 'delete');
-					if ( isDeleted ) {
-						uni.showToast({
-							title: '删除成功'
-						});
-					} else {
-						uni.showToast({
-							icon: 'none',
-							title: '删除失败'
-						});
-						return;
-					}
-				} else {
-					uni.showToast({
-						icon: 'none',
-						title: '文件不存在'
-					});
-				}
-				//如果被删除的文件已经被导入
-				let flag = this.isLead(path);
-				if ( flag > -1 ) {
-					this.deleteBook(path);
-				}
-				//删除当前页面显示的数据
-				let index = indexOf(this.list, path, 'path');
-				this.list.splice(index, 1);
-				//文件数量减1
-				this.fileLength--;
-				//如果被删除的文件被选择,则删除选择的列表数据
-				let i = this.checkes.indexOf(path);
-				if ( i > -1 ) {
-					this.checkes.splice(i, 1);
-				}
-			},
-			//删除多个文件
-			deleteFiles () {
+			//删除漫画
+			deleteFiles (list) {
 				plus.nativeUI.showWaiting("删除中..")
 				let suc = 0;
 				let err = 0;
@@ -442,19 +414,35 @@
 						this.deleteBook(path);
 					}
 					//删除当前页面显示的数据
-					let index = indexOf(this.list, path, 'path');
-					this.list.splice(index, 1);
-					//文件数量减1
-					this.fileLength--;
+					let index = indexOf(this.comicList, path, 'path');
+					this.comicList.splice(index, 1);
 				}
-				for ( let i in this.checkes ) {
-					let fd = plus.android.newObject("java.io.File", this.checkes[i]);
+				for ( let i in list ) {
+					let fd = plus.android.newObject("java.io.File", list[i]);
+					//如果路径存在
 					if (fd != null && plus.android.invoke(fd, 'exists')){
+						// 获取并遍历子文件
+						let childList = plus.android.invoke(fd, 'listFiles');
+						for ( let i in childList ) {
+							//获取子文件下的子文件
+							let grandList = plus.android.invoke(childList[i], 'listFiles');
+							//如果子文件下有子文件 先删除子文件下的子文件再删除子文件
+							if ( grandList.length > 0 ) {
+								for ( let j in grandList ) {
+									plus.android.invoke(grandList[j], 'delete');
+								}
+								plus.android.invoke(childList[i], 'delete');
+							} else {
+								//子文件下没有子文件,直接删除掉子文件
+								plus.android.invoke(childList[i], 'delete');
+							}
+						}
+						//最后删除整个路径下的文件夹
 						let isDeleted = plus.android.invoke(fd, 'delete');
 						//删除成功
 						if ( isDeleted ) {
 							suc++
-							clearList(this.checkes[i]);
+							clearList(list[i]);
 						} else {
 							//删除失败
 							err++
@@ -463,24 +451,33 @@
 					} else {
 						//文件不存在
 						err++
-						clearList(this.checkes[i]);
+						clearList(list[i]);
 					}
 				}
 				this.checkes = [];
 				plus.nativeUI.closeWaiting();
-				uni.showToast({
-					icon: 'none',
-					title: '成功删除' + suc + '个文件, 删除失败' + err + '个文件'
-				})
+				if ( err ) {
+					uni.showToast({
+						icon: 'none',
+						title: '成功删除' + suc + '个文件, 删除失败' + err + '个文件'
+					})
+				} else {
+					uni.showToast({
+						icon: 'none',
+						title: '删除成功'
+					})
+				}
+				
 			},
 			//返回根目录
 			backRoot () {
+				this.clearComicPath();
 				this.getFileSystem();
 				this.$refs.bubble.hide();
 			},
 			//返回上级目录
 			backParent () {
-				let fd = plus.android.newObject("java.io.File", this.pathHistory);
+				let fd = plus.android.newObject("java.io.File", this.comicPath);
 				if ( fd != null && plus.android.invoke(fd, 'exists') ) {
 					let parent = plus.android.invoke(fd, 'getParent');
 					if ( parent ) {
@@ -641,6 +638,7 @@
 		align-items: center;
 		margin-right: 15rpx;
 		width: 75rpx;
+		position: relative;
 	}
 	.list-right {
 		flex: 1;
@@ -669,6 +667,57 @@
 		justify-content: space-between;
 	}
 	.list-text {
+		font-size: 24rpx;
+	}
+	.comic-list {
+		flex-direction: row;
+		border-bottom-width: 1px;
+		border-bottom-style: solid;
+		padding: 20rpx;
+		height: 200rpx;
+		position: relative;
+	}
+	.comic-list-icon {
+		justify-content: center;
+		align-items: center;
+		width: 150rpx;
+		position: relative;
+	}
+	.comic-image {
+		width: 150rpx;
+	}
+	.comic-mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #000000;
+	}
+	.comic-list-right {
+		flex: 1;
+		justify-content: space-between;
+		margin-left: 20rpx;
+	}
+	.comic-list-right-back {
+		flex-direction: row;
+		align-items: center;
+	}
+	.comic-lr-line {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.comic-list-title {
+		flex: 1;
+		font-size: 30rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.comic-lt-right {
+		width: 70rpx;
+	}
+	.comic-list-text {
 		font-size: 24rpx;
 	}
 	.btn-box {

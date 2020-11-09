@@ -4,9 +4,9 @@
 			<cell>
 				<slot name="listTop"></slot>
 			</cell>
-			<cell v-for="(lists, i) in listSync" :key="i" @appear="appear(i)" @disappear="disappear(i)">
+			<cell v-for="(lists, i) in listSync" @appear="appear(i)" @disappear="disappear(i)">
 				<view class="list">
-					<view ref="child" :style="{width: itemWidth + 'rpx', height: lineHeight + 'rpx'}" v-for="(child, index) in lists" :key="index">
+					<view :style="{width: itemWidth + 'rpx', height: lineHeight + 'rpx'}" v-for="(child, index) in lists" :key="index">
 						<block v-if="isShows.indexOf(i) > -1">
 							<slot :item="child"></slot>
 						</block>
@@ -86,13 +86,6 @@
 				childHeight: 0
 			}
 		},
-		mounted () {
-			setTimeout(async () => {
-				if ( this.listSync.length > 0 ) {
-					this.childHeight = await this.getChildHeight();
-				}
-			}, 50)
-		},
 		methods: {
 			scroll(e) {
 				this.$emit('scroll', e)
@@ -113,21 +106,12 @@
 				}
 			},
 			//获取每行数据高度
-			getChildHeight() {
+			getChildHeight(el) {
 				return new Promise((resolve, reject) => {
-					dom.getComponentRect(this.$refs.child[0], (res) => {
+					dom.getComponentRect(el, (res) => {
 						resolve(res.size.height)
 					})
 				})
-			}
-		},
-		watch: {
-			listSync(newVal) {
-				if ( !this.childHeight ) {
-					setTimeout(async () => {
-						this.childHeight = await this.getChildHeight();
-					}, 50)
-				}
 			}
 		}
 	}

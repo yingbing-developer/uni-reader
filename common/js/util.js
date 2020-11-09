@@ -35,8 +35,12 @@ export function suffix (name) {
 export function removeSuffix (name) {
   	//获取图片后缀
   	let fileName = name.lastIndexOf(".");
-  	let fileNameFormat = name.substring(0, fileName);
-  	return fileNameFormat;
+	if ( fileName > -1 ) {
+		let fileNameFormat = name.substring(0, fileName);
+		return fileNameFormat;
+	} else {
+		return name
+	}
 }
 
 /**

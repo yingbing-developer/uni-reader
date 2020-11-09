@@ -1,0 +1,215 @@
+<template>
+	<view class="read-menu" @touchmove.stop.prevent="" v-if="isShow">
+		<view class="mask" @tap="hide"></view>
+		
+		<!-- 顶部 -->
+		<view class="read-top" ref="readTop" @touchmove.stop.prevent="">
+			<nav-bar :title="comicInfo.name" bgColor="#333333" titleColor="#EFEFEF" :gap-show="false">
+			</nav-bar>
+		</view>
+		
+		<!-- 底部设置 -->
+		<view class="read-board" ref="readBottom" @touchmove.stop.prevent="">
+			<view class="read-board-line bottom-line">
+				<view class="bottom-box">
+					<view class="bottom-item">
+						<c-icon name="menu" :size="42" color="#8A8A8A"></c-icon>
+						<text class="bottom-name">章节</text>
+					</view>
+				</view>
+				<view class="bottom-box">
+					<view class="bottom-item" @tap="routePush('/pages/setting/index')">
+						<c-icon name="setting" :size="42" color="#8A8A8A"></c-icon>
+						<text class="bottom-name">设置</text>
+					</view>
+				</view>
+				<view class="bottom-box">
+					<view class="bottom-item" v-if="skinMode == 'default'" @tap="changeSkin('night')">
+						<c-icon name="night" :size="42" color="#8A8A8A"></c-icon>
+						<text class="bottom-name">夜间</text>
+					</view>
+					<view class="bottom-item" v-if="skinMode == 'night'" @tap="changeSkin('default')">
+						<c-icon name="light" :size="45" color="#8A8A8A"></c-icon>
+						<text class="bottom-name">日间</text>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import { mapGetters, mapMutations } from 'vuex'
+	import { skinMixin } from '@/common/mixin/index.js'
+	import { indexOf } from '@/common/js/util.js'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CProgress from '@/components/progress/progress.nvue'
+	import NavBar from '@/components/nav-bar/nav-bar.nvue'
+	const animation = weex.requireModule('animation');
+	export default {
+		mixins: [skinMixin],
+		props: {
+			path: {
+				type: String,
+				default: ''
+			}
+		},
+		data () {
+			return {
+				isShow: false,
+			}
+		},
+		computed: {
+			...mapGetters(['bookList']),
+			comicInfo () {
+				return this.bookList[indexOf(this.bookList, this.path, 'path')];
+			}
+		},
+		created () {
+		},
+		methods: {
+			show () {
+				this.isShow = true;
+				setTimeout(() => {
+					animation.transition(this.$refs.readTop, {
+					    styles: {
+							transform: 'translateY(0)'
+					    },
+					    duration: 300, //ms
+					    timingFunction: 'ease',
+					    needLayout:false,
+					    delay: 0 //ms
+					})
+					animation.transition(this.$refs.readBottom, {
+					    styles: {
+							transform: 'translateY(0)'
+					    },
+					    duration: 300, //ms
+					    timingFunction: 'ease',
+					    needLayout:false,
+					    delay: 0 //ms
+					})
+				}, 30)
+			},
+			hide () {
+				animation.transition(this.$refs.readTop, {
+				    styles: {
+						transform: 'translateY(-100%)'
+				    },
+				    duration: 300, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.readBottom, {
+				    styles: {
+						transform: 'translateY(100%)'
+				    },
+				    duration: 300, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					this.isShow = false;
+				})
+			},
+			routePush (url) {
+				//路由防抖
+				if ( this.routeDisabled ) {
+					return;
+				}
+				this.routeDisabled = true;
+				uni.navigateTo({
+					url: url,
+					complete: (res) => {
+						this.routeDisabled = false;
+					}
+				})
+			}
+		},
+		beforeDestroy () {
+			uni.$off('setting-popup');
+			uni.$off('setting-hide');
+			uni.$off('setting-mark');
+			uni.$off('setting');
+		},
+		watch: {
+			light (val) {
+				this.lightPercent = val;
+			},
+			lightPercent (val) {
+				this.changeBookLight((val / 100).toFixed(2));
+			}
+		},
+		components: {
+			CIcon,
+			CProgress,
+			NavBar
+		}
+	}
+</script>
+
+<style scoped>
+	.btn-actived:active {
+		background-color: #8A8A8A!important;
+		
+	}
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.read-top {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		transform: translateY(-200rpx);
+	}
+	.nav-right {
+		flex-direction: row;
+		justify-content: flex-end;
+		align-items: center;
+		flex: 1;
+	}
+	.read-board {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		transform: translateY(600rpx);
+	}
+	.read-board-line {
+		background-color: #333333;
+		flex-direction: row;
+		padding: 0 10px;
+		border-bottom-width: 1px;
+		border-bottom-color: #3D3D3D;
+		border-bottom-style: solid;
+		height: 100rpx;
+		align-items: center;
+	}
+	.bottom-line {
+		justify-content: space-between;
+		height: 110rpx;
+	}
+	.bottom-box {
+		flex: 1;
+		justify-content: center;
+		align-items: center;
+	}
+	.bottom-item {
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		flex: 1;
+		padding: 12rpx 0;
+	}
+	.bottom-name {
+		color: #8A8A8A;
+		font-size: 28rpx;
+		margin-top: 10rpx;
+	}
+</style>
