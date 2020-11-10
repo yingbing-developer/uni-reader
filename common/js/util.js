@@ -99,7 +99,19 @@ function isArray (arr) {
 */
 export function cnnumtonum(strs){
 	const reg = new RegExp(/[一二两三四五六七八九十零百千万亿]/g);
+	const numReg = new RegExp(/[0-9]/g);
 	let arr = strs.match(reg);
+	if ( !arr ) {
+		let num = '';
+		let nums = strs.match(numReg);
+		//传入的是数字
+		if ( nums.length > 0 ) {
+			for ( let i in nums ) {
+				num += nums[i].toString();
+			}
+		}
+		return parseFloat(num);
+	}
 	let chnStr = '';
 	for ( let i in arr ) {
 		chnStr += arr[i];

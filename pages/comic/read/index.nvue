@@ -1,31 +1,36 @@
 <template>
 	<view class="read" :style="{'background-color': skinColor.bgColor}">
-		<list>
+		<list @scroll="scroll">
+			<header>
+				<gap-bar color="rgba(0,0,0,0.5)"></gap-bar>
+			</header>
 			<cell v-for="(item, index) in comicSync" :key="index">
-				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}">
-					<image @tap="preview(item.path)" lazy-load :style="{'height': item.height}" class="comic-image" :src="item.path" mode="widthFix"></image>
+				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @tap="preview(item.path)" @appear="appear(index)" @disappear="disappear(index)">
+					<c-image class="comic-image" lazy-load :style="{height: item.height}" :src="item.path" mode="widthFix" :hidden="item.hidden"></c-image>
 				</view>
 			</cell>
 		</list>
-		<view class="mask" :style="{opacity: skinColor.imgMask}"></view>
 		<view class="touch-box">
 			<view class="menu" @tap="showSetting">
 				<text class="menu-text">菜单</text>
 			</view>
 		</view>
-		<comic-setting ref="comicSetting" :path="comicInfo.path"></comic-setting>
+		<comic-setting ref="comicSetting" :path="comicInfo.path" :comicSync="comicSync"></comic-setting>
 	</view>
 </template>
 
 <script>
 	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
-	import { indexOf } from '@/common/js/util.js'
+	import { indexOf, cnnumtonum } from '@/common/js/util.js'
 	import ComicSetting from '../setting/index.nvue'
+	import CImage from '@/components/c-image/c-image.nvue'
+	import GapBar from '@/components/gap-bar/gap-bar.nvue'
+	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
 		computed: {
-			...mapGetters(['bookList']),
+			...mapGetters(['bookList', 'comicOrienMode']),
 			//书籍信息
 			comicInfo () {
 				const pages = getCurrentPages();
@@ -35,98 +40,200 @@
 			},
 			//章节 第几话
 			chapter () {
-				return this.comicInfo.record.split('-')[0];
+				return parseFloat(this.comicInfo.record.split('-')[0]);
 			},
 			//章节第几张图
 			pNum () {
-				return this.comicInfo.record.split('-')[1];
+				return parseFloat(this.comicInfo.record.split('-')[1]);
+			},
+			//屏幕方向
+			comicOrien () {
+				return this.comicOrienMode;
 			}
 		},
 		data () {
 			return {
 				comic: [1,2,3,4,5,6,5],
-				comicSync: []
+				comicSync: [],
+				comicTops: [],
+				//屏幕宽度，用于计算图片的高度
+				windowWidth: 0
 			}
 		},
 		onReady () {
-			plus.navigator.setFullscreen(true);
-			uni.showLoading({
-				title: '读取中..'
-			})
+			this.changeOrien();
 			setTimeout(() => {
 				this.getComicSync();
 			}, 300)
 		},
 		methods: {
+			...mapMutations(['updateBookLength']),
 			async getComicSync () {
+				uni.showLoading({
+					title: '读取中..'
+				})
 				let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
 				let arr = [];
 				let list = plus.android.invoke(fd, "listFiles");
+				this.upComicLength(list);
 				if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
 					let childList = plus.android.invoke(list[this.chapter], "listFiles")
 					for ( let i in childList ) {
 						let path = plus.android.invoke(childList[i], "getPath");
 						arr.push({
 							path: path,
-							height: await this.countImageHeight(path) + 'rpx'
+							name: plus.android.invoke(childList[i], "getName"),
+							height: await this.countImageHeight(path) + 'px',
+							hidden: false
 						})
 					}
 				} else {
-					let path = plus.android.invoke(list[this.chapter], "getPath");
-					arr.push({
-						path: path,
-						height: await this.countImageHeight(path) + 'rpx'
-					})
+					for ( let i in list ) {
+						let path = plus.android.invoke(list[i], "getPath");
+						arr.push({
+							path: path,
+							name: plus.android.invoke(list[i], "getName"),
+							height: await this.countImageHeight(path) + 'px',
+							hidden: false
+						})
+					}
 				}
+				arr.sort((a, b) => {
+					return cnnumtonum(a.name) - cnnumtonum(b.name);
+				})
 				this.comicSync = arr;
+				setTimeout(() => {
+					this.scrollTo();
+					this.countTop();
+				}, 50)
 				uni.hideLoading();
 			},
+			//更新漫画章节数
+			upComicLength (list) {
+				let length = 0;
+				for ( let i in list ) {
+					if ( plus.android.invoke(list[0], "isDirectory") ) {
+						length += 1;
+					}
+				}
+				this.updateBookLength({
+					path: this.comicInfo.path,
+					length: length == 0 && list.length > 0 ? 1 : length
+				})
+			},
+			//计算图片高度 (nvue的bug,image组件的widthFix无效,无法自适应高度)
 			countImageHeight (imagePath) {
 				return new Promise((resolve, reject) => {
 					uni.getImageInfo({
 						src: 'file://' + imagePath,
 						success: (image) => {
-							let power = 750 / image.width;
+							let power = this.windowWidth / image.width;
 							resolve(image.height * power);
 						}
 					});
 				})
 			},
+			//预览图片
 			preview (path) {
 				uni.previewImage({
 					current: 0,
 					urls: ['file://' + path]
 				});
 			},
+			//打开设置窗口
 			showSetting () {
 				this.$refs.comicSetting.show();
+			},
+			//滚动到指定的图片位置
+			scrollTo () {
+				dom.scrollToElement(this.$refs.comicBox[this.pNum], {animated: false});
+			},
+			scroll (e) {
+			},
+			appear (index) {
+				this.$set(this.comicSync[index], 'hidden', false);
+			},
+			disappear (index) {
+				this.$set(this.comicSync[index], 'hidden', true);
+			},
+			//计算每张图片距离顶部的距离
+			countTop () {
+				for ( let i in this.comicSync ) {
+					setTimeout(async () => {
+						this.comicTops.push(await this.getRectTop(i));
+					}, i * 30)
+				}
+			},
+			getRectTop (index) {
+				return new Promise((resolve) => {
+					dom.getComponentRect(this.$refs.comicBox[index], (res) => {
+						resolve(res.size.top)
+					})
+				})
+			},
+			//获取屏幕宽度
+			getSystemWidth () {
+				return new Promise((resolve) => {
+					uni.getSystemInfo({
+						success: (res) => {
+							resolve(res.safeArea.width)
+						}
+					})
+				})
+			},
+			//改变屏幕方向
+			changeOrien () {
+				plus.screen.lockOrientation(this.comicOrien + '-primary');
+				//重新计算屏幕宽度和图片高度
+				setTimeout(async () => {
+					this.windowWidth = await this.getSystemWidth();
+					for ( let i in this.comicSync ) {
+						this.$set(this.comicSync[i], 'height', await this.countImageHeight(this.comicSync[i].path) + 'px')
+					}
+				}, 200)
 			}
 		},
-		beforeDestroy () {
-			plus.navigator.setFullscreen(false);
+		watch: {
+			pNum () {
+				this.scrollTo();
+			},
+			chapter () {
+				this.getComicSync();
+			},
+			comicOrien () {
+				this.changeOrien()
+			}
+		},
+		onBackPress(event) {
+			if ( event.from == 'backbutton' ) {
+				if ( this.$refs.comicSetting.isShow ) {
+					this.$refs.comicSetting.hide();
+					return true;
+				}
+			}
+			let size = plus.screen.getCurrentSize();
+			//横屏
+			if ( size.width > size.height ) {
+				//退出前锁定为竖屏
+				plus.screen.lockOrientation('portrait-primary');
+			}
+			return false;
 		},
 		components: {
-			ComicSetting
+			ComicSetting,
+			CImage,
+			GapBar
 		}
 	}
 </script>
 
 <style scoped>
 	.comic-box {
-		width: 750rpx;
 		border-bottom-width: 1px;
 	}
-	.comic-image {
+	/* .comic-image {
 		width: 750rpx;
-	}
-	.mask {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: #000000;
-	}
+	} */
 	.touch-box {
 		justify-content: center;
 		align-items: center;

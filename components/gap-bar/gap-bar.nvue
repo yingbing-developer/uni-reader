@@ -1,9 +1,15 @@
 <template>
-	<view class="bar" :style="{'height': barHeight}"></view>
+	<view class="bar" :style="{'height': barHeight, 'background-color': color}"></view>
 </template>
 
 <script>
 	export default {
+		props: {
+			color: {
+				type: String,
+				default: ''
+			}
+		},
 		data () {
 			return {
 				barHeight: ''

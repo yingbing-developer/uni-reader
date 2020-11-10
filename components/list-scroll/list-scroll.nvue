@@ -6,7 +6,7 @@
 			</cell>
 			<cell v-for="(lists, i) in listSync" @appear="appear(i)" @disappear="disappear(i)">
 				<view class="list">
-					<view :style="{width: itemWidth + 'rpx', height: lineHeight + 'rpx'}" v-for="(child, index) in lists" :key="index">
+					<view class="list-item" :style="{width: itemWidth + 'rpx', height: lineHeight + 'rpx'}" v-for="(child, index) in lists" :key="index">
 						<block v-if="isShows.indexOf(i) > -1">
 							<slot :item="child"></slot>
 						</block>
@@ -126,5 +126,13 @@
 	.list {
 		flex-direction: row;
 		flex-wrap: wrap;
+	}
+	.list-item {
+		position: relative;
+	}
+	.list-loading {
+		justify-content: center;
+		align-items: center;
+		flex: 1;
 	}
 </style>

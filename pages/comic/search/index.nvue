@@ -46,8 +46,7 @@
 			<template v-slot="{item}">
 				<view @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
 					<view class="comic-list-icon" @tap.stop="check(item.path)">
-						<image class="comic-image" :src="item.image" mode="widthFix"></image>
-						<view class="comic-mask" :style="{opacity: skinColor.imgMask}"></view>
+						<c-image class="comic-image" :src="item.image" mode="aspectFill"></c-image>
 					</view>
 					<view class="comic-list-right">
 						<view class="comic-lr-line">
@@ -119,6 +118,7 @@
 	import ActionSheet from '@/components/action-sheet/action-sheet.nvue'
 	import Bubble from '@/components/bubble/bubble.nvue'
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
+	import CImage from '@/components/c-image/c-image.nvue'
 	import { dateFormat, suffix, indexOf, cnnumtonum } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const environment = plus.android.importClass("android.os.Environment");
@@ -229,7 +229,13 @@
 			//获取漫画章节数
 			getComicLength (ff) {
 				let list = plus.android.invoke(ff, "listFiles");
-				return list ? list.length : 0;
+				let length = 0;
+				for ( let i in list ) {
+					if ( plus.android.invoke(list[0], "isDirectory") ) {
+						length += 1;
+					}
+				}
+				return length == 0 && list.length > 0 ? 1 : length;
 			},
 			//获取漫画预览图
 			getComicImage (ff) {
@@ -605,6 +611,7 @@
 			ActionSheet,
 			Bubble,
 			BubbleItem,
+			CImage,
 			ListScroll
 		}
 	}
@@ -685,14 +692,7 @@
 	}
 	.comic-image {
 		width: 150rpx;
-	}
-	.comic-mask {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: #000000;
+		height: 200rpx;
 	}
 	.comic-list-right {
 		flex: 1;

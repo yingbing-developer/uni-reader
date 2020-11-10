@@ -46,8 +46,7 @@
 			<view slot="listTop" ref="listTop"></view>
 			<template v-slot="{item}">
 				<view class="book" @tap="readBook(item.path)" @longpress="showAction(item.path)">
-					<image class="book-img" :src="item.image" mode="aspectFill"></image>
-					<view class="book-mask" :style="{opacity: skinColor.imgMask}"></view>
+					<c-image class="book-img" :src="item.image" mode="aspectFill"></c-image>
 					<view class="book-bottom">
 						<text class="book-name">{{item.name}}</text>
 						<view class="b-bottom">
@@ -74,6 +73,7 @@
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
 	import ActionSheet from '@/components/action-sheet/action-sheet.nvue'
+	import CImage from '@/components/c-image/c-image.nvue'
 	import { skinMixin, menuTouchMixin } from '@/common/mixin/index.js'
 	import { indexOf } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
@@ -272,7 +272,8 @@
 			NoData,
 			ActionSheet,
 			CSearch,
-			ListScroll
+			ListScroll,
+			CImage
 		}
 	}
 </script>
@@ -322,14 +323,6 @@
 		left: 10rpx;
 		right: 10rpx;
 		bottom: 0;
-	}
-	.book-mask {
-		position: absolute;
-		top: 0;
-		left: 10rpx;
-		right: 10rpx;
-		bottom: 0;
-		background-color: #000000;
 	}
 	.book-bottom {
 		position: absolute;

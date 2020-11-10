@@ -1,0 +1,57 @@
+<template>
+	<c-icon ref="loading" name="loading" :size="size" color="#000"></c-icon>
+</template>
+
+<script>
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	const animation = weex.requireModule('animation');
+	export default {
+		props: {
+			size: {
+				type: Number,
+				default: 40
+			},
+			color: {
+				type: String,
+				default: '#FFF'
+			}
+		},
+		mounted () {
+			setTimeout(() => {
+				this.start();
+			}, 50)
+		},
+		methods: {
+			start () {
+				animation.transition(this.$refs.loading, {
+				    styles: {
+						transform: 'rotateZ(360deg)'
+				    },
+				    duration: 1000, //ms
+				    timingFunction: 'linear',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					animation.transition(this.$refs.loading, {
+					    styles: {
+							transform: 'rotateZ(0deg)'
+					    },
+					    duration: 0, //ms
+					    timingFunction: 'linear',
+					    needLayout:false,
+					    delay: 0 //ms
+					}, (res) => {
+						this.start();
+					})
+				})
+			}
+		},
+		components: {
+			CIcon
+		}
+	}
+</script>
+
+<style>
+
+</style>

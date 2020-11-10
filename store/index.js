@@ -8,6 +8,7 @@ const BOOKPATH = 'UNI_READER_BOOK_PATH'
 const BOOKREAD = 'UNI_READER_BOOK_READ'
 const BOOKMARK = 'UNI_READER_BOOK_MARK'
 const COMICPATH = 'UNI_READER_COMIC_PATH'
+const COMICORIEN = 'UNI_READER_COMIC_ORIEN'
 const store = new Vuex.Store({
     state: {
 		skin: uni.getStorageSync(SKIN) || 'default', //皮肤
@@ -15,7 +16,8 @@ const store = new Vuex.Store({
 		bookRead: uni.getStorageSync(BOOKREAD) || {pageMode: 'L2RTrans', duration: 200, fontSize: 20, light: 1},//小说阅读模式包含字体大小，翻页方式和动画时间
 		bookPath: uni.getStorageSync(BOOKPATH) || '',//上次访问的小说文件夹路径
 		bookmark: uni.getStorageSync(BOOKMARK) || [],//小说书签
-		comicPath: uni.getStorageSync(COMICPATH) || ''//上次访问的漫画文件夹路径
+		comicPath: uni.getStorageSync(COMICPATH) || '',//上次访问的漫画文件夹路径
+		comicOrien: uni.getStorageSync(COMICORIEN) || 'portrait' //漫画阅读方向 默认竖屏
 	},
 	getters: {
 		//当前皮肤模式
@@ -82,6 +84,9 @@ const store = new Vuex.Store({
 		},
 		comicPathHistory (state) {
 			return state.comicPath;
+		},
+		comicOrienMode (state) {
+			return state.comicOrien;
 		}
 	},
     mutations: {
@@ -211,6 +216,10 @@ const store = new Vuex.Store({
 		clearComicPath (state) {
 			state.comicPath = '';
 			uni.setStorageSync(COMICPATH, state.comicPath);
+		},
+		changeComicOrien (state, orien) {
+			state.comicOrien = orien;
+			uni.setStorageSync(COMICORIEN, state.comicOrien);
 		}
 	},
     actions: {}

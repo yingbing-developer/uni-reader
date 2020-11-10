@@ -4,35 +4,41 @@
 		
 		<!-- 顶部 -->
 		<view class="read-top" ref="readTop" @touchmove.stop.prevent="">
-			<nav-bar :title="comicInfo.name" bgColor="#333333" titleColor="#EFEFEF" :gap-show="false">
+			<nav-bar :title="comicInfo.name + '  第' + (chapter + 1) + '话'" bgColor="#333333" titleColor="#EFEFEF">
+				<view class="nav-right" slot="right">
+					<view class="nr-item" @tap="changeComicOrien(comicOrienMode == 'portrait' ? 'landscape' : 'portrait')">
+						<c-icon name="screenrotation" :size="38" color="#EFEFEF"></c-icon>
+					</view>
+					<view class="nr-item" v-if="skinMode == 'default'" @tap="changeSkin('night')">
+						<c-icon name="night" :size="40" color="#EFEFEF"></c-icon>
+					</view>
+					<view class="nr-item" v-if="skinMode == 'night'" @tap="changeSkin('default')">
+						<c-icon name="light" :size="45" color="#EFEFEF"></c-icon>
+					</view>
+				</view>
 			</nav-bar>
 		</view>
 		
 		<!-- 底部设置 -->
 		<view class="read-board" ref="readBottom" @touchmove.stop.prevent="">
-			<view class="read-board-line bottom-line">
-				<view class="bottom-box">
-					<view class="bottom-item">
-						<c-icon name="menu" :size="42" color="#8A8A8A"></c-icon>
-						<text class="bottom-name">章节</text>
-					</view>
-				</view>
-				<view class="bottom-box">
-					<view class="bottom-item" @tap="routePush('/pages/setting/index')">
-						<c-icon name="setting" :size="42" color="#8A8A8A"></c-icon>
-						<text class="bottom-name">设置</text>
-					</view>
-				</view>
-				<view class="bottom-box">
-					<view class="bottom-item" v-if="skinMode == 'default'" @tap="changeSkin('night')">
-						<c-icon name="night" :size="42" color="#8A8A8A"></c-icon>
-						<text class="bottom-name">夜间</text>
-					</view>
-					<view class="bottom-item" v-if="skinMode == 'night'" @tap="changeSkin('default')">
-						<c-icon name="light" :size="45" color="#8A8A8A"></c-icon>
-						<text class="bottom-name">日间</text>
-					</view>
-				</view>
+			<view class="read-board-line chapter-line">
+				<text class="chapter-text" @tap="changeChapter(-1)">上一话</text>
+				<text class="chapter-text" @tap="changeChapter(1)">下一话</text>
+			</view>
+			<view class="read-board-line img-line">
+				<crosswise class="img-scroll" :list="comicSync" :actId="pNum">
+					<template v-slot="{item}">
+						<view class="img-box" @tap="upPNum(item.index)">
+							<view style="position: relative;">
+								<c-image class="img" lazy-load :src="item.item.path" mode="aspectFill"></c-image>
+								<view class="img-actived" v-if="pNum == item.index">
+									<c-icon name="check-fill" size="60" color="#DD524D"></c-icon>
+								</view>
+							</view>
+							<text class="img-name">{{item.item.name}}</text>
+						</view>
+					</template>
+				</crosswise>
 			</view>
 		</view>
 	</view>
@@ -43,8 +49,9 @@
 	import { skinMixin } from '@/common/mixin/index.js'
 	import { indexOf } from '@/common/js/util.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
-	import CProgress from '@/components/progress/progress.nvue'
 	import NavBar from '@/components/nav-bar/nav-bar.nvue'
+	import Crosswise from '@/components/crosswise/crosswise.nvue'
+	import CImage from '@/components/c-image/c-image.nvue'
 	const animation = weex.requireModule('animation');
 	export default {
 		mixins: [skinMixin],
@@ -52,22 +59,35 @@
 			path: {
 				type: String,
 				default: ''
+			},
+			comicSync: {
+				type: Array,
+				default () {
+					return new Array();
+				}
 			}
 		},
 		data () {
 			return {
-				isShow: false,
+				isShow: false
 			}
 		},
 		computed: {
-			...mapGetters(['bookList']),
+			...mapGetters(['bookList', 'comicOrienMode']),
 			comicInfo () {
 				return this.bookList[indexOf(this.bookList, this.path, 'path')];
+			},
+			//章节 第几话
+			chapter () {
+				return parseFloat(this.comicInfo.record.split('-')[0]);
+			},
+			//章节第几张图
+			pNum () {
+				return parseFloat(this.comicInfo.record.split('-')[1]);
 			}
 		},
-		created () {
-		},
 		methods: {
+			...mapMutations(['updateBookRecord', 'changeComicOrien']),
 			show () {
 				this.isShow = true;
 				setTimeout(() => {
@@ -113,38 +133,44 @@
 					this.isShow = false;
 				})
 			},
-			routePush (url) {
-				//路由防抖
-				if ( this.routeDisabled ) {
+			changeChapter (value) {
+				if ( this.chapter == 0 && value < 0 ) {
+					uni.showToast({
+						title: '已经是第一话了',
+						icon: 'none'
+					})
 					return;
 				}
-				this.routeDisabled = true;
-				uni.navigateTo({
-					url: url,
-					complete: (res) => {
-						this.routeDisabled = false;
-					}
-				})
-			}
-		},
-		beforeDestroy () {
-			uni.$off('setting-popup');
-			uni.$off('setting-hide');
-			uni.$off('setting-mark');
-			uni.$off('setting');
-		},
-		watch: {
-			light (val) {
-				this.lightPercent = val;
+				if ( this.chapter == this.comicInfo.length - 1 && value > 0 ) {
+					uni.showToast({
+						title: '已经是最后一话了',
+						icon: 'none'
+					})
+					return;
+				}
+				let chapter = this.chapter + value;
+				this.upChapter(chapter);
 			},
-			lightPercent (val) {
-				this.changeBookLight((val / 100).toFixed(2));
+			upChapter (chapter) {
+				let record = chapter + '-0';
+				this.updateBookRecord({
+					path: this.comicInfo.path,
+					record: record
+				})
+			},
+			upPNum (index) {
+				let record = this.chapter + '-' + index.toString();
+				this.updateBookRecord({
+					path: this.comicInfo.path,
+					record: record
+				})
 			}
 		},
 		components: {
 			CIcon,
-			CProgress,
-			NavBar
+			Crosswise,
+			NavBar,
+			CImage
 		}
 	}
 </script>
@@ -174,6 +200,10 @@
 		align-items: center;
 		flex: 1;
 	}
+	.nr-item {
+		width: 50rpx;
+		margin-left: 10rpx;
+	}
 	.read-board {
 		position: fixed;
 		bottom: 0;
@@ -184,32 +214,55 @@
 	.read-board-line {
 		background-color: #333333;
 		flex-direction: row;
-		padding: 0 10px;
+		padding: 0 20rpx;
 		border-bottom-width: 1px;
 		border-bottom-color: #3D3D3D;
 		border-bottom-style: solid;
 		height: 100rpx;
 		align-items: center;
 	}
-	.bottom-line {
-		justify-content: space-between;
-		height: 110rpx;
+	.img-line {
+		height: 320rpx;
+		justify-content: center;
 	}
-	.bottom-box {
+	.img-scroll {
 		flex: 1;
+	}
+	.img-box {
+		width: 230rpx;
+		height: 330rpx;
+		margin: 0 5rpx;
 		justify-content: center;
 		align-items: center;
 	}
-	.bottom-item {
-		flex-direction: column;
-		justify-content: space-between;
-		align-items: center;
-		flex: 1;
-		padding: 12rpx 0;
+	.img {
+		width: 200rpx;
+		height: 260rpx;
 	}
-	.bottom-name {
-		color: #8A8A8A;
+	.img-actived {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0,0,0,0.2);
+		justify-content: center;
+		align-items: center;
+	}
+	.img-name {
 		font-size: 28rpx;
-		margin-top: 10rpx;
+		margin-top: 5rpx;
+		text-align: center;
+		lines: 1;
+		text-overflow: ellipsis;
+		color: #8A8A8A;
+	}
+	.chapter-line {
+		justify-content: space-between;
+		height: 80rpx;
+	}
+	.chapter-text {
+		color: #8A8A8A;
+		font-size: 25rpx;
 	}
 </style>

@@ -1,0 +1,76 @@
+<template>
+	<view class="crosswise">
+		<scroll-view class="scroll-view" scroll-x :scroll-into-view="'crossitem' + actId">
+			<view class="scroll-item" :style="{'width': itemWidth + 'rpx'}" :id="'crossitem' + index" v-for="(item, index) in list" :key="index" @appear="appear(index)" @disappear="disappear(index)">
+				<block v-if="isShows.indexOf(index) > -1">
+					<slot :item="{item: item, index: index}"></slot>
+				</block>
+				<block v-else>
+					<c-loading color="#8A8A8A"></c-loading>
+				</block>
+			</view>
+		</scroll-view>
+	</view>
+</template>
+
+<script>
+	const dom = weex.requireModule('dom');
+	import CLoading from '@/components/loading/loading.nvue'
+	export default {
+		props: {
+			list: {
+				type: Array,
+				default () {
+					return new Array();
+				}
+			},
+			actId: {
+				type: String,
+				default: '0'
+			},
+			itemWidth: {
+				type: Number,
+				default: 210
+			}
+		},
+		data () {
+			return {
+				isShows: []
+			}
+		},
+		methods: {
+			appear(index) {
+				let flag = this.isShows.indexOf(index);
+				if (flag == -1) {
+					this.isShows.push(index);
+				}
+			},
+			disappear(index) {
+				let flag = this.isShows.indexOf(index);
+				if (flag > -1) {
+					this.isShows.splice(flag, 1);
+				}
+			},
+			getRectSize (el) {
+				return new Promise((resolve, reject) => {
+					dom.getComponentRect(el, (res) => {
+						resolve(res.size.width)
+					})
+				})
+			}
+		},
+		components: {
+			CLoading
+		}
+	}
+</script>
+
+<style scoped>
+	.scroll-view {
+		flex-direction: row;
+	}
+	.scroll-item {
+		align-items: center;
+		justify-content: center;
+	}
+</style>

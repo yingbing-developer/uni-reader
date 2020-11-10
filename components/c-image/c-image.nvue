@@ -1,0 +1,68 @@
+<template>
+	<view class="c-image" ref="cImage">
+		<image class="c-img" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden"></image>
+		<view class="img-mask" :style="{opacity: skinColor.imgMask}"></view>
+	</view>
+</template>
+
+<script>
+	import { skinMixin } from '@/common/mixin/index.js'
+	const dom = weex.requireModule('dom');
+	export default {
+		mixins: [skinMixin],
+		props: {
+			src: {
+				type: String,
+				default: ''
+			},
+			mode: {
+				type: String,
+				default: ''
+			},
+			lazyLoad: {
+				type: Boolean,
+				default: false
+			},
+			hidden: {
+				type: Boolean,
+				default: false
+			}
+		},
+		data () {
+			return {
+				url: ''
+			}
+		},
+		created() {
+			if ( this.src ) {
+				this.url = this.src.replace('@', '');
+			}
+		},
+		watch: {
+			src (newVal) {
+				this.url = newVal.replace('@', '');
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.c-image {
+		position: relative;
+	}
+	.c-img {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.img-mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #000000;
+	}
+</style>

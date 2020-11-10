@@ -11,8 +11,7 @@
 		:style="{'background-color': skinColor.menuBgColor, 'transform': 'translateX(' + popuplate + 'rpx)'}"
 		@touchmove.stop.prevent="">
 			<view class="top-img">
-				<image class="bg" src="@/static/menuBack.png" mode="aspectFill"></image>
-				<view class="top-mask" :style="{opacity: skinColor.imgMask}"></view>
+				<c-image class="bg" src="@/static/menuBack.png" mode="aspectFill"></c-image>
 			</view>
 			<!-- 列表切换 -->
 			<view class="list actived" :style="{'background-color': current == index ? skinColor.menuActiveBgColor : ''}" @tap="changeCurrent(index)" v-for="(item, index) in navs" :key="index">
@@ -43,6 +42,7 @@
 <script>
 	const animation = weex.requireModule('animation');
 	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CImage from '@/components/c-image/c-image.nvue'
 	import { skinMixin } from '@/common/mixin/index.js'
 	export default {
 		mixins: [skinMixin],
@@ -268,7 +268,8 @@
 			}
 		},
 		components: {
-			CIcon
+			CIcon,
+			CImage
 		}
 	}
 </script>
@@ -309,14 +310,6 @@
 		right: 0;
 		bottom: 0;
 		background-color: #666;
-	}
-	.top-mask {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: #000;
 	}
 	.hr {
 		height: 1px;
