@@ -11,9 +11,6 @@
 				<view @tap="opearteFilter">
 					<c-icon name="filter" size="37.5" :color="skinColor.iconColor"></c-icon>
 				</view>
-				<!-- <view>
-					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
-				</view> -->
 			</view>
 		</nav-bar>
 		<c-search v-if="showFilter" @confirm="setNameFilter"></c-search>
@@ -201,6 +198,7 @@
 			},
 			changeTab (current) {
 				this.currentTab = current;
+				this.oldOffsetY = 0;
 			},
 			//打开/隐藏名称过滤器
 			opearteFilter () {

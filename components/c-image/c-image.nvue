@@ -1,13 +1,16 @@
 <template>
-	<view class="c-image" ref="cImage">
+	<view class="c-image" @appear="appear" @disappear="disappear" v-if="enableHidden">
 		<image class="c-img" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden"></image>
+		<view class="img-mask" :style="{opacity: skinColor.imgMask}"></view>
+	</view>
+	<view class="c-image" v-else>
+		<image class="c-img" :lazyLoad="lazyLoad" :src="url" :mode="mode"></image>
 		<view class="img-mask" :style="{opacity: skinColor.imgMask}"></view>
 	</view>
 </template>
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
-	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
 		props: {
@@ -23,14 +26,15 @@
 				type: Boolean,
 				default: false
 			},
-			hidden: {
+			enableHidden: {
 				type: Boolean,
 				default: false
 			}
 		},
 		data () {
 			return {
-				url: ''
+				url: '',
+				hidden: true
 			}
 		},
 		created() {
@@ -41,6 +45,14 @@
 		watch: {
 			src (newVal) {
 				this.url = newVal.replace('@', '');
+			}
+		},
+		methods: {
+			appear () {
+				this.hidden = false;
+			},
+			disappear () {
+				this.hidden = true;
 			}
 		}
 	}

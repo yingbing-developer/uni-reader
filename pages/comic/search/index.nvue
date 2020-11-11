@@ -11,7 +11,7 @@
 		<c-search @confirm="setNameFilter" v-if="comicPathHistory"></c-search>
 		
 		<!-- 资源路径选择列表 -->
-		<list-scroll @scroll="scroll" :row-count="20" :line-height="108" :list="list" v-if="!comicPathHistory">
+		<list-scroll @scroll="scroll" :line-height="108" :list="list" v-if="!comicPathHistory">
 			<!-- 返回项 -->
 			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
 				<view class="list-icon">
@@ -40,11 +40,11 @@
 		</list-scroll>
 		
 		<!-- 漫画列表 -->
-		<list-scroll @scroll="scroll" :row-count="5" :line-height="200" :list="comicSync" v-else>
+		<list-scroll @scroll="scroll" :line-height="200" :list="comicSync" v-else>
 			<!-- 列表顶部 用于返回顶部 -->
 			<view slot="listTop" ref="listTop"></view>
 			<template v-slot="{item}">
-				<view @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
+				<view @tap="readComic(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
 					<view class="comic-list-icon" @tap.stop="check(item.path)">
 						<c-image class="comic-image" :src="item.image" mode="aspectFill"></c-image>
 					</view>
@@ -122,6 +122,8 @@
 	import { dateFormat, suffix, indexOf, cnnumtonum } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const environment = plus.android.importClass("android.os.Environment");
+	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
+	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
@@ -203,32 +205,68 @@
 					this.clearComicPath();
 					return;
 				}
+				let comicList = [];
 				
-				//获取漫画列表 调试用
-				let list = plus.android.invoke(ff, "listFiles");
-				let len = list ? list.length : 0;
-				let folder = [];
-				for(let i=0; i<len; i++){
-				    // 过滤隐藏文件  
-				    if ( !plus.android.invoke(list[i],"isHidden") ){
-						// 文件夹
-						if ( plus.android.invoke(list[i],"isDirectory") ){
-							folder.push({
-								name: plus.android.invoke(list[i], 'getName'),
-								image: this.getComicImage(list[i]),
-								time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-								path: plus.android.invoke(list[i],"getPath"),
-								length: this.getComicLength(list[i])
-							})
-						}
-				    }
+				//正式用
+				// let getDirectory = new GetDirectoryList();
+				// let directoryStr = getDirectory.getDirectories(path);
+				// let list = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// for(let i in list){
+				// 	if ( list[i].type == 'folder' ) {
+				// 		comicList.push({
+				// 			name: list[i].name,
+				// 			image: this.getComicImage(list[i].path),
+				// 			time: list[i].time,
+				// 			createTime: list[i].createTime,
+				// 			path: list[i].path,
+				// 			length: this.getComicLength(list[i].path)
+				// 		})
+				// 	}
+				// }
+				
+				//调试用
+				let list = plus.android.invoke(ff, 'listFiles');
+				for(let i in list){
+					// 文件夹
+					if ( plus.android.invoke(list[i], 'isDirectory') ) {
+						let path = plus.android.invoke(list[i], 'getPath')
+						comicList.push({
+							name: plus.android.invoke(list[i], 'getName'),
+							image: this.getComicImage(path),
+							time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+							createTime: plus.android.invoke(list[i],"lastModified"),
+							path: path,
+							length: this.getComicLength(path)
+						})
+					}
 				}
-				this.comicList = folder;
+				
+				comicList.sort((a, b) => {
+					return b.createTime; - a.createTime
+				})
+				this.comicList = comicList;
 				uni.hideLoading();
 			},
 			//获取漫画章节数
-			getComicLength (ff) {
-				let list = plus.android.invoke(ff, "listFiles");
+			getComicLength (path) {
+				//正式用
+				// let length = 0;
+				// let getDirectory = new GetDirectoryList();
+				// let directoryStr = getDirectory.getDirectories(path);
+				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// if ( folder.length < 1 ) {
+				// 	let getFile = new GetFileList();
+				// 	let fileStr = getFile.getFiles(path, 'jpg,png,gif');
+				// 	let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				// 	length = file.length;
+				// } else {
+				// 	length = folder.length;
+				// }
+				// return length;
+				
+				//调试用
+				let file = plus.android.newObject("java.io.File", path)
+				let list = plus.android.invoke(file, "listFiles");
 				let length = 0;
 				for ( let i in list ) {
 					if ( plus.android.invoke(list[0], "isDirectory") ) {
@@ -238,9 +276,27 @@
 				return length == 0 && list.length > 0 ? 1 : length;
 			},
 			//获取漫画预览图
-			getComicImage (ff) {
-				let list = plus.android.invoke(ff, "listFiles");
-				let len = list ? list.length : 0;
+			getComicImage (path) {
+				//正式用
+				// let image = '';
+				// let getDirectory = new GetDirectoryList();
+				// let directoryStr = getDirectory.getDirectories(path);
+				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// let getFile = new GetFileList();
+				// if ( folder.length < 1 ) {
+				// 	let fileStr = getFile.getFiles(path, 'jpg,png,gif');
+				// 	let file = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// 	image = file[0].path;
+				// } else {
+				// 	let fileStr = getFile.getFiles(folder[0].path, 'jpg,png,gif');
+				// 	let file = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// 	image = file[0].path;
+				// }
+				// return image;
+				
+				//调试用
+				let file = plus.android.newObject("java.io.File", path)
+				let list = plus.android.invoke(file, "listFiles");
 				//首个文件是文件夹
 				if ( plus.android.invoke(list[0], "isDirectory") ) {
 					let childList = plus.android.invoke(list[0], "listFiles");
@@ -534,6 +590,41 @@
 					}
 				}
 			},
+			//阅读漫画
+			readComic (path) {
+				let index = indexOf(this.comicList, path, 'path');
+				let fd = plus.android.newObject("java.io.File", path);
+				if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
+					plus.nativeUI.toast("漫画路径不存在！", {verticalAlign: 'bottom'});
+					this.comicList.splice(index, 1);
+					return;
+				}
+				//查询有没有导入过该漫画
+				let bookIndex = indexOf(this.bookList, path, 'path');
+				//导入过直接阅读
+				if ( bookIndex > -1 ) {
+					this.routePush('/pages/comic/read/index?index=' + bookIndex);
+				} else {
+					//未导入，则先导入再进行阅读
+					let books = [];
+					books.push({
+						name: this.comicList[index].name,
+						image: this.comicList[index].image,
+						length: this.comicList[index].length,
+						type: 'comic',
+						path: this.comicList[index].path
+					});
+					this.addBooks(books);
+					this.$nextTick(() => {
+						bookIndex = indexOf(this.bookList, path, 'path');
+						if ( bookIndex > -1 ) {
+							this.routePush('/pages/comic/read/index?index=' + bookIndex);
+						} else {
+							plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
+						}
+					})
+				}
+			},
 			routePush (url) {
 				//路由防抖
 				if ( this.routeDisabled ) {
@@ -552,14 +643,12 @@
 				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
 				this.comicPath = plus.android.invoke(fd, 'getPath');
 				
-				//获取文件列表 正式用
-				// let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-				// let getFile = new GetFileList();
-				// let str = getFile.getFiles(plus.android.invoke(fd, 'getPath'));
-				// let list = str.split('::');
-				// let folder = JSON.parse(JSON.parse(JSON.stringify(list[0])));
+				//获取文件夹列表 正式用
+				// let getDirectory = new GetDirectoryList();
+				// let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
+				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
 				
-				//获取文件列表 调试用
+				//获取文件夹列表 调试用
 				let list = plus.android.invoke(fd, "listFiles");
 				let len = list ? list.length : 0;
 				let folder = [];

@@ -4,18 +4,34 @@
 			<header>
 				<gap-bar color="rgba(0,0,0,0.5)"></gap-bar>
 			</header>
-			<cell v-for="(item, index) in comicSync" :key="index">
-				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @tap="preview(item.path)" @appear="appear(index)" @disappear="disappear(index)">
-					<c-image class="comic-image" lazy-load :style="{height: item.height}" :src="item.path" mode="widthFix" :hidden="item.hidden"></c-image>
+			
+			<!-- 利用appear通用事件，来判断列表是否触顶 -->
+			<cell><view style="height: 1px;" @appear="prevShow = true" @disappear="prevShow = false" v-if="comicSync.length"></view></cell>
+			
+			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
+				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @tap="preview(item.path)">
+					<c-image enable-hidden class="comic-image" lazy-load :style="{height: item.height}" :src="item.path" mode="widthFix"></c-image>
 				</view>
 			</cell>
+			
+			<!-- 利用appear通用事件，来判断列表是否触底 -->
+			<cell><view style="height: 1px;" @appear="nextShow = true" @disappear="nextShow = false" v-if="comicSync.length"></view></cell>
+			
 		</list>
 		<view class="touch-box">
 			<view class="menu" @tap="showSetting">
 				<text class="menu-text">菜单</text>
 			</view>
 		</view>
-		<comic-setting ref="comicSetting" :path="comicInfo.path" :comicSync="comicSync"></comic-setting>
+		
+		<view class="chapter-box next-chapter" v-if="nextShow" @tap="changeChapter(1)">
+			<text class="chapter-text">后面没有了，点击前往下一话</text>
+		</view>
+		<view class="chapter-box prev-chapter" v-if="prevShow" @tap="changeChapter(-1)">
+			<text class="chapter-text">前没有了，点击前往上一话</text>
+		</view>
+		
+		<comic-setting ref="comicSetting" :path="comicInfo.path" :comicSync="comicSync" :actNum="nowIndex"></comic-setting>
 	</view>
 </template>
 
@@ -27,6 +43,8 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	import GapBar from '@/components/gap-bar/gap-bar.nvue'
 	const dom = weex.requireModule('dom');
+	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
 	export default {
 		mixins: [skinMixin],
 		computed: {
@@ -55,9 +73,12 @@
 			return {
 				comic: [1,2,3,4,5,6,5],
 				comicSync: [],
-				comicTops: [],
+				nowIndex: 0,
 				//屏幕宽度，用于计算图片的高度
-				windowWidth: 0
+				windowWidth: 0,
+				direction: 'up',
+				nextShow: false,
+				prevShow: false
 			}
 		},
 		onReady () {
@@ -67,13 +88,46 @@
 			}, 300)
 		},
 		methods: {
-			...mapMutations(['updateBookLength']),
+			...mapMutations(['updateBookLength', 'updateBookRecord']),
+			//读取漫画内容
 			async getComicSync () {
 				uni.showLoading({
 					title: '读取中..'
 				})
-				let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
 				let arr = [];
+				
+				//正式用
+				// let getDirectory = new GetDirectoryList();
+				// let getFile = new GetFileList();
+				// let directoryStr = getDirectory.getDirectories(this.comicInfo.path);
+				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// let fileStr = '';
+				// let file = [];
+				// let length = 0;
+				// if ( folder.length < 1 ) {
+				// 	fileStr = getFile.getFiles(this.comicInfo.path, 'jpg,png,gif');
+				// 	file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				// 	length = file.length > 0 ? 1 : 0;
+				// } else {
+				// 	length = folder.length;
+				// 	fileStr = getFile.getFiles(folder[chapter].path, 'jpg,png,gif');
+				// 	file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				// }
+				// //更新漫画章节数量
+				// this.updateBookLength({
+				// 	path: this.comicInfo.path,
+				// 	length: length
+				// })
+				// for ( let i in file ) {
+				// 	arr.push({
+				// 		path: file[i].path,
+				// 		name: file[i].name,
+				// 		height: await this.countImageHeight(file[i].path) + 'px'
+				// 	})
+				// }
+				
+				//调试用
+				let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
 				let list = plus.android.invoke(fd, "listFiles");
 				this.upComicLength(list);
 				if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
@@ -83,8 +137,7 @@
 						arr.push({
 							path: path,
 							name: plus.android.invoke(childList[i], "getName"),
-							height: await this.countImageHeight(path) + 'px',
-							hidden: false
+							height: await this.countImageHeight(path) + 'px'
 						})
 					}
 				} else {
@@ -93,18 +146,17 @@
 						arr.push({
 							path: path,
 							name: plus.android.invoke(list[i], "getName"),
-							height: await this.countImageHeight(path) + 'px',
-							hidden: false
+							height: await this.countImageHeight(path) + 'px'
 						})
 					}
 				}
+				
 				arr.sort((a, b) => {
 					return cnnumtonum(a.name) - cnnumtonum(b.name);
 				})
 				this.comicSync = arr;
 				setTimeout(() => {
 					this.scrollTo();
-					this.countTop();
 				}, 50)
 				uni.hideLoading();
 			},
@@ -146,29 +198,58 @@
 			},
 			//滚动到指定的图片位置
 			scrollTo () {
+				this.nowIndex = this.pNum;
 				dom.scrollToElement(this.$refs.comicBox[this.pNum], {animated: false});
 			},
 			scroll (e) {
+				//向上滑动时
+				if ( e.contentOffset.y < this.oldOffsetY ) {
+					this.direction = 'up';
+				} else {
+					//向下滑动时
+					this.direction = 'under';
+				}
+				//如果列表y轴偏移为0
+				if ( e.contentOffset.y == 0 ) {
+					this.nowIndex = 0;
+				}
+				this.oldOffsetY = e.contentOffset.y;
 			},
 			appear (index) {
-				this.$set(this.comicSync[index], 'hidden', false);
-			},
-			disappear (index) {
-				this.$set(this.comicSync[index], 'hidden', true);
-			},
-			//计算每张图片距离顶部的距离
-			countTop () {
-				for ( let i in this.comicSync ) {
-					setTimeout(async () => {
-						this.comicTops.push(await this.getRectTop(i));
-					}, i * 30)
+				if ( this.direction == 'under' ) {
+					this.nowIndex = index;
 				}
 			},
-			getRectTop (index) {
-				return new Promise((resolve) => {
-					dom.getComponentRect(this.$refs.comicBox[index], (res) => {
-						resolve(res.size.top)
+			disappear (index) {
+				if ( this.direction == 'up' ) {
+					this.nowIndex = index + 1;
+				}
+			},
+			//前往上/下章节
+			changeChapter (value) {
+				if ( this.chapter == 0 && value < 0 ) {
+					uni.showToast({
+						title: '已经是第一话了',
+						icon: 'none'
 					})
+					return;
+				}
+				if ( this.chapter == this.comicInfo.length - 1 && value > 0 ) {
+					uni.showToast({
+						title: '已经是最后一话了',
+						icon: 'none'
+					})
+					return;
+				}
+				let chapter = this.chapter + value;
+				this.upChapter(chapter);
+			},
+			//更新章节
+			upChapter (chapter) {
+				let record = chapter + '-0';
+				this.updateBookRecord({
+					path: this.comicInfo.path,
+					record: record
 				})
 			},
 			//获取屏幕宽度
@@ -217,6 +298,10 @@
 				//退出前锁定为竖屏
 				plus.screen.lockOrientation('portrait-primary');
 			}
+			this.updateBookRecord({
+				path: this.comicInfo.path,
+				record: this.chapter + '-' + this.nowIndex
+			})
 			return false;
 		},
 		components: {
@@ -257,5 +342,29 @@
 	}
 	.menu-text {
 		font-size: 40rpx;
+	}
+	.chapter-box {
+		position: fixed;
+		top: 200rpx;
+		bottom: 200rpx;
+		width: 70rpx;
+		background-color: rgba(76,217,100,0.8);
+		align-items: center;
+		justify-content: center;
+	}
+	.prev-chapter {
+		left: 0;
+		border-top-right-radius: 50rpx;
+		border-bottom-right-radius: 50rpx;
+	}
+	.next-chapter {
+		right: 0;
+		border-top-left-radius: 50rpx;
+		border-bottom-left-radius: 50rpx;
+	}
+	.chapter-text {
+		font-size: 40rpx;
+		color: #FFFFFF;
+		text-align: center;
 	}
 </style>

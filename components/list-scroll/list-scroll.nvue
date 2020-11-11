@@ -4,10 +4,10 @@
 			<cell>
 				<slot name="listTop"></slot>
 			</cell>
-			<cell v-for="(lists, i) in listSync" @appear="appear(i)" @disappear="disappear(i)">
-				<view class="list">
+			<cell v-for="(lists, i) in listSync">
+				<view class="list" ref="listItem">
 					<view class="list-item" :style="{width: itemWidth + 'rpx', height: lineHeight + 'rpx'}" v-for="(child, index) in lists" :key="index">
-						<block v-if="isShows.indexOf(i) > -1">
+						<block v-if="Math.abs(offsetY) < (i + 1) * childHeight && i * childHeight < (Math.abs(offsetY) + windowHeight)">
 							<slot :item="child"></slot>
 						</block>
 					</view>
@@ -26,11 +26,6 @@
 			columnCount: {
 				type: Number,
 				default: 1
-			},
-			//一次最多渲染多少列
-			rowCount: {
-				type: Number,
-				default: 4
 			},
 			lineHeight: {
 				type: Number,
@@ -60,58 +55,66 @@
 			}
 		},
 		computed: {
-			//多列列表数据
-			listSync() {
-				let arr = [];
-				let j = -1;
-				for (let i in this.list) {
-					if (i % this.maxCount == 0) {
-						j++;
-						this.$set(arr, j, []);
-					}
-					arr[j].push(this.list[i]);
-				}
-				return arr;
-			},
-			maxCount () {
-				return parseInt(this.columnCount * this.rowCount);
-			},
 			itemWidth() {
 				return 750 / this.columnCount;
 			}
 		},
+		mounted () {
+			if ( this.list.length > 0 ) {
+				setTimeout(() => {
+					this.getListSync();
+				}, 50)
+			}
+		},
 		data() {
 			return {
-				isShows: [],
-				childHeight: 0
+				childHeight: 0,
+				windowHeight: 0,
+				offsetY: 0,
+				listSync: []
 			}
 		},
 		methods: {
 			scroll(e) {
+				this.offsetY = e.contentOffset.y;
 				this.$emit('scroll', e)
 			},
 			loadmore(e) {
 				this.$emit('loadmore', e);
 			},
-			appear(index) {
-				let flag = this.isShows.indexOf(index);
-				if (flag == -1) {
-					this.isShows.push(index);
-				}
-			},
-			disappear(index) {
-				let flag = this.isShows.indexOf(index);
-				if (flag > -1) {
-					this.isShows.splice(flag, 1);
-				}
-			},
-			//获取每行数据高度
-			getChildHeight(el) {
-				return new Promise((resolve, reject) => {
-					dom.getComponentRect(el, (res) => {
-						resolve(res.size.height)
-					})
+			//计算数据
+			getListSync() {
+				dom.getComponentRect(this.$refs.list, (res) => {
+					this.windowHeight = res.size.height;
+					let maxCount = parseInt(this.columnCount * Math.ceil(res.size.height / uni.upx2px(this.lineHeight)));
+					let arr = [];
+					let j = -1;
+					for (let i in this.list) {
+						if (i % maxCount == 0) {
+							j++;
+							this.$set(arr, j, []);
+						}
+						arr[j].push(this.list[i]);
+					}
+					this.listSync = arr;
+					setTimeout(() => {
+						this.getItemHeight();
+					}, 100)
 				})
+			},
+			getItemHeight () {
+				dom.getComponentRect(this.$refs.listItem[0], (res) => {
+					this.childHeight = res.size.height;
+				})
+			}
+		},
+		watch: {
+			list () {
+				if ( this.list.length > 0 ) {
+					setTimeout(() => {
+						this.getListSync();
+					}, 50)
+				}
 			}
 		}
 	}

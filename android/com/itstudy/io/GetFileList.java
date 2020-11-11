@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 
 /**
  * @Title: FileList
@@ -19,25 +20,16 @@ import java.text.SimpleDateFormat;
 public class GetFileList {
 
 
-    public String getFiles(String path, Boolean isGetFile) throws IOException, JSONException {
+    public String getFiles(String path, String type) throws IOException, JSONException {
         File file = new File(path);
         File[] files = file.listFiles();
-        JSONArray folderJsonArray = new JSONArray();
+        String[] types = type.split(",");
         JSONArray fileListJsonArray = new JSONArray();
         for (File value : files) {
             if ( !value.isHidden() ) {
                 JSONObject jsonObject = new JSONObject();
-                if (value.isDirectory()) {
-                    jsonObject.put("name", value.getName());
-                    jsonObject.put("path", value.getPath());
-                    jsonObject.put("type", "folder");
-                    jsonObject.put("size", "0B");
-                    jsonObject.put("time", this.getFileTime(value));
-                    jsonObject.put("createTime",value.lastModified());
-                    folderJsonArray.put(jsonObject);
-                }
-                if (value.isFile() && isGetFile) {
-                    if ("txt".equals(this.getFileType(value))) {
+                if (value.isFile()) {
+                    if ( Arrays.binarySearch(types, this.getFileType(value)) > 0 ) {
                         jsonObject.put("name", value.getName());
                         jsonObject.put("path", value.getPath());
                         jsonObject.put("type", this.getFileType(value));
@@ -49,7 +41,7 @@ public class GetFileList {
                 }
             }
         }
-        return folderJsonArray.toString() + "::" + fileListJsonArray.toString();
+        return fileListJsonArray.toString();
     }
 
     private String getFileType(File file) {

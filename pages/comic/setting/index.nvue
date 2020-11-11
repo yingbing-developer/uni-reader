@@ -26,12 +26,12 @@
 				<text class="chapter-text" @tap="changeChapter(1)">下一话</text>
 			</view>
 			<view class="read-board-line img-line">
-				<crosswise class="img-scroll" :list="comicSync" :actId="pNum">
+				<crosswise class="img-scroll" :list="comicSync" :actId="actNum">
 					<template v-slot="{item}">
 						<view class="img-box" @tap="upPNum(item.index)">
 							<view style="position: relative;">
 								<c-image class="img" lazy-load :src="item.item.path" mode="aspectFill"></c-image>
-								<view class="img-actived" v-if="pNum == item.index">
+								<view class="img-actived" v-if="actNum == item.index">
 									<c-icon name="check-fill" size="60" color="#DD524D"></c-icon>
 								</view>
 							</view>
@@ -65,6 +65,10 @@
 				default () {
 					return new Array();
 				}
+			},
+			actNum: {
+				type: String,
+				default: '0'
 			}
 		},
 		data () {

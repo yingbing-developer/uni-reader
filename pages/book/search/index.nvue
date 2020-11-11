@@ -387,7 +387,7 @@
 					let bookIndex = indexOf(this.bookList, path, 'path');
 					//导入过直接阅读
 					if ( bookIndex > -1 ) {
-						this.routePush('/pages/read/index?index=' + bookIndex);
+						this.routePush('/pages/book/read/index?index=' + bookIndex);
 					} else {
 						//未导入，则先导入再进行阅读
 						let books = [];
@@ -396,7 +396,7 @@
 						this.$nextTick(() => {
 							bookIndex = indexOf(this.bookList, path, 'path');
 							if ( bookIndex > -1 ) {
-								this.routePush('/pages/read/index?index=' + bookIndex);
+								this.routePush('/pages/book/read/index?index=' + bookIndex);
 							} else {
 								plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
 							}
@@ -424,11 +424,13 @@
 				
 				//获取文件列表 正式用
 				// let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+				// let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
 				// let getFile = new GetFileList();
-				// let str = getFile.getFiles(plus.android.invoke(fd, 'getPath'), true);
-				// let list = str.split('::');
-				// let folder = JSON.parse(JSON.parse(JSON.stringify(list[0])));
-				// let file = JSON.parse(JSON.parse(JSON.stringify(list[1])));
+				// let getDirectory = new GetDirectoryList();
+				// let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
+				// let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
+				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
 				
 				//获取文件列表 调试用
 				let list = plus.android.invoke(fd, "listFiles");
