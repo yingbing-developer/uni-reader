@@ -50,7 +50,8 @@ export function removeSuffix (name) {
  * @param {String} query 对比key值
 */
 export const indexOf = function (arr, value, query) {
-	for ( let i in arr ) {
+	let len = arr.length;
+	for ( let i = 0; i < len; i++ ) {
 		if ( arr[i][query] == value ) {
 			return parseInt(i);
 		}

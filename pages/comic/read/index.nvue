@@ -98,59 +98,66 @@
 				let arr = [];
 				
 				//正式用
-				// let getDirectory = new GetDirectoryList();
-				// let getFile = new GetFileList();
-				// let directoryStr = getDirectory.getDirectories(this.comicInfo.path);
-				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				// let fileStr = '';
-				// let file = [];
-				// let length = 0;
-				// if ( folder.length < 1 ) {
-				// 	fileStr = getFile.getFiles(this.comicInfo.path, suffixs);
-				// 	file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-				// 	length = file.length > 0 ? 1 : 0;
-				// } else {
-				// 	fileStr = getFile.getFiles(folder[this.chapter].path, suffixs);
-				// 	file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-				// 	length = folder.length;
-				// }
-				// //更新漫画章节数量
-				// this.updateBookLength({
-				// 	path: this.comicInfo.path,
-				// 	length: length
-				// })
-				// for ( let i in file ) {
-				// 	arr.push({
-				// 		path: file[i].path,
-				// 		name: file[i].name,
-				// 		height: await this.countImageHeight(file[i].path) + 'px'
-				// 	})
-				// }
+				let getDirectory = new GetDirectoryList();
+				let getFile = new GetFileList();
+				let directoryStr = getDirectory.getDirectories(this.comicInfo.path);
+				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				let fileStr = '';
+				let file = [];
+				let length = 0;
+				if ( folder.length < 1 ) {
+					fileStr = getFile.getFiles(this.comicInfo.path, suffixs);
+					file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+					length = file.length > 0 ? 1 : 0;
+				} else {
+					//排序章节
+					folder.sort((a, b) => {
+						return cnnumtonum(a.name) - cnnumtonum(b.name);
+					})
+					fileStr = getFile.getFiles(folder[this.chapter].path, suffixs);
+					file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+					length = folder.length;
+				}
+				//更新漫画章节数量
+				this.updateBookLength({
+					path: this.comicInfo.path,
+					length: length
+				})
+				let len = file.length;
+				for ( let i = 0; i < len; i++ ) {
+					arr.push({
+						path: file[i].path,
+						name: file[i].name,
+						height: await this.countImageHeight(file[i].path) + 'px'
+					})
+				}
 				
 				//调试用
-				let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
-				let list = plus.android.invoke(fd, "listFiles");
-				this.upComicLength(list);
-				if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
-					let childList = plus.android.invoke(list[this.chapter], "listFiles")
-					for ( let i in childList ) {
-						let path = plus.android.invoke(childList[i], "getPath");
-						arr.push({
-							path: path,
-							name: plus.android.invoke(childList[i], "getName"),
-							height: await this.countImageHeight(path) + 'px'
-						})
-					}
-				} else {
-					for ( let i in list ) {
-						let path = plus.android.invoke(list[i], "getPath");
-						arr.push({
-							path: path,
-							name: plus.android.invoke(list[i], "getName"),
-							height: await this.countImageHeight(path) + 'px'
-						})
-					}
-				}
+				// let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
+				// let list = plus.android.invoke(fd, "listFiles");
+				// this.upComicLength(list);
+				// if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
+				// 	let childList = plus.android.invoke(list[this.chapter], "listFiles")
+				// 	let len = childList.length;
+				// 	for ( let i = 0; i < len; i++ ) {
+				// 		let path = plus.android.invoke(childList[i], "getPath");
+				// 		arr.push({
+				// 			path: path,
+				// 			name: plus.android.invoke(childList[i], "getName"),
+				// 			height: await this.countImageHeight(path) + 'px'
+				// 		})
+				// 	}
+				// } else {
+				// 	let len = list.length;
+				// 	for ( let i = 0; i < len; i++ ) {
+				// 		let path = plus.android.invoke(list[i], "getPath");
+				// 		arr.push({
+				// 			path: path,
+				// 			name: plus.android.invoke(list[i], "getName"),
+				// 			height: await this.countImageHeight(path) + 'px'
+				// 		})
+				// 	}
+				// }
 				
 				arr.sort((a, b) => {
 					return cnnumtonum(a.name) - cnnumtonum(b.name);
@@ -164,7 +171,8 @@
 			//更新漫画章节数
 			upComicLength (list) {
 				let length = 0;
-				for ( let i in list ) {
+				let len = list.length;
+				for ( let i = 0; i < len; i++ ) {
 					if ( plus.android.invoke(list[0], "isDirectory") ) {
 						length += 1;
 					}
@@ -306,7 +314,6 @@
 			})
 			//退出前判断有没有读完漫画
 			if ( this.nextShow ) {
-				console.log(this.chapter + 1);
 				this.updateBookReadStatus({
 					path: this.comicInfo.path,
 					isReaded: this.chapter + 1 >= this.comicInfo.length

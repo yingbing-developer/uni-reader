@@ -44,8 +44,9 @@
 				return this.bookList[indexOf(this.bookList, this.path, 'path')];
 			},
 			scrollTo () {
+				let len = this.list.length;
 				if ( this.title == '章节' ) {
-					for ( let i in this.list ) {
+					for ( let i = 0; i < len; i++ ) {
 						if ( i < this.list.length - 1 ) {
 							if ( this.bookInfo.record >= this.list[i].index && this.bookInfo.record < this.list[parseInt(i) + 1].index ) {
 								return i
@@ -58,7 +59,7 @@
 					}
 				} 
 				if ( this.title == '书签' ) {
-					for ( let i in this.list ) {
+					for ( let i = 0; i < len; i++ ) {
 						if ( this.bookInfo.record == this.list[i].index ) {
 							return i
 						}

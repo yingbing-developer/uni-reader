@@ -62,11 +62,10 @@
 		mounted () {
 			setTimeout(() => {
 				this.getListSync();
-			}, 50)
+			}, 100)
 		},
 		data() {
 			return {
-				childHeight: 0,
 				windowHeight: 0,
 				isShows: [],
 				listSync: []
@@ -86,7 +85,8 @@
 					let maxCount = parseInt(this.columnCount * Math.ceil(res.size.height / uni.upx2px(this.lineHeight)));
 					let arr = [];
 					let j = -1;
-					for (let i in this.list) {
+					let len = this.list.length;
+					for (let i = 0; i < len; i++) {
 						if (i % maxCount == 0) {
 							j++;
 							this.$set(arr, j, []);
@@ -94,14 +94,6 @@
 						arr[j].push(this.list[i]);
 					}
 					this.listSync = arr;
-					// setTimeout(() => {
-					// 	this.getItemHeight();
-					// }, 100)
-				})
-			},
-			getItemHeight () {
-				dom.getComponentRect(this.$refs.listItem[0], (res) => {
-					this.childHeight = res.size.height;
 				})
 			},
 			appear(i) {
@@ -120,7 +112,7 @@
 			list () {
 				setTimeout(() => {
 					this.getListSync();
-				}, 50)
+				}, 100)
 			}
 		}
 	}
