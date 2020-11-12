@@ -29,7 +29,7 @@ public class GetFileList {
             if ( !value.isHidden() ) {
                 JSONObject jsonObject = new JSONObject();
                 if (value.isFile()) {
-                    if ( Arrays.binarySearch(types, this.getFileType(value)) > 0 ) {
+                    if ( Arrays.asList(types).contains(this.getFileType(value)) ) {
                         jsonObject.put("name", value.getName());
                         jsonObject.put("path", value.getPath());
                         jsonObject.put("type", this.getFileType(value));

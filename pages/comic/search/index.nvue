@@ -124,6 +124,7 @@
 	const environment = plus.android.importClass("android.os.Environment");
 	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
 	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+	const suffixs = 'jpg,png,gif,JPG,PNG,GIF'
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
@@ -256,9 +257,9 @@
 				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
 				// if ( folder.length < 1 ) {
 				// 	let getFile = new GetFileList();
-				// 	let fileStr = getFile.getFiles(path, 'jpg,png,gif');
+				// 	let fileStr = getFile.getFiles(path, suffixs);
 				// 	let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-				// 	length = file.length;
+				// 	length = file.length > 0 ? 1 : 0;
 				// } else {
 				// 	length = folder.length;
 				// }
@@ -278,21 +279,19 @@
 			//获取漫画预览图
 			getComicImage (path) {
 				//正式用
-				// let image = '';
 				// let getDirectory = new GetDirectoryList();
 				// let directoryStr = getDirectory.getDirectories(path);
 				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
 				// let getFile = new GetFileList();
+				// let filePath = '';
 				// if ( folder.length < 1 ) {
-				// 	let fileStr = getFile.getFiles(path, 'jpg,png,gif');
-				// 	let file = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				// 	image = file[0].path;
+				// 	filePath = path;
 				// } else {
-				// 	let fileStr = getFile.getFiles(folder[0].path, 'jpg,png,gif');
-				// 	let file = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				// 	image = file[0].path;
+				// 	filePath = folder[0].path;
 				// }
-				// return image;
+				// let fileStr = getFile.getFiles(filePath, suffixs);
+				// let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				// return file.length > 0 ? file[0].path : '';
 				
 				//调试用
 				let file = plus.android.newObject("java.io.File", path)
@@ -669,6 +668,7 @@
 						}
 				    }
 				}
+				
 				this.list = folder;
 				this.scrollTop();
 			},

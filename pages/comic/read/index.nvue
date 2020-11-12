@@ -45,6 +45,7 @@
 	const dom = weex.requireModule('dom');
 	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
 	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
+	const suffixs = 'jpg,png,gif,JPG,PNG,GIF'
 	export default {
 		mixins: [skinMixin],
 		computed: {
@@ -88,7 +89,7 @@
 			}, 300)
 		},
 		methods: {
-			...mapMutations(['updateBookLength', 'updateBookRecord']),
+			...mapMutations(['updateBookLength', 'updateBookRecord', 'updateBookReadStatus']),
 			//读取漫画内容
 			async getComicSync () {
 				uni.showLoading({
@@ -105,13 +106,13 @@
 				// let file = [];
 				// let length = 0;
 				// if ( folder.length < 1 ) {
-				// 	fileStr = getFile.getFiles(this.comicInfo.path, 'jpg,png,gif');
+				// 	fileStr = getFile.getFiles(this.comicInfo.path, suffixs);
 				// 	file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
 				// 	length = file.length > 0 ? 1 : 0;
 				// } else {
-				// 	length = folder.length;
-				// 	fileStr = getFile.getFiles(folder[chapter].path, 'jpg,png,gif');
+				// 	fileStr = getFile.getFiles(folder[this.chapter].path, suffixs);
 				// 	file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				// 	length = folder.length;
 				// }
 				// //更新漫画章节数量
 				// this.updateBookLength({
@@ -278,7 +279,7 @@
 			pNum () {
 				this.scrollTo();
 			},
-			chapter () {
+			chapter (newVal) {
 				this.getComicSync();
 			},
 			comicOrien () {
@@ -298,10 +299,24 @@
 				//退出前锁定为竖屏
 				plus.screen.lockOrientation('portrait-primary');
 			}
+			//退出前更新本章节的阅读位置
 			this.updateBookRecord({
 				path: this.comicInfo.path,
 				record: this.chapter + '-' + this.nowIndex
 			})
+			//退出前判断有没有读完漫画
+			if ( this.nextShow ) {
+				console.log(this.chapter + 1);
+				this.updateBookReadStatus({
+					path: this.comicInfo.path,
+					isReaded: this.chapter + 1 >= this.comicInfo.length
+				})
+			} else {
+				this.updateBookReadStatus({
+					path: this.comicInfo.path,
+					isReaded: false
+				})
+			}
 			return false;
 		},
 		components: {

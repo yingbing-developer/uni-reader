@@ -145,14 +145,14 @@
 				// readTxt = '';
 				
 				// 获取内容 调试用
-				// let file = plus.android.newObject("java.io.File", 'file://' + this.path);
-				// let stream = plus.android.newObject("java.io.FileInputStream", file);
-				// let reader = plus.android.newObject("java.io.InputStreamReader", stream, 'GBK');
-				// let bufferedReader = plus.android.newObject("java.io.bufferedReader", reader);
-				// let lineTxt = null;
-				// lineTxt = plus.android.invoke(bufferedReader, 'readLine');
-				// plus.android.invoke(reader, 'close');
-				// plus.nativeUI.closeWaiting();
+				let file = plus.android.newObject("java.io.File", 'file://' + this.path);
+				let stream = plus.android.newObject("java.io.FileInputStream", file);
+				let reader = plus.android.newObject("java.io.InputStreamReader", stream, 'GBK');
+				let bufferedReader = plus.android.newObject("java.io.bufferedReader", reader);
+				let lineTxt = null;
+				lineTxt = plus.android.invoke(bufferedReader, 'readLine');
+				plus.android.invoke(reader, 'close');
+				plus.nativeUI.closeWaiting();
 				plus.io.resolveLocalFileSystemURL('file://' + this.path, ( entry ) => {
 					entry.file( ( file ) => {
 						let reader = new plus.io.FileReader();

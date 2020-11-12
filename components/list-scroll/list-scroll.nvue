@@ -4,10 +4,10 @@
 			<cell>
 				<slot name="listTop"></slot>
 			</cell>
-			<cell v-for="(lists, i) in listSync">
+			<cell v-for="(lists, i) in listSync" @appear="appear(i)" @disappear="disappear(i)">
 				<view class="list" ref="listItem">
 					<view class="list-item" :style="{width: itemWidth + 'rpx', height: lineHeight + 'rpx'}" v-for="(child, index) in lists" :key="index">
-						<block v-if="Math.abs(offsetY) < (i + 1) * childHeight && i * childHeight < (Math.abs(offsetY) + windowHeight)">
+						<block v-if="isShows.indexOf(i) > -1">
 							<slot :item="child"></slot>
 						</block>
 					</view>
@@ -60,23 +60,20 @@
 			}
 		},
 		mounted () {
-			if ( this.list.length > 0 ) {
-				setTimeout(() => {
-					this.getListSync();
-				}, 50)
-			}
+			setTimeout(() => {
+				this.getListSync();
+			}, 50)
 		},
 		data() {
 			return {
 				childHeight: 0,
 				windowHeight: 0,
-				offsetY: 0,
+				isShows: [],
 				listSync: []
 			}
 		},
 		methods: {
 			scroll(e) {
-				this.offsetY = e.contentOffset.y;
 				this.$emit('scroll', e)
 			},
 			loadmore(e) {
@@ -97,24 +94,33 @@
 						arr[j].push(this.list[i]);
 					}
 					this.listSync = arr;
-					setTimeout(() => {
-						this.getItemHeight();
-					}, 100)
+					// setTimeout(() => {
+					// 	this.getItemHeight();
+					// }, 100)
 				})
 			},
 			getItemHeight () {
 				dom.getComponentRect(this.$refs.listItem[0], (res) => {
 					this.childHeight = res.size.height;
 				})
-			}
+			},
+			appear(i) {
+				if ( this.isShows.indexOf(i) == -1 ) {
+					this.isShows.push(i);
+				}
+			},
+			disappear(i) {
+				let index = this.isShows.indexOf(i);
+				if ( index > -1 ) {
+					this.isShows.splice(index, 1);
+				}
+			},
 		},
 		watch: {
 			list () {
-				if ( this.list.length > 0 ) {
-					setTimeout(() => {
-						this.getListSync();
-					}, 50)
-				}
+				setTimeout(() => {
+					this.getListSync();
+				}, 50)
 			}
 		}
 	}

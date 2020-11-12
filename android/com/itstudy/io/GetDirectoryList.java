@@ -22,7 +22,7 @@ import java.util.Arrays;
 public class GetDirectoryList {
 
 
-    public String GetDirectories(String path) throws IOException, JSONException {
+    public String getDirectories(String path) throws IOException, JSONException {
         File file = new File(path);
         File[] files = file.listFiles();
         JSONArray folderJsonArray = new JSONArray();
