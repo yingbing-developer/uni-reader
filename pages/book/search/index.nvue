@@ -259,7 +259,11 @@
 					if ( this.isLead(this.actionPath) == -1 ) {
 						let flag = indexOf(this.list, this.actionPath, 'path');
 						let books = [];
-						books.push(this.list[flag]);
+						books.push({
+							name: this.list[flag].name,
+							type: 'story',
+							path: this.list[flag].path
+						});
 						this.addBooks(books);
 						uni.showToast({
 							title: '导入成功'
@@ -394,7 +398,11 @@
 					} else {
 						//未导入，则先导入再进行阅读
 						let books = [];
-						books.push(this.list[index]);
+						books.push({
+							name: this.list[index].name,
+							type: 'story',
+							path: this.list[index].path
+						});
 						this.addBooks(books);
 						this.$nextTick(() => {
 							bookIndex = indexOf(this.bookList, path, 'path');

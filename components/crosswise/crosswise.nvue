@@ -5,16 +5,12 @@
 				<block v-if="isShows.indexOf(index) > -1">
 					<slot :item="{item: item, index: index}"></slot>
 				</block>
-				<block v-else>
-					<c-loading color="#8A8A8A"></c-loading>
-				</block>
 			</view>
 		</scroll-view>
 	</view>
 </template>
 
 <script>
-	import CLoading from '@/components/loading/loading.nvue'
 	export default {
 		props: {
 			list: {
@@ -50,9 +46,6 @@
 					this.isShows.splice(flag, 1);
 				}
 			}
-		},
-		components: {
-			CLoading
 		}
 	}
 </script>

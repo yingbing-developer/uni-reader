@@ -10,7 +10,7 @@
 			
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
 				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @tap="preview(item.path)">
-					<c-image enable-hidden class="comic-image" lazy-load :style="{height: item.height}" :src="item.path" mode="widthFix"></c-image>
+					<c-image :enable-mask="false" enable-hidden class="comic-image" lazy-load :style="{height: item.height}" :src="item.path" mode="aspectFill"></c-image>
 				</view>
 			</cell>
 			
@@ -45,7 +45,8 @@
 	const dom = weex.requireModule('dom');
 	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
 	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
-	const suffixs = 'jpg,png,gif,JPG,PNG,GIF'
+	const suffixs = 'jpg,png,gif,JPG,PNG,GIF';
+	const options = 'name,path';
 	export default {
 		mixins: [skinMixin],
 		computed: {
@@ -106,7 +107,7 @@
 				let file = [];
 				let length = 0;
 				if ( folder.length < 1 ) {
-					fileStr = getFile.getFiles(this.comicInfo.path, suffixs);
+					fileStr = getFile.getFiles(this.comicInfo.path, suffixs, options);
 					file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
 					length = file.length > 0 ? 1 : 0;
 				} else {
@@ -114,7 +115,7 @@
 					folder.sort((a, b) => {
 						return cnnumtonum(a.name) - cnnumtonum(b.name);
 					})
-					fileStr = getFile.getFiles(folder[this.chapter].path, suffixs);
+					fileStr = getFile.getFiles(folder[this.chapter].path, suffixs, options);
 					file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
 					length = folder.length;
 				}

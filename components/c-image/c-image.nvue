@@ -1,11 +1,11 @@
 <template>
-	<view class="c-image" @appear="appear" @disappear="disappear" v-if="enableHidden">
+	<view class="c-image" @appear="appear" @disappear="disappear" v-if="enableHidden" :resize="resize">
 		<image class="c-img" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden"></image>
-		<view class="img-mask" :style="{opacity: skinColor.imgMask}"></view>
+		<view class="img-mask" :style="{opacity: skinColor.imgMask}" v-if="enableMask"></view>
 	</view>
 	<view class="c-image" v-else>
 		<image class="c-img" :lazyLoad="lazyLoad" :src="url" :mode="mode"></image>
-		<view class="img-mask" :style="{opacity: skinColor.imgMask}"></view>
+		<view class="img-mask" :style="{opacity: skinColor.imgMask}" v-if="enableMask"></view>
 	</view>
 </template>
 
@@ -29,6 +29,14 @@
 			enableHidden: {
 				type: Boolean,
 				default: false
+			},
+			enableMask: {
+				type: Boolean,
+				default: true
+			},
+			resize: {
+				type: String,
+				default: 'cover'
 			}
 		},
 		data () {

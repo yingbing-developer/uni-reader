@@ -125,6 +125,7 @@
 	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
 	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
 	const suffixs = 'jpg,png,gif,JPG,PNG,GIF'
+	const options = 'name,path';
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
@@ -186,9 +187,6 @@
 					content: '确认读取当前路径下的漫画资源吗？',
 					success: (res) => {
 						if ( res.confirm ) {
-							uni.showLoading({
-								title: '读取中..'
-							})
 							this.updateComicPath(this.comicPath);
 							this.getComicList(this.comicPath);
 						}
@@ -197,6 +195,9 @@
 			},
 			//读取漫画列表
 			getComicList (path) {
+				uni.showLoading({
+					title: '读取中..'
+				})
 				let ff = plus.android.newObject("java.io.File", path)
 				if ( ff == null && !plus.android.invoke(ff, 'exists') ) {
 					uni.showToast({
@@ -259,7 +260,7 @@
 				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
 				if ( folder.length < 1 ) {
 					let getFile = new GetFileList();
-					let fileStr = getFile.getFiles(path, suffixs);
+					let fileStr = getFile.getFiles(path, suffixs, options);
 					let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
 					length = file.length > 0 ? 1 : 0;
 				} else {
@@ -290,10 +291,16 @@
 				if ( folder.length < 1 ) {
 					filePath = path;
 				} else {
+					folder.sort((a, b) => {
+						return cnnumtonum(a.name) - cnnumtonum(b.name);
+					})
 					filePath = folder[0].path;
 				}
-				let fileStr = getFile.getFiles(filePath, suffixs);
+				let fileStr = getFile.getFiles(filePath, suffixs, options);
 				let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				file.sort((a, b) => {
+					return cnnumtonum(a.name) - cnnumtonum(b.name);
+				})
 				return file.length > 0 ? file[0].path : '';
 				
 				//调试用

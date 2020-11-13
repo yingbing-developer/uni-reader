@@ -20,10 +20,11 @@ import java.util.Arrays;
 public class GetFileList {
 
 
-    public String getFiles(String path, String type) throws IOException, JSONException {
+    public String getFiles(String path, String type, String option) throws IOException, JSONException {
         File file = new File(path);
         File[] files = file.listFiles();
         String[] types = type.split(",");
+        String[] options = option.split(",");
         JSONArray fileListJsonArray = new JSONArray();
         for (File value : files) {
             if ( !value.isHidden() ) {
