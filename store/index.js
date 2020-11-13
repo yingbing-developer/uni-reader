@@ -124,9 +124,9 @@ const store = new Vuex.Store({
 			}
 		},
 		//清空指定类型的所有书籍
-		clearBooks (state, types) {
+		clearBooks (state, type) {
 			state.books = state.books.filter((item) => {
-				if ( item.isReaded != types.isReaded && item.type != types.type ) {
+				if ( item.type != type ) {
 					return item;
 				}
 			})

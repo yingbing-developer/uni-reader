@@ -477,11 +477,12 @@
 				// 		}  
 				//     }
 				// }
+				// file.sort((a, b) => {
+				// 	return b.createTime - a.createTime;
+				// })
 				
 				
-				file.sort((a, b) => {
-					return b.createTime - a.createTime;
-				})
+				
 				this.fileLength = file.length;
 				this.list = folder.concat(file);
 				this.scrollTop();

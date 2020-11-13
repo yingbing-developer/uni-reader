@@ -207,27 +207,14 @@
 					this.clearComicPath();
 					return;
 				}
-				let comicList = [];
-				
 				//正式用
-				let getDirectory = new GetDirectoryList();
-				let directoryStr = getDirectory.getDirectories(path);
-				let list = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				let len = list.length;
-				for(let i = 0; i < len; i++){
-					if ( list[i].type == 'folder' ) {
-						comicList.push({
-							name: list[i].name,
-							image: this.getComicImage(list[i].path),
-							time: list[i].time,
-							createTime: list[i].createTime,
-							path: list[i].path,
-							length: this.getComicLength(list[i].path)
-						})
-					}
-				}
+				const GetComicList = plus.android.importClass('com.itstudy.io.GetComicList');
+				let getComicList = new GetComicList();
+				let comicStr = getComicList.getComic(path);
+				this.comicList = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
 				
 				//调试用
+				// let comicList = []
 				// let list = plus.android.invoke(ff, 'listFiles');
 				// let len = this.list.length;
 				// for(let i = 0; i < len; i++){
@@ -244,75 +231,38 @@
 				// 		})
 				// 	}
 				// }
+				// comicList.sort((a, b) => {
+				// 	return b.createTime; - a.createTime
+				// })
+				// this.comicList = comicList;
 				
-				comicList.sort((a, b) => {
-					return b.createTime; - a.createTime
-				})
-				this.comicList = comicList;
+				
 				uni.hideLoading();
 			},
 			//获取漫画章节数
 			getComicLength (path) {
-				//正式用
+				let file = plus.android.newObject("java.io.File", path)
+				let list = plus.android.invoke(file, "listFiles");
 				let length = 0;
-				let getDirectory = new GetDirectoryList();
-				let directoryStr = getDirectory.getDirectories(path);
-				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				if ( folder.length < 1 ) {
-					let getFile = new GetFileList();
-					let fileStr = getFile.getFiles(path, suffixs, options);
-					let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-					length = file.length > 0 ? 1 : 0;
-				} else {
-					length = folder.length;
+				let len = list.length;
+				for ( let i = 0; i < len; i++ ) {
+					if ( plus.android.invoke(list[0], "isDirectory") ) {
+						length += 1;
+					}
 				}
-				return length;
-				
-				//调试用
-				// let file = plus.android.newObject("java.io.File", path)
-				// let list = plus.android.invoke(file, "listFiles");
-				// let length = 0;
-				// let len = list.length;
-				// for ( let i = 0; i < len; i++ ) {
-				// 	if ( plus.android.invoke(list[0], "isDirectory") ) {
-				// 		length += 1;
-				// 	}
-				// }
-				// return length == 0 && list.length > 0 ? 1 : length;
+				return length == 0 && list.length > 0 ? 1 : length;
 			},
 			//获取漫画预览图
 			getComicImage (path) {
-				//正式用
-				let getDirectory = new GetDirectoryList();
-				let directoryStr = getDirectory.getDirectories(path);
-				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				let getFile = new GetFileList();
-				let filePath = '';
-				if ( folder.length < 1 ) {
-					filePath = path;
+				let file = plus.android.newObject("java.io.File", path)
+				let list = plus.android.invoke(file, "listFiles");
+				//首个文件是文件夹
+				if ( plus.android.invoke(list[0], "isDirectory") ) {
+					let childList = plus.android.invoke(list[0], "listFiles");
+					return plus.android.invoke(childList[0],"getPath")
 				} else {
-					folder.sort((a, b) => {
-						return cnnumtonum(a.name) - cnnumtonum(b.name);
-					})
-					filePath = folder[0].path;
+					return plus.android.invoke(list[0],"getPath")
 				}
-				let fileStr = getFile.getFiles(filePath, suffixs, options);
-				let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-				file.sort((a, b) => {
-					return cnnumtonum(a.name) - cnnumtonum(b.name);
-				})
-				return file.length > 0 ? file[0].path : '';
-				
-				//调试用
-				// let file = plus.android.newObject("java.io.File", path)
-				// let list = plus.android.invoke(file, "listFiles");
-				// //首个文件是文件夹
-				// if ( plus.android.invoke(list[0], "isDirectory") ) {
-				// 	let childList = plus.android.invoke(list[0], "listFiles");
-				// 	return plus.android.invoke(childList[0],"getPath")
-				// } else {
-				// 	return plus.android.invoke(list[0],"getPath")
-				// }
 			},
 			//全选文件
 			selectAll () {
@@ -685,6 +635,7 @@
 				// }
 				
 				this.list = folder;
+				this.checkes = [];
 				this.scrollTop();
 			},
 			//返回顶部

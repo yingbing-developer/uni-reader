@@ -165,11 +165,7 @@
 					success: (res) => {
 						if ( res.confirm ) {
 							let type = this.currentTab == 0 ? 'story' : 'comic';
-							let isReaded = this.tabs[this.currentTab].isReaded;
-							this.clearBooks({
-								type: type,
-								isReaded: isReaded
-							});
+							this.clearBooks(type);
 						}
 					}
 				})

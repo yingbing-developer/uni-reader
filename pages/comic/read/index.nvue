@@ -10,7 +10,7 @@
 			
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
 				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @tap="preview(item.path)">
-					<c-image :enable-mask="false" enable-hidden class="comic-image" lazy-load :style="{height: item.height}" :src="item.path" mode="aspectFill"></c-image>
+					<c-image :enable-mask="false" enable-hidden class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="aspectFill"></c-image>
 				</view>
 			</cell>
 			
@@ -43,6 +43,7 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	import GapBar from '@/components/gap-bar/gap-bar.nvue'
 	const dom = weex.requireModule('dom');
+	const GetComicContent = plus.android.importClass('com.itstudy.io.GetComicContent');
 	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
 	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
 	const suffixs = 'jpg,png,gif,JPG,PNG,GIF';
@@ -84,59 +85,34 @@
 			}
 		},
 		onReady () {
+			//更新阅读时间
+			this.updateBookReadTime(this.comicInfo.path);
 			this.changeOrien();
-			setTimeout(() => {
+			setTimeout(async () => {
+				this.windowWidth = await this.getSystemWidth();
 				this.getComicSync();
+				setTimeout(() => {
+					this.upComicLength();
+				}, 10)
 			}, 300)
 		},
 		methods: {
-			...mapMutations(['updateBookLength', 'updateBookRecord', 'updateBookReadStatus']),
+			...mapMutations(['updateBookLength', 'updateBookRecord', 'updateBookReadStatus', 'updateBookReadTime']),
 			//读取漫画内容
 			async getComicSync () {
 				uni.showLoading({
 					title: '读取中..'
 				})
-				let arr = [];
 				
 				//正式用
-				let getDirectory = new GetDirectoryList();
-				let getFile = new GetFileList();
-				let directoryStr = getDirectory.getDirectories(this.comicInfo.path);
-				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				let fileStr = '';
-				let file = [];
-				let length = 0;
-				if ( folder.length < 1 ) {
-					fileStr = getFile.getFiles(this.comicInfo.path, suffixs, options);
-					file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-					length = file.length > 0 ? 1 : 0;
-				} else {
-					//排序章节
-					folder.sort((a, b) => {
-						return cnnumtonum(a.name) - cnnumtonum(b.name);
-					})
-					fileStr = getFile.getFiles(folder[this.chapter].path, suffixs, options);
-					file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-					length = folder.length;
-				}
-				//更新漫画章节数量
-				this.updateBookLength({
-					path: this.comicInfo.path,
-					length: length
-				})
-				let len = file.length;
-				for ( let i = 0; i < len; i++ ) {
-					arr.push({
-						path: file[i].path,
-						name: file[i].name,
-						height: await this.countImageHeight(file[i].path) + 'px'
-					})
-				}
+				let getComicContent = new GetComicContent();
+				let comicStr = getComicContent.getContent(this.comicInfo.path, this.chapter);
+				this.comicSync = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
 				
 				//调试用
+				// let arr = [];
 				// let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
 				// let list = plus.android.invoke(fd, "listFiles");
-				// this.upComicLength(list);
 				// if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
 				// 	let childList = plus.android.invoke(list[this.chapter], "listFiles")
 				// 	let len = childList.length;
@@ -159,18 +135,20 @@
 				// 		})
 				// 	}
 				// }
+				// arr.sort((a, b) => {
+				// 	return cnnumtonum(a.name) - cnnumtonum(b.name);
+				// })
+				// this.comicSync = arr;
 				
-				arr.sort((a, b) => {
-					return cnnumtonum(a.name) - cnnumtonum(b.name);
-				})
-				this.comicSync = arr;
 				setTimeout(() => {
 					this.scrollTo();
 				}, 50)
 				uni.hideLoading();
 			},
 			//更新漫画章节数
-			upComicLength (list) {
+			upComicLength () {
+				let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
+				let list = plus.android.invoke(fd, "listFiles");
 				let length = 0;
 				let len = list.length;
 				for ( let i = 0; i < len; i++ ) {
@@ -278,9 +256,6 @@
 				//重新计算屏幕宽度和图片高度
 				setTimeout(async () => {
 					this.windowWidth = await this.getSystemWidth();
-					for ( let i in this.comicSync ) {
-						this.$set(this.comicSync[i], 'height', await this.countImageHeight(this.comicSync[i].path) + 'px')
-					}
 				}, 200)
 			}
 		},

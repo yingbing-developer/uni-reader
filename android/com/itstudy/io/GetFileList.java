@@ -9,6 +9,7 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * @Title: FileList
@@ -23,8 +24,58 @@ public class GetFileList {
     public String getFiles(String path, String type, String option) throws IOException, JSONException {
         File file = new File(path);
         File[] files = file.listFiles();
+        Arrays.sort(files, new Comparator<File>() {
+            @Override
+            public int compare(File t1, File t2) {
+            return (int)(t2.lastModified() - t1.lastModified());
+            }
+        });
         String[] types = type.split(",");
         String[] options = option.split(",");
+        JSONArray fileListJsonArray = new JSONArray();
+        for (File value : files) {
+            if ( !value.isHidden() ) {
+                JSONObject jsonObject = new JSONObject();
+                if (value.isFile()) {
+                    if ( Arrays.asList(types).contains(this.getFileType(value)) ) {
+                        for (String s : options) {
+                            if (s.equals("name")) {
+                                jsonObject.put(s, value.getName());
+                            }
+                            if (s.equals("path")) {
+                                jsonObject.put(s, value.getPath());
+                            }
+                            if (s.equals("type")) {
+                                jsonObject.put(s, this.getFileType(value));
+                            }
+                            if (s.equals("size")) {
+                                jsonObject.put(s, this.getFileSize(value));
+                            }
+                            if (s.equals("time")) {
+                                jsonObject.put(s, this.getFileTime(value));
+                            }
+                            if (s.equals("createTime")) {
+                                jsonObject.put(s, value.lastModified());
+                            }
+                        }
+                        fileListJsonArray.put(jsonObject);
+                    }
+                }
+            }
+        }
+        return fileListJsonArray.toString();
+    }
+
+    public String getFiles(String path, String type) throws IOException, JSONException {
+        File file = new File(path);
+        File[] files = file.listFiles();
+        Arrays.sort(files, new Comparator<File>() {
+            @Override
+            public int compare(File t1, File t2) {
+                return (int)(t2.lastModified() - t1.lastModified());
+            }
+        });
+        String[] types = type.split(",");
         JSONArray fileListJsonArray = new JSONArray();
         for (File value : files) {
             if ( !value.isHidden() ) {
