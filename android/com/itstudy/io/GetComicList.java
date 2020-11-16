@@ -1,11 +1,18 @@
 package com.itstudy.io;
 
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -52,6 +59,11 @@ public class GetComicList {
 
     private String getImage(File file) {
        File[] childFiles = file.listFiles();
+       for ( File value : childFiles ) {
+           if ( value.getName().equals("000_preview.jpg") ) {
+               return value.getPath();
+           }
+       }
        Arrays.sort(childFiles, new Comparator<File>() {
             @Override
             public int compare(File t1, File t2) {
@@ -68,7 +80,7 @@ public class GetComicList {
                            return chineseNumber2Int(t1.getName()) - chineseNumber2Int(t2.getName());
                        }
                    });
-                   return grandFiles[0].getPath();
+                   return reduceImage(grandFiles[0].getPath(), file.getPath());
                }
            }
        }
@@ -76,11 +88,59 @@ public class GetComicList {
         for (File value : childFiles) {
             if ( value.isFile() ) {
                 if ( Arrays.asList(types).contains(getFileType(value))) {
-                    return value.getPath();
+                    return reduceImage(value.getPath(), file.getPath());
                 }
             }
         }
        return "";
+    }
+
+    //压缩成缩略图
+    private static String reduceImage(String srcPath, String savePath) {
+        BitmapFactory.Options newOpts = new BitmapFactory.Options();
+        // 开始读入图片，此时把options.inJustDecodeBounds 设回true了
+        newOpts.inJustDecodeBounds = true;
+        Bitmap bitmap = BitmapFactory.decodeFile(srcPath, newOpts);// 此时返回bm为空
+        newOpts.inJustDecodeBounds = false;
+        int w = newOpts.outWidth;
+        int h = newOpts.outHeight;
+        // 现在主流手机比较多是800*480分辨率，所以高和宽我们设置为
+        float hh = 285f;// 这里设置高度为800f
+        float ww = 250f;// 这里设置宽度为480f
+        // 缩放比。由于是固定比例缩放，只用高或者宽其中一个数据进行计算即可
+        int be = 1;// be=1表示不缩放
+        if (w > h && w > ww) {// 如果宽度大的话根据宽度固定大小缩放
+            be = (int) (newOpts.outWidth / ww);
+        } else if (w < h && h > hh) {// 如果高度高的话根据宽度固定大小缩放
+            be = (int) (newOpts.outHeight / hh);
+        }
+        if (be <= 0)
+            be = 1;
+        newOpts.inSampleSize = be;// 设置缩放比例
+        // 重新读入图片，注意此时已经把options.inJustDecodeBounds 设回false了
+        bitmap = BitmapFactory.decodeFile(srcPath, newOpts);
+        return savePreviewImage(bitmap, savePath);// 压缩好比例大小后再进行质量压缩
+    }
+
+    //保存缩略图
+    private static String savePreviewImage (Bitmap image, String savePath) {
+        File filePic;
+        try {
+            filePic = new File(savePath + "/000_preview.jpg");
+            if (!filePic.exists()) {
+                filePic.getParentFile().mkdirs();
+                filePic.createNewFile();
+            }
+            FileOutputStream fos = new FileOutputStream(filePic);
+            //不压缩，保存本地
+            image.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return filePic.getAbsolutePath();
     }
 
     private int getComicLength(File file) {

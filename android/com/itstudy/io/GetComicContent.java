@@ -33,20 +33,21 @@ public class GetComicContent {
             return chineseNumber2Int(t1.getName()) - chineseNumber2Int(t2.getName());
             }
         });
-        int length = 0;
+        //记录文件夹的数量
+        JSONArray foldeListJsonArray = new JSONArray();
         for (File value : files) {
-            if ( !value.isHidden() ) {
-                if (value.isDirectory()) {
-                    length = length + 1;
-                }
-            }
+             if ( !value.isHidden() && value.isDirectory()) {
+                 JSONObject jsonObject = new JSONObject();
+                 jsonObject.put("path", value.getPath());
+                 foldeListJsonArray.put(jsonObject);
+             }
         }
         JSONArray fileListJsonArray = new JSONArray();
         String[] types = {"jpg","png","gif","JPG","PNG","GIF"};
-        if ( length == 0 ) {
+        if ( foldeListJsonArray.length() == 0 ) {
             if ( files.length > 0 ) {
                 for (File value : files) {
-                    if ( !value.isHidden() && Arrays.asList(types).contains(this.getFileType(value)) ) {
+                    if ( !value.isHidden() && !value.getName().equals("000_preview.jpg") && Arrays.asList(types).contains(this.getFileType(value)) ) {
                         JSONObject jsonObject = new JSONObject();
                         JSONObject imageSize = this.getImageSize(value);
                         jsonObject.put("name", value.getName());
@@ -58,8 +59,9 @@ public class GetComicContent {
                 }
             }
         } else {
-            if ( files[chapter].exists() && files[chapter] != null ) {
-                File[] childFiles = files[chapter].listFiles();
+            File newFile = new File((String) foldeListJsonArray.getJSONObject(chapter).get("path"));
+            if ( newFile.exists() && newFile != null ) {
+                File[] childFiles = newFile.listFiles();
                 Arrays.sort(childFiles, new Comparator<File>() {
                     @Override
                     public int compare(File t1, File t2) {
@@ -67,7 +69,7 @@ public class GetComicContent {
                     }
                 });
                 for (File value : childFiles) {
-                    if ( !value.isHidden() && Arrays.asList(types).contains(this.getFileType(value)) ) {
+                    if ( !value.isHidden() && !value.getName().equals("000_preview.jpg") && Arrays.asList(types).contains(this.getFileType(value)) ) {
                         JSONObject jsonObject = new JSONObject();
                         JSONObject imageSize = this.getImageSize(value);
                         jsonObject.put("name", value.getName());

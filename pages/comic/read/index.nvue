@@ -10,7 +10,7 @@
 			
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
 				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @tap="preview(item.path)">
-					<c-image :enable-mask="false" enable-hidden class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="aspectFill"></c-image>
+					<c-image :enable-mask="false" enable-hidden class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="aspectFit"></c-image>
 				</view>
 			</cell>
 			
@@ -84,10 +84,12 @@
 				prevShow: false
 			}
 		},
+		onLoad () {
+			this.changeOrien();
+		},
 		onReady () {
 			//更新阅读时间
 			this.updateBookReadTime(this.comicInfo.path);
-			this.changeOrien();
 			setTimeout(async () => {
 				this.windowWidth = await this.getSystemWidth();
 				this.getComicSync();
@@ -152,7 +154,7 @@
 				let length = 0;
 				let len = list.length;
 				for ( let i = 0; i < len; i++ ) {
-					if ( plus.android.invoke(list[0], "isDirectory") ) {
+					if ( plus.android.invoke(list[i], "isDirectory") ) {
 						length += 1;
 					}
 				}
@@ -253,10 +255,6 @@
 			//改变屏幕方向
 			changeOrien () {
 				plus.screen.lockOrientation(this.comicOrien + '-primary');
-				//重新计算屏幕宽度和图片高度
-				setTimeout(async () => {
-					this.windowWidth = await this.getSystemWidth();
-				}, 200)
 			}
 		},
 		watch: {
@@ -269,6 +267,12 @@
 			comicOrien () {
 				this.changeOrien()
 			}
+		},
+		onResize () {
+			//重新计算屏幕宽度和图片高度
+			setTimeout(async () => {
+				this.windowWidth = await this.getSystemWidth();
+			}, 100)
 		},
 		onBackPress(event) {
 			if ( event.from == 'backbutton' ) {
@@ -343,8 +347,8 @@
 	}
 	.chapter-box {
 		position: fixed;
-		top: 200rpx;
-		bottom: 200rpx;
+		top: 50rpx;
+		bottom: 50rpx;
 		width: 70rpx;
 		background-color: rgba(76,217,100,0.8);
 		align-items: center;
