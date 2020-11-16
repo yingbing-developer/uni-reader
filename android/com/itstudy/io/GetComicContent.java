@@ -1,7 +1,6 @@
 package com.itstudy.io;
 
 
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import org.json.JSONArray;
@@ -18,8 +17,8 @@ import java.util.regex.Pattern;
  * @Title: FileList
  * @author: 康雷  e-mail: 1014295211@qq.com
  * @date: 2020/9/22 16:51
- * @ClassName: FileList
- * @Description:
+ * @ClassName: GetComicContent
+ * @Description: 读取指定路径下的漫画内容
  */
 public class GetComicContent {
 

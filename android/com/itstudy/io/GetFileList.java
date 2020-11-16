@@ -15,8 +15,8 @@ import java.util.Comparator;
  * @Title: FileList
  * @author: 康雷  e-mail: 1014295211@qq.com
  * @date: 2020/9/22 16:51
- * @ClassName: FileList
- * @Description:
+ * @ClassName: GetFileList
+ * @Description: 获取指定路径下的文件列表
  */
 public class GetFileList {
 

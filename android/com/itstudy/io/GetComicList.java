@@ -3,29 +3,24 @@ package com.itstudy.io;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * @Title: FileList
  * @author: 康雷  e-mail: 1014295211@qq.com
  * @date: 2020/9/22 16:51
- * @ClassName: FileList
- * @Description:
+ * @ClassName: GetComicList
+ * @Description: 读取指定路径下的漫画列表
  */
 public class GetComicList {
 
@@ -111,7 +106,7 @@ public class GetComicList {
         int be = 1;// be=1表示不缩放
         if (w > h && w > ww) {// 如果宽度大的话根据宽度固定大小缩放
             be = (int) (newOpts.outWidth / ww);
-        } else if (w < h && h > hh) {// 如果高度高的话根据宽度固定大小缩放
+        } else if (w < h && h > hh) {// 如果高度高的话根据高度固定大小缩放
             be = (int) (newOpts.outHeight / hh);
         }
         if (be <= 0)

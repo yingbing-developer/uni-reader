@@ -6,8 +6,8 @@ import java.io.*;
  * @Title: TestTranslate
  * @author: 何杰  e-mail: 734412450@qq.com
  * @date: 2020/8/26 16:45
- * @ClassName: TestTranslate
- * @Description:
+ * @ClassName: GetText
+ * @Description: 获取txt文本内容
  */
 public class GetText {
 

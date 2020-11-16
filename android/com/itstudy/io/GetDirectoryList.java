@@ -6,18 +6,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 
 /**
  * @Title: FileList
  * @author: 康雷  e-mail: 1014295211@qq.com
  * @date: 2020/9/22 16:51
- * @ClassName: FileList
- * @Description:
+ * @ClassName: GetDirectoryList
+ * @Description: 获取指定路径下的文件夹列表
  */
 public class GetDirectoryList {
 

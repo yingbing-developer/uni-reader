@@ -44,8 +44,6 @@
 	import GapBar from '@/components/gap-bar/gap-bar.nvue'
 	const dom = weex.requireModule('dom');
 	const GetComicContent = plus.android.importClass('com.itstudy.io.GetComicContent');
-	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
 	const suffixs = 'jpg,png,gif,JPG,PNG,GIF';
 	const options = 'name,path';
 	export default {

@@ -59,8 +59,11 @@
 				<view @tap="deleteAction" v-if="checkes.length > 0">
 					<bubble-item title="删除文件"></bubble-item>
 				</view>
-				<view @tap="backRoot">
-					<bubble-item title="根目录"></bubble-item>
+				<view @tap="goInternalRoot">
+					<bubble-item title="内部存储"></bubble-item>
+				</view>
+				<view @tap="goExtenalRoot(item.path)" v-for="(item, index) in SDpaths" :key="index">
+					<bubble-item :title="'SD卡' + (index + 1)"></bubble-item>
 				</view>
 		  </bubble>
 		  
@@ -103,7 +106,9 @@
 				//路由防抖
 				routeDisabled: false,
 				//滚动距离
-				oldOffsetY: 0
+				oldOffsetY: 0,
+				//扩展存储卡路径
+				SDpaths: []
 			}
 		},
 		computed: {
@@ -124,6 +129,12 @@
 					icon: 'none'
 				})
 			} else {
+				//获取扩展存储卡
+				let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
+				let getSDPath = new GetSDPath();
+				let pathStr = getSDPath.getSDPath();
+				this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
+				
 				setTimeout(() => {
 					this.getFileSystem(plus.android.newObject("java.io.File", this.bookPathHistory));
 				}, 300)
@@ -353,11 +364,6 @@
 					})
 				}
 			},
-			//返回根目录
-			backRoot () {
-				this.getFileSystem();
-				this.$refs.bubble.hide();
-			},
 			//返回上级目录
 			backParent () {
 				let fd = plus.android.newObject("java.io.File", this.bookPathHistory);
@@ -427,6 +433,16 @@
 						this.routeDisabled = false;
 					}
 				})
+			},
+			//前往内部存储根目录
+			goInternalRoot () {
+				this.getFileSystem();
+				this.$refs.bubble.hide();
+			},
+			//前往扩展卡根目录
+			goExtenalRoot (path) {
+				this.getFileSystem(plus.android.newObject("java.io.File", path));
+				this.$refs.bubble.hide();
 			},
 			//根据文件对象获取文件列表
 			getFileSystem (ff) {
