@@ -1,0 +1,182 @@
+<template><view></view></template>
+
+<script>
+	let musicBox = null;
+	let musicLine = null;
+	//控件高度 （高度和宽度一样）
+	const height = uni.upx2px(90);;
+	//控制栏宽度
+	const width = uni.upx2px(450);
+	//控制栏图标size
+	const iconSize = uni.upx2px(55);
+	const iconGap = uni.upx2px(30);
+	export default {
+		data () {
+			return {
+				windowWidth: 0,
+				windowHeight: 0,
+				lineWidth: 0,
+				//鼠标按下时间，避免移动时触发点击事件
+				clickTime: 0,
+				//控件移动的X轴距离
+				pageX: 0,
+				//控件移动的Y轴距离
+				pageY: 0
+			}
+		},
+		created() {
+			this.init();
+			uni.getSystemInfo({
+				success: (res) => {
+					this.windowWidth = res.safeArea.width;
+					this.windowHeight = res.safeArea.height;
+				}
+			})
+		},
+		methods: {
+			init () {
+				musicLine = new plus.nativeObj.View('line',{
+					top:'70%',left:'0',height: height + 'px', width: '0', opacity: '1'
+				})
+				musicLine.show();
+				this.drawContorlLine();
+				musicBox = new plus.nativeObj.View('box',{
+					top:'70%',left:'0', width: height + 'px', height: height + 'px', opacity: '1'
+				},[{
+					tag:'img', id:'icon', src: '/static/music/music-icon.png', position:{top:'0', left: '0', width:'100%',height: '100%'}
+				}]);
+				musicBox.show();
+				
+				//用触摸来模拟点击事件
+				musicBox.addEventListener("touchstart", (e) => {
+					clearInterval(this.interval);
+					this.interval = setInterval(() => {
+						this.clickTime += 10;
+					}, 10)
+				})
+				musicBox.addEventListener("touchend", (e) => {
+					clearInterval(this.interval);
+					if ( this.clickTime <= 300 ) {
+						if ( this.lineWidth == 0 ) {
+							this.open();
+						} else {
+							this.hide();
+						}
+					}
+					this.clickTime = 0;
+				})
+				musicBox.addEventListener("touchmove", (e) => {
+					this.pageX = e.pageX;
+					this.pageY = e.pageY;
+					let lineLeft = 0;
+					//限制滑动距离不能超过屏幕左边10px
+					if ( this.pageX < 0 ) {
+						this.pageX = 0
+					}
+					//限制滑动距离不能超过屏幕右边10px
+					if ( this.pageX> this.windowWidth - height ) {
+						this.pageX = this.windowWidth - height;
+					}
+					//判断控件处于屏幕右边时，改变控制栏的方向向左
+					if ( this.pageX > this.windowWidth - this.pageX) {
+						lineLeft = this.pageX - this.lineWidth + height;
+					} else {
+						//判断控件处于屏幕左边时，改变控制栏的方向向右
+						lineLeft = this.pageX;
+					}
+					//限制滑动距离不能超过屏幕顶部
+					if ( this.pageY < 0 ) {
+						this.pageY = 0
+					}
+					//限制滑动距离不能超过屏幕底部
+					if ( this.pageY > this.windowHeight - height ) {
+						this.pageY = this.windowHeight - height
+					}
+					
+					musicBox.setStyle({top: this.pageY + 'px', left: this.pageX + 'px'});
+					musicLine.setStyle({top: this.pageY + 'px', left: lineLeft + 'px'});
+				})
+			},
+			open () {
+				clearInterval(this.timer);
+				this.timer = setInterval(() => {
+					this.lineWidth += 40;
+					if ( this.lineWidth > width ) {
+						this.lineWidth = width;
+					}
+					this.setLineStyle();
+				}, 10)
+			},
+			hide () {
+				clearInterval(this.timer);
+				this.timer = setInterval(() => {
+					this.lineWidth -= 40;
+					if ( this.lineWidth < 0 ) {
+						this.lineWidth = 0;
+					}
+					this.setLineStyle();
+				}, 10)
+			},
+			setLineStyle () {
+				//判断控件处于屏幕右边时，改变控制栏的方向向左
+				if ( this.pageX > this.windowWidth - this.pageX ) {
+					musicLine.setStyle({width:this.lineWidth + 'px', left: this.pageX - this.lineWidth + height + 'px'});
+				} else {
+					//判断控件处于屏幕左边时，改变控制栏的方向向右
+					musicLine.setStyle({width:this.lineWidth + 'px'});
+				}
+				if ( this.lineWidth <= 0 ) {
+					clearInterval(this.timer);
+				}
+			},
+			play () {
+				musicLine.draw([{
+					tag:'img', id:'play', src: '/static/music/pause.png', position:{top:'auto', left: height + (2 * iconGap) + iconSize + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+				}])
+			},
+			//绘制控制栏内容
+			drawContorlLine () {
+				musicLine.draw([{
+					tag:'rect', id:'line', color: '#FFF', rectStyles: {radius: height + 'px', borderWidth: '1px', borderColor: '#999'}, position:{top:'0px',left:'0px',width:'100%',height:'100%'}
+				},{
+					tag:'img', id:'prev', src: '/static/music/prev.png', position:{top:'auto', left: height + iconGap + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+				},{
+					tag:'img', id:'play', src: '/static/music/play.png', position:{top:'auto', left: height + (2 * iconGap) + iconSize + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+				},{
+					tag:'img', id:'next', src: '/static/music/next.png', position:{top:'auto', left: height + (3 * iconGap) + (2 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+				},{
+					tag:'img', id:'loopRight', src: '/static/music/loop.png', position:{top:'auto', left: height + (4 * iconGap) + (3 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+				},{
+					tag:'img', id:'loopLeft', src: '/static/music/loop.png', position:{top:'auto', left: iconGap + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+				}])
+				this.setLineTouchRect();
+			},
+			//设置触摸位置
+			setLineTouchRect () {
+				let top = (height / 2) - (iconSize / 2) + 'px';
+				musicLine.setTouchEventRect([{
+					top:top, left: height + iconGap + 'px', width: iconSize + 'px',height: iconSize + 'px'
+				},{
+					top:top, left: height + (2 * iconGap) + iconSize + 'px', width: iconSize + 'px',height: iconSize + 'px'
+				},{
+					top:top, left: height + (3 * iconGap) + (2 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'
+				},{
+					top:top, left: height + (4 * iconGap) + (3 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'
+				},{
+					top:top, left: iconGap + 'px', width: iconSize + 'px',height: iconSize + 'px'
+				}]);
+				musicLine.addEventListener("click", (e) => {
+					console.log(e);
+				});
+			}
+		},
+		beforeDestroy() {
+			musicBox.close();
+			musicLine.close();
+		}
+	}
+</script>
+
+<style>
+
+</style>

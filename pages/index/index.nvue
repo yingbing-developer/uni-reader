@@ -60,6 +60,8 @@
 		<c-menu v-model="currentTab" :translate="menuLate" :opacity="menuOpac" ref="leftMenu"></c-menu>
 		<!-- 操作列表 -->
 		<action-sheet ref="action" :list="actions" @select="selectAction"></action-sheet>
+		
+		<music-btn></music-btn>
 	</view>
 </template>
 
@@ -71,6 +73,7 @@
 	import NoData from '@/components/no-data/no-data.nvue'
 	import ActionSheet from '@/components/action-sheet/action-sheet.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
+	import MusicBtn from '@/components/music-btn/music-btn.nvue'
 	import { skinMixin, menuTouchMixin } from '@/common/mixin/index.js'
 	import { indexOf } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
@@ -267,7 +270,8 @@
 			ActionSheet,
 			CSearch,
 			ListScroll,
-			CImage
+			CImage,
+			MusicBtn
 		}
 	}
 </script>
