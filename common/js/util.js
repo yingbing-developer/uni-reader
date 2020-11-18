@@ -74,6 +74,24 @@ export function randomString(len) {
 	return pwd;
 }
 
+/**
+ * 生成随机不重复整数
+ * @param {Number} len 长度
+*/
+export function randomSoleNumber(len) {
+	let min = 0;
+	let max = len - 1;
+	let arr = [];
+	while ( arr.length < len ) {
+		let value = Math.floor(Math.random() * (max - min + 1)) + min;
+		if ( arr.indexOf(value) == -1 ) {
+			arr.push( value )
+		}
+	}
+	return arr;
+}
+
+
 // 深度克隆
 export function deepClone (obj) {  
     if(typeof obj !== "object" && typeof obj !== 'function') {

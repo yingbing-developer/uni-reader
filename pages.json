@@ -76,6 +76,27 @@
 				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
 			}
+		},
+		//音乐列表
+		{
+			"path": "pages/music/index",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "transparent",
+				"disableScroll": true, // 不嵌套 scroller
+				"app-plus": {
+					"animationType": "slide-in-bottom",
+					"animationDuration": 300
+				}
+			}
+		},
+		//添加音乐
+		{
+			"path": "pages/music/search",
+			"style": {
+				"navigationStyle": "custom",
+				"disableScroll": true // 不嵌套 scroller
+			}
 		}
 	],
 	"globalStyle": {

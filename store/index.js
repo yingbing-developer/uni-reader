@@ -9,6 +9,11 @@ const BOOKREAD = 'UNI_READER_BOOK_READ'
 const BOOKMARK = 'UNI_READER_BOOK_MARK'
 const COMICPATH = 'UNI_READER_COMIC_PATH'
 const COMICORIEN = 'UNI_READER_COMIC_ORIEN'
+const MUSICPATH = 'UNI_READER_MUSIC_PATH'
+const PLAYLIST = 'UNI_READER_MUSIC_PLAY_LIST'
+const PLAYSTATUS = 'UNI_READER_MUSIC_PLAY_STATUS'
+const PLAYMODE = 'UNI_READER_MUSIC_PLAY_MODE'
+const PLAYRECORD = 'UNI_READER_MUSIC_PLAY_RECORD'
 const store = new Vuex.Store({
     state: {
 		skin: uni.getStorageSync(SKIN) || 'default', //皮肤
@@ -17,7 +22,12 @@ const store = new Vuex.Store({
 		bookPath: uni.getStorageSync(BOOKPATH) || '',//上次访问的小说文件夹路径
 		bookmark: uni.getStorageSync(BOOKMARK) || [],//小说书签
 		comicPath: uni.getStorageSync(COMICPATH) || '',//上次访问的漫画文件夹路径
-		comicOrien: uni.getStorageSync(COMICORIEN) || 'portrait' //漫画阅读方向 默认竖屏
+		comicOrien: uni.getStorageSync(COMICORIEN) || 'portrait', //漫画阅读方向 默认竖屏
+		musicPath: uni.getStorageSync(MUSICPATH) || '', //默认访问的本地音乐资源路径
+		musicPlayList: uni.getStorageSync(PLAYLIST) || [], //音乐播放列表
+		musicPlayStatus: uni.getStorageSync(PLAYSTATUS) || false, //音乐播放状态
+		musicPlayMode: uni.getStorageSync(PLAYMODE) || 'loop', //音乐播放模式 loop => 循环播放 once => 单曲循环 random => 乱序播放
+		musicPlayRecord: uni.getStorageSync(PLAYRECORD) || '' //音乐播放记录
 	},
 	getters: {
 		//当前皮肤模式
@@ -87,6 +97,21 @@ const store = new Vuex.Store({
 		},
 		comicOrienMode (state) {
 			return state.comicOrien;
+		},
+		musicPathHistory (state) {
+			return state.musicPath
+		},
+		playList (state) {
+			return state.musicPlayList
+		},
+		getMusicPlayStatus (state) {
+			return state.musicPlayStatus
+		},
+		getMusicPlayMode (state) {
+			return state.musicPlayMode
+		},
+		getMusicPlayRecord (state) {
+			return state.musicPlayRecord
 		}
 	},
     mutations: {
@@ -210,16 +235,61 @@ const store = new Vuex.Store({
 			});
 			uni.setStorageSync(BOOKMARK, state.bookmark);
 		},
+		//更新漫画资源路径
 		updateComicPath (state, path) {
 			state.comicPath = path;			uni.setStorageSync(COMICPATH, state.comicPath);
 		},
+		//删除漫画资源路径
 		clearComicPath (state) {
 			state.comicPath = '';
 			uni.setStorageSync(COMICPATH, state.comicPath);
 		},
+		//改变漫画屏幕方向
 		changeComicOrien (state, orien) {
 			state.comicOrien = orien;
 			uni.setStorageSync(COMICORIEN, state.comicOrien);
+		},
+		//新增歌曲
+		addMusic (state, music) {
+			for ( let i in music ) {
+				state.musicPlayList.push({
+					name: removeSuffix(music[i].name),
+					path: music[i].path
+				})
+			}
+			uni.setStorageSync(PLAYLIST, state.musicPlayList);
+		},
+		//删除指定歌曲
+		deleteMusic (state, path) {
+			let flag = indexOf(state.musicPlayList, path, 'path');
+			if ( flag > -1 ) {
+				state.musicPlayList.splice(flag, 1);
+				uni.setStorageSync(PLAYLIST, state.musicPlayList)
+			}
+		},
+		//清空所有歌曲
+		clearMusic (state, type) {
+			state.musicPlayList = [];
+			uni.setStorageSync(PLAYLIST, state.musicPlayList);
+			state.musicPlayRecord = '';
+			uni.setStorageSync(PLAYRECORD, state.musicPlayRecord);
+		},
+		updateMusicPlayRecord (state, record) {
+			state.musicPlayRecord = record;
+			uni.setStorageSync(PLAYRECORD, state.musicPlayRecord);
+		},
+		//改变音乐播放状态
+		changeMusicPlayStatus (state, status) {
+			state.musicPlayStatus = status;
+		},
+		//改变音乐播放模式
+		changeMusicPlayMode (state, mode) {
+			state.musicPlayMode = mode;
+			uni.setStorageSync(PLAYMODE, state.musicPlayMode);
+		},
+		updateMusicPath (state, path) {
+			state.musicPath = path;
+			uni.setStorageSync(MUSICPATH, state.musicPath);
 		}
 	},
     actions: {}

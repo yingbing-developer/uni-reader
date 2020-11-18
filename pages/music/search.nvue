@@ -1,6 +1,6 @@
 <template>
 	<view class="search" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="添加小说" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+		<nav-bar title="添加歌曲" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
 			<view class="nav-right" slot="right">
 				<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
 				<view @tap="$refs.bubble.show()">
@@ -24,12 +24,12 @@
 				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
 					<view class="list-icon" @tap.stop="check(item.path)">
 						<c-icon name="folder" size="75" color="#FFCA28" v-if="item.type == 'folder'"></c-icon>
-						<c-icon name="txt" size="60" color="#FFCA28" v-else></c-icon>
+						<c-image style="width: 75rpx;height: 75rpx;border-radius: 75rpx;" src="/static/music/music-type.png" mode="scaleToFill" v-else></c-image>
 					</view>
 					<view class="list-right">
 						<view class="lr-top">
 							<text class="list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-							<text v-if="isLead(item.path) > -1 && item.type == 'txt'" class="lt-right list-text" :style="{'color': skinColor.textColor}">已导入</text>
+							<text v-if="isLead(item.path) > -1 && item.type != 'folder'" class="lt-right list-text" :style="{'color': skinColor.textColor}">已导入</text>
 						</view>
 						<view class="lr-bottom">
 							<text class="list-text" :style="{'color': skinColor.textColor}">{{item.time}}</text>
@@ -41,7 +41,7 @@
 		</list-scroll>
 		  <view class="btn-box" v-if="checkes.length > 0" :style="{'border-top-color': skinColor.gapColor}">
 			  <view class="btn" @tap="leadBook">
-				  <text class="btn-text">导入书籍</text>
+				  <text class="btn-text">导入歌曲</text>
 			  </view>
 		  </view>
 		  <!-- 操作列表 -->
@@ -80,6 +80,7 @@
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CIamge from '@/components/c-image/c-image.nvue'
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import ActionSheet from '@/components/action-sheet/action-sheet.nvue'
@@ -88,6 +89,7 @@
 	import { dateFormat, suffix, indexOf } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const environment = plus.android.importClass("android.os.Environment");
+	const suffixs = "flac,m4a,ogg,ape,amr,wma,wav,mp3,aac";
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
@@ -96,7 +98,6 @@
 				list: [],
 				checkes: [],
 				fileLength: 0,
-				types: ['txt'],
 				//名称过滤
 				nameFilter: '',
 				//操作列表
@@ -112,7 +113,7 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'bookPathHistory']),
+			...mapGetters(['playList', 'musicPathHistory']),
 			listSync () {
 				let arr = this.list.filter((item) => {
 					if ( item.name.indexOf(this.nameFilter) > -1 ) {
@@ -130,18 +131,18 @@
 				})
 			} else {
 				//获取扩展存储卡
-				let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
-				let getSDPath = new GetSDPath();
-				let pathStr = getSDPath.getSDPath();
-				this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
+				// let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
+				// let getSDPath = new GetSDPath();
+				// let pathStr = getSDPath.getSDPath();
+				// this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
 				
 				setTimeout(() => {
-					this.getFileSystem(plus.android.newObject("java.io.File", this.bookPathHistory));
+					this.getFileSystem(plus.android.newObject("java.io.File", this.musicPathHistory));
 				}, 300)
 			}
 		},
 		methods: {
-			...mapMutations(['addBooks', 'deleteBook', 'updateBookPath']),
+			...mapMutations(['addMusic', 'deleteMusic', 'clearMusic', 'updateMusicPlayRecord', 'updateMusicPath']),
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},
@@ -200,30 +201,29 @@
 					})
 					return;
 				}
-				let books = [];
+				let music = [];
 				let err = 0;
 				let len = this.checkes.length;
 				for ( let i = 0; i < len; i++ ) {
 					//根据文件路径判断文件有没有被导入过
 					let index = indexOf(this.list, this.checkes[i], 'path');
 					if ( this.isLead(this.list[index].path) == -1 ) {
-						books.push({
+						music.push({
 							name: this.list[index].name,
-							type: 'story',
 							path: this.list[index].path
 						});
 					} else {
 						err++;
 					}
 				}
-				this.addBooks(books);
+				this.addMusic(music);
 				if ( err == 0 ) {
 					uni.showToast({
 						title: '添加成功'
 					})
 				} else {
 					uni.showToast({
-						title: '成功导入' + (this.checkes.length - err) + '个文件，' + '有' + err + '个文件导入失败',
+						title: '成功导入' + (this.checkes.length - err) + '首歌曲，' + '有' + err + '首歌曲导入失败',
 						icon: 'none'
 					})
 				}
@@ -269,19 +269,18 @@
 					//根据文件路径判断文件有没有被导入过
 					if ( this.isLead(this.actionPath) == -1 ) {
 						let flag = indexOf(this.list, this.actionPath, 'path');
-						let books = [];
-						books.push({
+						let music = [];
+						music.push({
 							name: this.list[flag].name,
-							type: 'story',
 							path: this.list[flag].path
 						});
-						this.addBooks(books);
+						this.addMusic(music);
 						uni.showToast({
 							title: '导入成功'
 						})
 					} else {
 						uni.showToast({
-							title: '这本书已经导入了',
+							title: '歌曲已经导入过了',
 							icon: 'none'
 						})
 					}
@@ -294,7 +293,7 @@
 						content: '确认将  ' + name +'  从导入列表删除吗？',
 						success: (res) => {
 							if ( res.confirm ) {
-								this.deleteBook(this.actionPath);
+								this.deleteMusic(this.actionPath);
 							}
 						}
 					})
@@ -322,7 +321,7 @@
 					//如果被删除的文件已经被导入
 					let flag = this.isLead(path);
 					if ( flag > -1 ) {
-						this.deleteBook(path);
+						this.deleteMusic(path);
 					}
 					//删除当前页面显示的数据
 					let index = indexOf(this.list, path, 'path');
@@ -366,7 +365,7 @@
 			},
 			//返回上级目录
 			backParent () {
-				let fd = plus.android.newObject("java.io.File", this.bookPathHistory);
+				let fd = plus.android.newObject("java.io.File", this.musicPathHistory);
 				if ( fd != null && plus.android.invoke(fd, 'exists') ) {
 					let parent = plus.android.invoke(fd, 'getParent');
 					if ( parent ) {
@@ -387,8 +386,8 @@
 				//如果是文件夹则访问文件列表
 				if ( this.list[index].type == 'folder' ) {
 					this.getFileSystem(plus.android.newObject("java.io.File", path));
-					//如果是txt文件则进行阅读
-				} else if ( this.list[index].type == 'txt' ) {
+					//如果是歌曲则进行播放
+				} else if ( suffixs.split(',').indexOf(this.list[index].type) ) {
 					let fd = plus.android.newObject("java.io.File", path);
 					if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
 						plus.nativeUI.toast("文件路径不存在！", {verticalAlign: 'bottom'});
@@ -396,43 +395,29 @@
 						this.fileLength--;
 						return;
 					}
-					//查询有没有导入过该txt文件
-					let bookIndex = indexOf(this.bookList, path, 'path');
-					//导入过直接阅读
-					if ( bookIndex > -1 ) {
-						this.routePush('/pages/book/read/index?index=' + bookIndex);
+					//查询有没有导入过该歌曲
+					let musicIndex = indexOf(this.playList, path, 'path');
+					//导入过直接播放
+					if ( musicIndex > -1 ) {
+						this.updateMusicPlayRecord(path);
 					} else {
-						//未导入，则先导入再进行阅读
-						let books = [];
-						books.push({
+						//未导入，则先导入再进行播放
+						let music = [];
+						music.push({
 							name: this.list[index].name,
-							type: 'story',
 							path: this.list[index].path
 						});
-						this.addBooks(books);
+						this.addMusic(music);
 						this.$nextTick(() => {
-							bookIndex = indexOf(this.bookList, path, 'path');
-							if ( bookIndex > -1 ) {
-								this.routePush('/pages/book/read/index?index=' + bookIndex);
+							musicIndex = indexOf(this.playList, path, 'path');
+							if ( musicIndex > -1 ) {
+								this.updateMusicPlayRecord(path);
 							} else {
-								plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
+								plus.nativeUI.toast("歌曲导入失败！", {verticalAlign: 'bottom'});
 							}
 						})
 					}
 				}
-			},
-			routePush (url) {
-				//路由防抖
-				if ( this.routeDisabled ) {
-					return;
-				}
-				this.routeDisabled = true;
-				uni.navigateTo({
-					url: url,
-					complete: (res) => {
-						this.routeDisabled = false;
-					}
-				})
 			},
 			//前往内部存储根目录
 			goInternalRoot () {
@@ -447,55 +432,55 @@
 			//根据文件对象获取文件列表
 			getFileSystem (ff) {
 				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
-				this.updateBookPath(plus.android.invoke(fd, 'getPath'));
+				this.updateMusicPath(plus.android.invoke(fd, 'getPath'));
 				
 				//获取文件列表 正式用
-				let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-				let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
-				let getFile = new GetFileList();
-				let getDirectory = new GetDirectoryList();
-				let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
-				let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
-				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				// let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+				// let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
+				// let getFile = new GetFileList();
+				// let getDirectory = new GetDirectoryList();
+				// let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), suffixs);
+				// let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
+				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
 				
 				//获取文件列表 调试用
-				// let list = plus.android.invoke(fd, "listFiles");
-				// let len = list ? list.length : 0;
-				// let file = [];
-				// let folder = [];
-				// for(let i=0; i<len; i++){
-				//     // 过滤隐藏文件  
-				//     if ( !plus.android.invoke(list[i],"isHidden") ){
-				// 		let name = plus.android.invoke(list[i], 'getName');
-				// 		if ( plus.android.invoke(list[i],"isDirectory") ){
-				// 			folder.push({
-				// 				name: name,
-				// 				type: 'folder',
-				// 				size: '0B',
-				// 				time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 				createTime: plus.android.invoke(list[i],"lastModified"),
-				// 				path: plus.android.invoke(list[i],"getPath")
-				// 			})
-				// 		    // 文件夹
-				// 		} else{
-				// 			//是否是txt文件
-				// 		    if ( plus.android.invoke(name, "endsWith", '.txt') ) {
-				// 		    	file.push({
-				// 					name: name,
-				// 					type: suffix(name),
-				// 					size: this.readFileSize(list[i]),
-				// 					time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 					createTime: plus.android.invoke(list[i],"lastModified"),
-				// 					path: plus.android.invoke(list[i],"getPath")
-				// 				})
-				// 		    }
-				// 		}  
-				//     }
-				// }
-				// file.sort((a, b) => {
-				// 	return b.createTime - a.createTime;
-				// })
+				let list = plus.android.invoke(fd, "listFiles");
+				let len = list ? list.length : 0;
+				let file = [];
+				let folder = [];
+				for(let i=0; i<len; i++){
+				    // 过滤隐藏文件  
+				    if ( !plus.android.invoke(list[i],"isHidden") ){
+						let name = plus.android.invoke(list[i], 'getName');
+						if ( plus.android.invoke(list[i],"isDirectory") ){
+							folder.push({
+								name: name,
+								type: 'folder',
+								size: '0B',
+								time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+								createTime: plus.android.invoke(list[i],"lastModified"),
+								path: plus.android.invoke(list[i],"getPath")
+							})
+						    // 文件夹
+						} else{
+							//是否是音频文件
+						    if ( suffixs.split(',').indexOf(suffix(name)) > -1 ) {
+						    	file.push({
+									name: name,
+									type: suffix(name),
+									size: this.readFileSize(list[i]),
+									time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+									createTime: plus.android.invoke(list[i],"lastModified"),
+									path: plus.android.invoke(list[i],"getPath")
+								})
+						    }
+						}  
+				    }
+				}
+				file.sort((a, b) => {
+					return b.createTime - a.createTime;
+				})
 				
 				
 				
@@ -528,7 +513,7 @@
 			},
 			//根据文件路径判断当前文件是否已经导入,返回下标
 			isLead (path) {
-				return indexOf(this.bookList, path, 'path');
+				return indexOf(this.playList, path, 'path');
 			}
 		},
 		onBackPress(event) {
@@ -546,6 +531,7 @@
 		},
 		components: {
 			CIcon,
+			CIamge,
 			CSearch,
 			ActionSheet,
 			Bubble,

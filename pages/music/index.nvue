@@ -1,0 +1,244 @@
+<template>
+	<view class="music">
+		<view class="mask" ref="mask" @tap="back"></view>
+		<view class="popup" :style="{'background-color': skinColor.bgColor}">
+			<view class="top">
+				<view class="mode" @tap="changeMode">
+					<c-icon name="loop" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'loop'"></c-icon>
+					<c-icon name="once" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'once'"></c-icon>
+					<c-icon name="random" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'random'"></c-icon>
+					<text class="modeName" :style="{color: skinColor.menuIconColor}">{{modeName}}</text>
+				</view>
+				<view class="clear" @tap="clear">
+					<c-icon name="waste-fill" size="42" :color="skinColor.menuIconColor"></c-icon>
+				</view>
+			</view>
+			<list-scroll :list="listSync" :lineHeight="100">
+				<template v-slot="{item}">
+					<view class="list">
+						<text class="list-name" :style="{color: skinColor.menuTitleColor}">{{item.name}}</text>
+						<view class="list-right">
+							<view class="list-icon">
+								<c-icon name="pause" size="37" color="#d43c33" v-if="playStatus && playRecord == item.path"></c-icon>
+								<c-icon name="play" size="35" color="#d43c33" v-else></c-icon>
+							</view>
+							<view class="list-icon" @tap="deleteItem(item.path)">
+								<c-icon name="delete" size="30" color="#d43c33"></c-icon>
+							</view>
+						</view>	
+					</view>
+				</template>
+				<no-data slot="fixed" title="没有导入的歌曲哦!" v-if="playList.length <= 0"></no-data>
+			</list-scroll>
+			<view class="add" @touchmove.stop.prevent="">
+				<view class="add-btn" :style="{'border-color': skinColor.menuTitleColor}" @tap="routePush('/pages/music/search')">
+					<text class="add-text" :style="{color: skinColor.menuTitleColor}">添加歌曲</text>
+				</view>
+			</view>
+			<view class="close" @tap="back" :style="{'background-color': skinColor.navColor}">
+				<text class="close-text" :style="{color: skinColor.activeColor}">关闭</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import NoData from '@/components/no-data/no-data.nvue'
+	import { mapGetters, mapMutations } from 'vuex';
+	import { skinMixin } from '@/common/mixin/index.js';
+	import { indexOf } from '@/common/js/util.js';
+	const animation = weex.requireModule('animation');
+	export default {
+		mixins: [skinMixin],
+		data () {
+			return {
+				routeDisabled: false
+			}
+		},
+		mounted() {
+			setTimeout(() => {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: 1
+				    },
+				    duration: 300, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+			}, 300)
+		},
+		computed: {
+			...mapGetters(['playList', 'getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayRecord']),
+			listSync () {
+				let arr = this.playList.filter((item) => {
+					return item;
+				})
+				return arr;
+			},
+			playStatus () {
+				return this.getMusicPlayStatus;
+			},
+			modeName () {
+				return this.getMusicPlayMode == 'loop' ? '顺序播放' : this.getMusicPlayMode == 'once' ? '单曲循环' : '随机播放';
+			},
+			playRecord () {
+				return this.getMusicPlayRecord;
+			}
+		},
+		methods: {
+			...mapMutations(['changeMusicPlayMode', 'clearMusic', 'deleteMusic']),
+			back () {
+				uni.navigateBack({
+					delta: 1
+				})
+			},
+			//清空歌曲
+			clear () {
+				uni.showModal({
+					title: '操作提示！',
+					content: '确认清空歌曲列表吗？',
+					success: (res) => {
+						if ( res.confirm ) {
+							this.clearMusic();
+						}
+					}
+				})
+			},
+			//删除指定歌曲
+			deleteItem (path) {
+				let index = indexOf(this.playList, path, 'path');
+				uni.showModal({
+					title: '操作提示！',
+					content: '确认删除 ' + this.playList[index].name + ' 吗？',
+					success: (res) => {
+						if ( res.confirm ) {
+							this.deleteMusic(path);
+						}
+					}
+				})
+			},
+			//改变播放模式
+			changeMode () {
+				switch(this.getMusicPlayMode)
+				{
+				    case 'loop':
+				        this.changeMusicPlayMode('once');
+				        break;
+				    case 'once':
+				        this.changeMusicPlayMode('random');
+				        break;
+				    default:
+				        this.changeMusicPlayMode('loop');
+				}
+			},
+			routePush (url) {
+				//路由防抖
+				if ( this.routeDisabled ) {
+					return;
+				}
+				this.routeDisabled = true;
+				uni.navigateTo({
+					url: url,
+					complete: (res) => {
+						this.routeDisabled = false;
+					}
+				})
+			}
+		},
+		onBackPress () {
+			animation.transition(this.$refs.mask, {
+			    styles: {
+					opacity: 0
+			    },
+			    duration: 0, //ms
+			    timingFunction: 'ease',
+			    needLayout:false,
+			    delay: 0 //ms
+			})
+		},
+		components: {
+			ListScroll,
+			CIcon,
+			NoData
+		}
+	}
+</script>
+
+<style scoped>
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0,0,0,0.2);
+		opacity: 0;
+	}
+	.popup {
+		position: fixed;
+		top: 300rpx;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		border-top-left-radius: 50rpx;
+		border-top-right-radius: 50rpx;
+	}
+	.top {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding: 40rpx 30rpx;
+	}
+	.mode {
+		flex-direction: row;
+		align-items: center;
+	}
+	.modeName {
+		font-size: 32rpx;
+		margin-left: 15rpx;
+	}
+	.list {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		height: 100rpx;
+		padding: 0 30rpx;
+	}
+	.list-right {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		width: 100rpx;
+	}
+	.list-name {
+		font-size: 28rpx;
+		margin-left: 15rpx;
+	}
+	.add {
+		align-items: center;
+	}
+	.add-btn {
+		width: 220rpx;
+		height: 60rpx;
+		border-radius: 60rpx;
+		justify-content: center;
+		align-items: center;
+		border-width: 1px;
+		border-style: solid;
+		margin: 30rpx 0 60rpx 0;
+	}
+	.add-text {
+		font-size: 28rpx;
+	}
+	.close {
+		height: 100rpx;
+		align-items: center;
+		justify-content: center;
+	}
+	.close-text {
+		font-size: 35rpx;
+	}
+</style>

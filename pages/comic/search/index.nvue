@@ -99,7 +99,7 @@
 				<bubble-item title="内部存储"></bubble-item>
 			</view>
 			<view @tap="goExtenalRoot(item.path)" v-for="(item, index) in SDpaths" :key="index">
-				<bubble-item :title="'SD卡' + (index + 1)"></bubble-item>
+				<bubble-item :title="'SD卡-' + (index + 1)"></bubble-item>
 			</view>
 		</bubble>
 		  
