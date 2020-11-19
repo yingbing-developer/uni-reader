@@ -11,7 +11,8 @@
 * 9、除了阅读页是vue外，其余页面都是nvue
 * 10、如果想要使用原生方法调试也可以本地制作自定义基座，以自定义基座的方式来运行，本地制作自定义基座的方法与本地打包的方法类似，具体见这里：[uni本地打包android自定义基座](https://www.cnblogs.com/fdxjava/articles/13354591.html)
 * 11、获取扩展TF卡路径的方法只有原生,如果不需要可以删掉
-* 12、如果有什么问题都可以说
+* 12、音乐播放只支持应用内播放，不支持后台播放
+* 13、如果有什么问题都可以说
 
 
 * 需要修改调试用方法和正式用的方法包括：
@@ -19,6 +20,7 @@
 	* /pages/book/read.vue       getContent()
 	* /pages/comic/search.nvue   getFileSystem()、getComicList()
 	* /pages/comic/read.nvue     getComicSync()
+	* /pages/music/search.nvue   getFileSystem()
 	* 修改方式如下
 ```javascript
 	getContent () {
