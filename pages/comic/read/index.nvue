@@ -175,9 +175,14 @@
 			},
 			//预览图片
 			preview (path) {
+				let index = indexOf(this.comicSync, path, 'path');
+				let imgs = [];
+				for ( let i = 0 ; i < this.comicSync.length; i++ ) {
+					imgs.push('file://' + this.comicSync[i].path);
+				}
 				uni.previewImage({
-					current: 0,
-					urls: ['file://' + path]
+					current: index,
+					urls: imgs
 				});
 			},
 			//打开设置窗口

@@ -26,6 +26,8 @@ const store = new Vuex.Store({
 		musicPath: uni.getStorageSync(MUSICPATH) || '', //默认访问的本地音乐资源路径
 		musicPlayList: uni.getStorageSync(PLAYLIST) || [], //音乐播放列表
 		musicPlayStatus: uni.getStorageSync(PLAYSTATUS) || false, //音乐播放状态
+		musicPlayTime: 0,//当前音乐播放位置
+		musicPlayDuration: 0,//当前音乐总时长
 		musicPlayMode: uni.getStorageSync(PLAYMODE) || 'loop', //音乐播放模式 loop => 循环播放 once => 单曲循环 random => 乱序播放
 		musicPlayRecord: uni.getStorageSync(PLAYRECORD) || '' //音乐播放记录
 	},
@@ -106,6 +108,12 @@ const store = new Vuex.Store({
 		},
 		getMusicPlayStatus (state) {
 			return state.musicPlayStatus
+		},
+		getMusicPlayTime (state) {
+			return state.musicPlayTime
+		},
+		getMusicPlayDuration (state) {
+			return state.musicPlayDuration
 		},
 		getMusicPlayMode (state) {
 			return state.musicPlayMode
@@ -273,6 +281,8 @@ const store = new Vuex.Store({
 			uni.setStorageSync(PLAYLIST, state.musicPlayList);
 			state.musicPlayRecord = '';
 			uni.setStorageSync(PLAYRECORD, state.musicPlayRecord);
+			state.musicPlayTime = 0;
+			state.musicPlayDuration = 0;
 		},
 		updateMusicPlayRecord (state, record) {
 			state.musicPlayRecord = record;
@@ -281,6 +291,14 @@ const store = new Vuex.Store({
 		//改变音乐播放状态
 		changeMusicPlayStatus (state, status) {
 			state.musicPlayStatus = status;
+		},
+		//改变音乐播放时长
+		changeMusicPlayTime (state, time) {
+			state.musicPlayTime = time;
+		},
+		//改变音乐总时长
+		changeMusicPlayDuration (state, duration) {
+			state.musicPlayDuration = duration;
 		},
 		//改变音乐播放模式
 		changeMusicPlayMode (state, mode) {

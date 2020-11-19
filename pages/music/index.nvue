@@ -15,14 +15,14 @@
 			</view>
 			<list-scroll :list="listSync" :lineHeight="100">
 				<template v-slot="{item}">
-					<view class="list">
+					<view class="list actived" @tap="playMusic(item.path)">
 						<text class="list-name" :style="{color: skinColor.menuTitleColor}">{{item.name}}</text>
 						<view class="list-right">
 							<view class="list-icon">
 								<c-icon name="pause" size="37" color="#d43c33" v-if="playStatus && playRecord == item.path"></c-icon>
 								<c-icon name="play" size="35" color="#d43c33" v-else></c-icon>
 							</view>
-							<view class="list-icon" @tap="deleteItem(item.path)">
+							<view class="list-icon" @tap.stop="deleteItem(item.path)">
 								<c-icon name="delete" size="30" color="#d43c33"></c-icon>
 							</view>
 						</view>	
@@ -30,6 +30,11 @@
 				</template>
 				<no-data slot="fixed" title="没有导入的歌曲哦!" v-if="playList.length <= 0"></no-data>
 			</list-scroll>
+			<view class="progress-line" v-if="musicDuration">
+				<text class="progress-num" :style="{color: skinColor.titleColor}">{{playTime | minutesFormat}}</text>
+				<c-progress class="progress" :value="musicProgress" @input="updateTime" itemShow></c-progress>
+				<text class="progress-num" :style="{color: skinColor.titleColor}">{{musicDuration | minutesFormat}}</text>
+			</view>
 			<view class="add" @touchmove.stop.prevent="">
 				<view class="add-btn" :style="{'border-color': skinColor.menuTitleColor}" @tap="routePush('/pages/music/search')">
 					<text class="add-text" :style="{color: skinColor.menuTitleColor}">添加歌曲</text>
@@ -45,6 +50,7 @@
 <script>
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CProgress from '@/components/progress/progress.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
 	import { mapGetters, mapMutations } from 'vuex';
 	import { skinMixin } from '@/common/mixin/index.js';
@@ -54,10 +60,10 @@
 		mixins: [skinMixin],
 		data () {
 			return {
-				routeDisabled: false
+				routeDisabled: false,
 			}
 		},
-		mounted() {
+		onReady() {
 			setTimeout(() => {
 				animation.transition(this.$refs.mask, {
 				    styles: {
@@ -71,7 +77,7 @@
 			}, 300)
 		},
 		computed: {
-			...mapGetters(['playList', 'getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayRecord']),
+			...mapGetters(['playList', 'getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayRecord', 'getMusicPlayTime', 'getMusicPlayDuration']),
 			listSync () {
 				let arr = this.playList.filter((item) => {
 					return item;
@@ -86,10 +92,28 @@
 			},
 			playRecord () {
 				return this.getMusicPlayRecord;
+			},
+			//已播放时长
+			playTime () {
+				return this.getMusicPlayTime;
+			},
+			//音乐时长
+			musicDuration () {
+				return this.getMusicPlayDuration;
+			},
+			musicProgress () {
+				return (this.playTime / this.musicDuration) * 100
+			}
+		},
+		filters: {
+			minutesFormat (value) {
+				let minutes = Math.floor(value / 60) >= 10 ? Math.floor(value / 60) : '0' + Math.floor(value / 60);
+				let seconds = Math.ceil(value - (minutes * 60)) >= 10 ? Math.ceil(value - (minutes * 60)) : '0' + Math.ceil(value - (minutes * 60));
+				return minutes + ':' + seconds;
 			}
 		},
 		methods: {
-			...mapMutations(['changeMusicPlayMode', 'clearMusic', 'deleteMusic']),
+			...mapMutations(['changeMusicPlayMode', 'changeMusicPlayStatus', 'clearMusic', 'deleteMusic', 'updateMusicPlayRecord']),
 			back () {
 				uni.navigateBack({
 					delta: 1
@@ -132,7 +156,23 @@
 				        break;
 				    default:
 				        this.changeMusicPlayMode('loop');
+						break;
 				}
+			},
+			playMusic (path) {
+				if ( this.playRecord == path ) {
+					uni.$emit('change-status', {
+						status: !this.playStatus
+					})
+				} else {
+					this.updateMusicPlayRecord(path)
+				}
+			},
+			//更新时间
+			updateTime (percent) {
+				uni.$emit('update-time', {
+					time: (percent / 100) * this.musicDuration
+				})
 			},
 			routePush (url) {
 				//路由防抖
@@ -162,27 +202,20 @@
 		components: {
 			ListScroll,
 			CIcon,
-			NoData
+			NoData,
+			CProgress
 		}
 	}
 </script>
 
 <style scoped>
 	.mask {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0,0,0,0.2);
+		height: 300rpx;
 		opacity: 0;
+		background-color: rgba(0,0,0,0.2);
 	}
 	.popup {
-		position: fixed;
-		top: 300rpx;
-		bottom: 0;
-		left: 0;
-		right: 0;
+		flex: 1;
 		border-top-left-radius: 50rpx;
 		border-top-right-radius: 50rpx;
 	}
@@ -216,6 +249,19 @@
 	.list-name {
 		font-size: 28rpx;
 		margin-left: 15rpx;
+	}
+	.progress-line {
+		padding: 20rpx 30rpx;
+		flex-direction: row;
+		align-items: center;
+	}
+	.progress {
+		flex: 1;
+	}
+	.progress-num {
+		width: 100rpx;
+		font-size: 28rpx;
+		text-align: center;
 	}
 	.add {
 		align-items: center;

@@ -3,7 +3,7 @@
 <script>
 	import { mapGetters, mapMutations } from 'vuex';
 	import { indexOf, randomSoleNumber } from '@/common/js/util.js'
-	const audio = uni.createInnerAudioContext();
+	let audio = null;
 	let musicBox = null;
 	let musicLine = null;
 	//控件高度 （高度和宽度一样）
@@ -32,15 +32,19 @@
 		},
 		computed: {
 			...mapGetters(['playList', 'getMusicPlayStatus', 'getMusicPlayMode', 'getMusicPlayRecord']),
+			//播放状态
 			playStatus () {
 				return this.getMusicPlayStatus;
 			},
+			//播放模式
 			playMode () {
 				return this.getMusicPlayMode;
 			},
+			//播放歌曲路径
 			playRecord () {
 				return this.getMusicPlayRecord;
 			},
+			//歌曲列表
 			musicList () {
 				return this.playList;
 			}
@@ -55,9 +59,44 @@
 					this.windowHeight = res.safeArea.height;
 				}
 			})
+			//监听窗口尺寸变化
+			uni.onWindowResize(() => {
+				uni.getSystemInfo({
+					success: (res) => {
+						this.windowWidth = res.safeArea.width;
+						this.windowHeight = res.safeArea.height;
+					}
+				})
+			})
+			uni.$on('app-hide', (data) => {
+			    if ( audio ) {
+			    	this.pause();
+			    }
+			})
+			//改变播放状态
+			uni.$on('change-status', (data) => {
+				this.changeMusicPlayStatus(data.status);
+			    if ( audio ) {
+			    	if ( data.status ) {
+			    		audio.play();
+			    	} else {
+			    		audio.pause();
+			    	}
+				}
+			})
+			//改变音乐播放位置
+			uni.$on('update-time', (data) => {
+				clearTimeout(this.seekTimer)
+				this.seekTimer = setTimeout(() => {
+					if ( audio ) {
+						audio.seek(data.time);
+						this.changeMusicPlayTime(data.time);
+					}
+				}, 200)
+			})
 		},
 		methods: {
-			...mapMutations(['changeMusicPlayStatus', 'changeMusicPlayMode', 'updateMusicPlayRecord']),
+			...mapMutations(['changeMusicPlayStatus', 'changeMusicPlayMode', 'updateMusicPlayRecord', 'changeMusicPlayTime', 'changeMusicPlayDuration']),
 			init () {
 				musicLine = new plus.nativeObj.View('line',{
 					top:'70%',left:'0',height: height + 'px', width: '0'
@@ -90,6 +129,9 @@
 					this.clickTime = 0;
 				})
 				musicBox.addEventListener("touchmove", (e) => {
+					if ( this.clickTime <= 300 ) {
+						return;
+					}
 					this.pageX = e.pageX;
 					this.pageY = e.pageY;
 					let lineLeft = 0;
@@ -251,6 +293,15 @@
 				});
 			},
 			goMusicList () {
+				let size = plus.screen.getCurrentSize();
+				//如果是横屏不能打开，因为横屏可能会打不开，不知道是不是官方的bug
+				if ( size.width > size.height ) {
+					uni.showToast({
+						title: '横屏状态下不能打开播放列表',
+						icon: 'none'
+					})
+					return;
+				}
 				const pages = getCurrentPages();
 				const page = pages[pages.length - 1];
 				const lastPage = pages.length > 1 ? pages[pages.length - 2] : false;
@@ -264,20 +315,30 @@
 				}
 				this.routePush('/pages/music/index');
 			},
+			//更换音乐
 			upMusicSrc () {
-				audio.stop();
+				audio.destroy();
+				audio = null;
 				this.changeMusicPlayStatus(false);
-				audio.src = '';
-				audio.onCanplay(() => {
-					audio.play();
-					this.changeMusicPlayStatus(true);
-				})
-				audio.src = this.playRecord ? 'file://' + this.playRecord : '';
+				clearTimeout(this.musicTimer);
+				this.musicTimer = setTimeout(() => {
+					this.initMusic();
+					setTimeout(() => {
+						if ( audio.src ) {
+							audio.play();
+							this.changeMusicPlayStatus(true);
+						}
+					}, 100)
+				}, 300)
 			},
+			//初始化音乐实例
 			initMusic () {
+				audio = uni.createInnerAudioContext();
 				audio.src = this.playRecord ? 'file://' + this.playRecord : '';
+				audio.onCanplay(() => {
+					this.changeMusicPlayDuration(audio.duration || 0);
+				})
 				audio.onPlay(() => {
-					audio.offCanplay();
 					let index = indexOf(this.playList, this.playRecord, 'path');
 					uni.showToast({
 						title: "当前播放的是: " + this.playList[index].name,
@@ -290,24 +351,30 @@
 						icon: 'none'
 					})
 				});
-				audio.onError((res) => {
-					console.log(res);
+				audio.onError(() => {
+					this.changeMusicPlayStatus(false);
 					uni.showToast({
 						title: "播放错误!",
 						icon: 'none'
 					})
 				});
-				audio.onEnded((res) => {
+				audio.onEnded(() => {
 					this.changeMusic(1);
 				});
+				audio.onTimeUpdate(() => {
+					if ( audio ) {
+						this.changeMusicPlayTime(audio.currentTime || 0);
+					}
+				})
 			},
 			changePlayStatus () {
-				if ( this.playStatus ) {
+				if ( !audio.paused ) {
 					this.pause();
 				} else {
 					this.play();
 				}
 			},
+			//播放
 			play () {
 				if ( audio.src && audio.paused ) {
 					audio.play();
@@ -323,12 +390,14 @@
 					}
 				}
 			},
+			//暂停
 			pause () {
 				if ( !audio.paused && audio.src ) {
 					audio.pause();
 					this.changeMusicPlayStatus(false);
 				}
 			},
+			//上一曲 / 下一曲
 			changeMusic (value) {
 				if ( this.playList.length <= 0 ) {
 					uni.showToast({
@@ -345,15 +414,18 @@
 				switch (this.playMode) {
 					case 'once':
 						this.upMusicSrc();
+						break;
 					case 'loop':
 						let musicIndex = index + value >= this.playList.length ? 0 : index + value < 0 ? this.playList.length - 1 : index + value;
 						this.updateMusicPlayRecord(this.playList[musicIndex].path);
+						break;
 					default:
 						let random = this.randomIndex.indexOf(index);
 						if ( random > -1 ) {
 							let musicIndex = random + value >= this.randomIndex.length ? 0 : random + value < 0 ? this.randomIndex.length - 1 : random + value;
 							this.updateMusicPlayRecord(this.playList[this.randomIndex[musicIndex]].path);
 						}
+						break;
 				}
 			},
 			//获取随机播放顺序
@@ -377,12 +449,7 @@
 			}
 		},
 		watch: {
-			playStatus (val) {
-				if ( val ) {
-					this.play();
-				} else {
-					this.pause();
-				}
+			playStatus () {
 				this.changeStatusIcon();
 			},
 			playMode (val) {
@@ -390,19 +457,31 @@
 				this.chageModeIcon();
 			},
 			playRecord (val) {
-				clearTimeout(this.recordTimer);
-				this.recordTimer = setTimeout(() => {
-					this.upMusicSrc();
-				}, 1000) 
+				this.upMusicSrc();
 			},
-			musicList () {
+			musicList (val) {
 				this.getRandomIndex();
+				//音乐在播放途中被删掉
+				if ( this.playRecord && indexOf(val, this.playRecord, 'path') == -1 ) {
+					if ( val.length > 0 ) {
+						this.updateMusicPlayRecord(val[0].path);
+					} else {
+						this.updateMusicPlayRecord('');
+						this.changeMusicPlayTime(0);
+						this.changeMusicPlayDuration(0);
+					}
+				} 
 			}
 		},
 		beforeDestroy() {
 			musicBox.close();
 			musicLine.close();
-			audio.destroy();
+			if ( audio ) {
+				audio.destroy();
+			}
+			uni.$off('app-hide');
+			uni.$off('update-time');
+			uni.$off('change-status');
 		}
 	}
 </script>
