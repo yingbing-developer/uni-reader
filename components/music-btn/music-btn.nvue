@@ -266,13 +266,16 @@
 			},
 			upMusicSrc () {
 				audio.stop();
+				this.changeMusicPlayStatus(false);
+				audio.src = '';
 				audio.onCanplay(() => {
-					this.play();
+					audio.play();
+					this.changeMusicPlayStatus(true);
 				})
-				audio.src = 'file://' + this.playRecord;
+				audio.src = this.playRecord ? 'file://' + this.playRecord : '';
 			},
 			initMusic () {
-				audio.src = 'file://' + this.playRecord;
+				audio.src = this.playRecord ? 'file://' + this.playRecord : '';
 				audio.onPlay(() => {
 					audio.offCanplay();
 					let index = indexOf(this.playList, this.playRecord, 'path');
@@ -300,78 +303,57 @@
 			},
 			changePlayStatus () {
 				if ( this.playStatus ) {
-					this.changeMusicPlayStatus(false);
+					this.pause();
 				} else {
-					if ( this.playRecord ) {
-						this.changeMusicPlayStatus(true);
-					} else {
-						if ( this.playList.length > 0 ) {
-							this.changeMusicPlayStatus(true);
-						} else {
-							uni.showToast({
-								icon: 'none',
-								title: '播放列表为空!'
-							})
-						}
-					}
+					this.play();
 				}
 			},
 			play () {
-				this.changeMusicPlayStatus(true);
-				audio.play();
+				if ( audio.src && audio.paused ) {
+					audio.play();
+					this.changeMusicPlayStatus(true);
+				} else {
+					if ( this.playList.length > 0 ) {
+						this.updateMusicPlayRecord(this.playList[0].path);
+					} else {
+						uni.showToast({
+							icon: 'none',
+							title: '播放列表为空!'
+						})
+					}
+				}
+			},
+			pause () {
+				if ( !audio.paused && audio.src ) {
+					audio.pause();
+					this.changeMusicPlayStatus(false);
+				}
 			},
 			changeMusic (value) {
-				if ( this.playList.length < 0 ) {
+				if ( this.playList.length <= 0 ) {
 					uni.showToast({
 						icon: 'none',
 						title: '播放列表为空!'
 					})
 					return;
 				}
+				if ( this.playList.length == 1 ) {
+					this.upMusicSrc();
+					return;
+				}
+				let index = indexOf(this.playList, this.playRecord, 'path');
 				switch (this.playMode) {
 					case 'once':
-						audio.seek(0);
+						this.upMusicSrc();
 					case 'loop':
-						let index = indexOf(this.playList, this.playRecord, 'path');
-						let music = this.playList[index + value];
-						if ( music ) {
-							this.updateMusicPlayRecord(music.path);
-						} else {
-							if ( value > 0 ) {
-								this.updateMusicPlayRecord(this.playList[0].path);
-							} else {
-								this.updateMusicPlayRecord(this.playList[this.playList.length - 1].path);
-							}
-						}
+						let musicIndex = index + value >= this.playList.length ? 0 : index + value < 0 ? this.playList.length - 1 : index + value;
+						this.updateMusicPlayRecord(this.playList[musicIndex].path);
 					default:
-						this.randomPlay(value);
-						
-				}
-			},
-			//随机播放
-			randomPlay (value) {
-				let index = indexOf(this.playList, this.playRecord, 'path');
-				let flag = this.randomIndex.indexOf(index);
-				if ( flag > -1 ) {
-					let musicIndex = this.randomIndex[flag + value];
-					if ( musicIndex ) {
-						if ( this.playList[musicIndex] ) {
-							this.updateMusicPlayRecord(this.playList[musicIndex].path);
-						} else {
-							this.updateMusicPlayRecord(this.playList[0].path);
+						let random = this.randomIndex.indexOf(index);
+						if ( random > -1 ) {
+							let musicIndex = random + value >= this.randomIndex.length ? 0 : random + value < 0 ? this.randomIndex.length - 1 : random + value;
+							this.updateMusicPlayRecord(this.playList[this.randomIndex[musicIndex]].path);
 						}
-					} else {
-						if ( value > 0 ) {
-							musicIndex =  this.randomIndex[0];
-						} else {
-							musicIndex =  this.randomIndex[this.randomIndex.length - 1];
-						}
-						if ( this.playList[musicIndex] ) {
-							this.updateMusicPlayRecord(this.playList[musicIndex].path);
-						} else {
-							this.updateMusicPlayRecord(this.playList[0].path);
-						}
-					}
 				}
 			},
 			//获取随机播放顺序
@@ -397,21 +379,9 @@
 		watch: {
 			playStatus (val) {
 				if ( val ) {
-					if ( this.playRecord ) {
-						audio.play();
-					} else {
-						if ( this.playList.length > 0 ) {
-							this.updateMusicPlayRecord(this.playList[0].path);
-						} else {
-							uni.showToast({
-								icon: 'none',
-								title: '播放列表为空!'
-							})
-						}
-						return;
-					}
+					this.play();
 				} else {
-					audio.pause();
+					this.pause();
 				}
 				this.changeStatusIcon();
 			},
@@ -420,7 +390,10 @@
 				this.chageModeIcon();
 			},
 			playRecord (val) {
-				this.upMusicSrc();
+				clearTimeout(this.recordTimer);
+				this.recordTimer = setTimeout(() => {
+					this.upMusicSrc();
+				}, 1000) 
 			},
 			musicList () {
 				this.getRandomIndex();
