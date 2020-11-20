@@ -113,8 +113,12 @@
 				//用触摸来模拟点击事件
 				musicBox.addEventListener("touchstart", (e) => {
 					clearInterval(this.interval);
+					this.clickTime = 0;
 					this.interval = setInterval(() => {
 						this.clickTime += 10;
+						if ( this.clickTime >= 500 ) {
+							clearInterval(this.interval);
+						}
 					}, 10)
 				})
 				musicBox.addEventListener("touchend", (e) => {

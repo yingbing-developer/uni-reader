@@ -210,12 +210,20 @@
 
 <style scoped>
 	.mask {
-		height: 300rpx;
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		opacity: 0;
 		background-color: rgba(0,0,0,0.2);
 	}
 	.popup {
-		flex: 1;
+		position: fixed;
+		top: 300rpx;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		border-top-left-radius: 50rpx;
 		border-top-right-radius: 50rpx;
 	}

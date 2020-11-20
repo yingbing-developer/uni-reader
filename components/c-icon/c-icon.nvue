@@ -3,7 +3,6 @@
 </template>
 
 <script>
-	const src = plus.io.convertLocalFileSystemURL('/static/iconfont.ttf')
 	// #ifdef APP-NVUE
 	const domModule = weex.requireModule('dom')
 	// #endif
