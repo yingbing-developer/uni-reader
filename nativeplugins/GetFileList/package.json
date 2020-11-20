@@ -1,6 +1,6 @@
 {
-    "name": "IOYingBingPluginGetFileList",
-    "id": "IO-YingBing-Plugin-GetFileList",
+    "name": "GetFileList",
+    "id": "GetFileList",
     "version": "1.0",
     "description": "获取本地文件列表",
     "_dp_type":"nativeplugin",
@@ -9,8 +9,8 @@
             "plugins": [
                 {
                     "type": "module",
-                    "name": "IO-YingBing-Plugin-GetFileList",
-                    "class": "io.uniplugin.GetFileList"
+                    "name": "GetFileList",
+                    "class": "com.test.testplugin.GetFileList"
                 }
             ],
             "hooksClass": "",
@@ -25,15 +25,15 @@
 				"armeabi-v7a",
 				"x86"
             ],
-            "minSdkVersion": "22",
+            "minSdkVersion": "24",
             "useAndroidX": false,   //可选，是否兼容使用AndroidX
             "permissions": [
                 
             ],
             "parameters": {
                 "插件需要配置的参数名称, 如appid": {
-                    "des": "__UNI__8A96B42",
-                    "key": "",
+                    "des": "请填写appid",
+                    "key": "TM123456",
                     "placeholder": ""
                 }
             }
