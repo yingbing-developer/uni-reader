@@ -87,6 +87,10 @@
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import { dateFormat, suffix, indexOf } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
+	const main = plus.android.runtimeMainActivity();
+	const Intent = plus.android.importClass("android.content.Intent");
+	const Uri = plus.android.importClass("android.net.Uri");
+	const File = plus.android.importClass("java.io.File");
 	const environment = plus.android.importClass("android.os.Environment");
 	const dom = weex.requireModule('dom');
 	export default {
@@ -130,10 +134,10 @@
 				})
 			} else {
 				//获取扩展存储卡
-				let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
-				let getSDPath = new GetSDPath();
-				let pathStr = getSDPath.getSDPath();
-				this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
+				// let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
+				// let getSDPath = new GetSDPath();
+				// let pathStr = getSDPath.getSDPath();
+				// this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
 				
 				setTimeout(() => {
 					this.getFileSystem(plus.android.newObject("java.io.File", this.bookPathHistory));
@@ -250,6 +254,9 @@
 					},{
 						title: '删除',
 						value: 'delete'
+					},{
+						title: '分享',
+						value: 'share'
 					}]
 				} else {
 					//未导入的文件的操作列表
@@ -259,6 +266,9 @@
 					},{
 						title: '删除',
 						value: 'delete'
+					},{
+						title: '分享',
+						value: 'share'
 					}]
 				}
 				this.$refs.action.show();
@@ -311,6 +321,10 @@
 							}
 						}
 					})
+				}
+				//用户选择删除操作
+				if ( val == 'share' ) {
+					this.share();
 				}
 			},
 			//删除多个文件
@@ -450,52 +464,52 @@
 				this.updateBookPath(plus.android.invoke(fd, 'getPath'));
 				
 				//获取文件列表 正式用
-				let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-				let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
-				let getFile = new GetFileList();
-				let getDirectory = new GetDirectoryList();
-				let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
-				let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
-				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				// let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+				// let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
+				// let getFile = new GetFileList();
+				// let getDirectory = new GetDirectoryList();
+				// let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
+				// let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
+				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				// let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
 				
-				//获取文件列表 调试用
-				// let list = plus.android.invoke(fd, "listFiles");
-				// let len = list ? list.length : 0;
-				// let file = [];
-				// let folder = [];
-				// for(let i=0; i<len; i++){
-				//     // 过滤隐藏文件  
-				//     if ( !plus.android.invoke(list[i],"isHidden") ){
-				// 		let name = plus.android.invoke(list[i], 'getName');
-				// 		if ( plus.android.invoke(list[i],"isDirectory") ){
-				// 			folder.push({
-				// 				name: name,
-				// 				type: 'folder',
-				// 				size: '0B',
-				// 				time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 				createTime: plus.android.invoke(list[i],"lastModified"),
-				// 				path: plus.android.invoke(list[i],"getPath")
-				// 			})
-				// 		    // 文件夹
-				// 		} else{
-				// 			//是否是txt文件
-				// 		    if ( plus.android.invoke(name, "endsWith", '.txt') ) {
-				// 		    	file.push({
-				// 					name: name,
-				// 					type: suffix(name),
-				// 					size: this.readFileSize(list[i]),
-				// 					time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 					createTime: plus.android.invoke(list[i],"lastModified"),
-				// 					path: plus.android.invoke(list[i],"getPath")
-				// 				})
-				// 		    }
-				// 		}  
-				//     }
-				// }
-				// file.sort((a, b) => {
-				// 	return b.createTime - a.createTime;
-				// })
+				// 获取文件列表 调试用
+				let list = plus.android.invoke(fd, "listFiles");
+				let len = list ? list.length : 0;
+				let file = [];
+				let folder = [];
+				for(let i=0; i<len; i++){
+				    // 过滤隐藏文件  
+				    if ( !plus.android.invoke(list[i],"isHidden") ){
+						let name = plus.android.invoke(list[i], 'getName');
+						if ( plus.android.invoke(list[i],"isDirectory") ){
+							folder.push({
+								name: name,
+								type: 'folder',
+								size: '0B',
+								time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+								createTime: plus.android.invoke(list[i],"lastModified"),
+								path: plus.android.invoke(list[i],"getPath")
+							})
+						    // 文件夹
+						} else{
+							//是否是txt文件
+						    if ( plus.android.invoke(name, "endsWith", '.txt') ) {
+						    	file.push({
+									name: name,
+									type: suffix(name),
+									size: this.readFileSize(list[i]),
+									time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+									createTime: plus.android.invoke(list[i],"lastModified"),
+									path: plus.android.invoke(list[i],"getPath")
+								})
+						    }
+						}  
+				    }
+				}
+				file.sort((a, b) => {
+					return b.createTime - a.createTime;
+				})
 				
 				
 				
@@ -503,6 +517,22 @@
 				this.list = folder.concat(file);
 				this.scrollTop();
 				this.checkes = [];
+			},
+			//分享文件
+			share () {
+				let shareIntent = new Intent(Intent.ACTION_SEND);
+				if ( this.checkes.length > 0 ) {
+					for ( let i = 0; i < this.checkes.length - 1; i++ ) {
+						shareIntent.putExtra("Intent.EXTRA_STREAM" + i, Uri.fromFile(plus.android.newObject("java.io.File", this.checkes[i])));
+					}
+				} else {
+					let file = new File("java.io.File", 'file://' + this.actionPath);
+					console.log(plus.android.invoke(file, 'getName'));
+					shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+				}
+				shareIntent.setType("*/*");//此处可发送多种文件
+				//shareIntent.setType("application/pdf");//只发送pdf文件
+				main.startActivity(Intent.createChooser(shareIntent,"分享文件"));
 			},
 			//返回顶部
 			scrollTop () {
