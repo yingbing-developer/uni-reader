@@ -2,8 +2,8 @@
     "name" : "好用阅读器",
     "appid" : "__UNI__8A96B42",
     "description" : "",
-    "versionName" : "2.5.0",
-    "versionCode" : 250,
+    "versionName" : "2.6.0",
+    "versionCode" : 260,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
