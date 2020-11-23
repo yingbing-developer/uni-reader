@@ -124,11 +124,15 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	import { dateFormat, suffix, indexOf, cnnumtonum } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
+	const main = plus.android.runtimeMainActivity();
+	const Intent = plus.android.importClass("android.content.Intent");
+	const Uri = plus.android.importClass("android.net.Uri");
 	const environment = plus.android.importClass("android.os.Environment");
 	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
 	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
 	const suffixs = 'jpg,png,gif,JPG,PNG,GIF'
 	const options = 'name,path';
+	const zipName = '_SHARE_HAOYONG_READER';
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
@@ -184,6 +188,19 @@
 					}
 				}, 300)
 			}
+		},
+		onShow () {
+			//删除掉生成的临时压缩文件
+			setTimeout(() => {
+				let folder = plus.android.newObject("java.io.File", this.comicPathHistory);
+				let files = plus.android.invoke(folder, 'listFiles');
+				for ( let i = 0; i < files.length; i++ ) {
+					let name = plus.android.invoke(files[i], 'getName');
+					if ( plus.android.invoke(name, "endsWith", '.zip') && name.indexOf(zipName) > -1 && plus.android.invoke(files[i], 'exists') && files[i] != null  ) {
+						plus.android.invoke(files[i], 'delete');
+					}
+				}
+			}, 20)
 		},
 		methods: {
 			...mapMutations(['addBooks', 'deleteBook', 'updateComicPath', 'clearComicPath']),
@@ -370,6 +387,9 @@
 					},{
 						title: '删除',
 						value: 'delete'
+					},{
+						title: '分享',
+						value: 'share'
 					}]
 				} else {
 					//未导入的文件的操作列表
@@ -379,6 +399,9 @@
 					},{
 						title: '删除',
 						value: 'delete'
+					},{
+						title: '分享',
+						value: 'share'
 					}]
 				}
 				this.$refs.action.show();
@@ -434,6 +457,40 @@
 						}
 					})
 				}
+				
+				//分享
+				if ( val == 'share' ) {
+					this.share();
+				}
+			},
+			//分享漫画
+			share () {
+				//分享之前需要先压缩
+				uni.showLoading({
+					title: '压缩中..'
+				})
+				let actionFile = plus.android.newObject("java.io.File", this.actionPath);
+				let zipFile = this.comicPathHistory + '/' + plus.android.invoke(actionFile, 'getName') + zipName + '.zip';
+				let file = plus.android.newObject("java.io.File", zipFile);
+				if ( plus.android.invoke(file, 'exists') && file != null ) {
+					plus.android.invoke(file, 'delete');
+				}
+				let targetPath = plus.io.convertLocalFileSystemURL(this.actionPath);
+				plus.zip.compress(targetPath, zipFile,
+					() => {
+						uni.hideLoading();
+						let shareIntent = new Intent(Intent.ACTION_SEND);
+						let file = plus.android.newObject("java.io.File", zipFile);
+						shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+						shareIntent.setType("application/zip");//此处可发送压缩文件
+						main.startActivity(Intent.createChooser(shareIntent,"分享文件"));
+					}, (error) => {
+						console.log(error);
+						uni.showToast({
+							title: '分享失败',
+							icon: 'none'
+						})
+				});
 			},
 			//删除漫画
 			deleteFiles (list) {
