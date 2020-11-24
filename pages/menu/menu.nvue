@@ -5,10 +5,10 @@
 	@touchmove.stop.prevent="touchmove"
 	@touchend="touchend">
 		<!-- 遮罩层 -->
-		<view class="mask" ref="mask" :style="{'opacity': maskOpacity}" @touchstart="maskHide"></view>
+		<view class="mask" ref="mask" @tap="maskHide"></view>
 		<view class="popup"
 		ref="popup"
-		:style="{'background-color': skinColor.menuBgColor, 'transform': 'translateX(' + popuplate + 'rpx)'}"
+		:style="{'background-color': skinColor.menuBgColor}"
 		@touchmove.stop.prevent="">
 			<view class="top-img">
 				<c-image class="bg" src="@/static/menuBack.png" mode="aspectFill"></c-image>
@@ -69,9 +69,8 @@
 				},
 				isShow: false,
 				maskOpacity: 0,
-				isMaskHide: false,
 				routeDisabled: false,
-				popuplate: -540,
+				popuplate: -510,
 				pointX: 0,
 				touchTime: 0,
 				current: 0,
@@ -121,11 +120,25 @@
 				this.changeSkin(skin);
 			},
 			maskHide () {
-				this.isMaskHide = true;
+				if ( this.touchTime > 0.3 ) {
+					return;
+				}
+				this.hide();
 			},
 			//仅仅显示组件，并不显示菜单和遮罩层
 			open () {
 				this.isShow = true;
+				this.$nextTick(() => {
+					animation.transition(this.$refs.popup, {
+						styles: {
+							transform: 'translateX(-' + uni.upx2px(Math.abs(this.anima.late + 30))  + 'px)'
+						},
+						duration: 100, //ms
+						timingFunction: 'ease',
+						needLayout:false,
+						delay: 0 //ms
+					})
+				})
 			},
 			//显示出菜单和遮罩层
 			show () {
@@ -209,12 +222,33 @@
 				if ( this.maskOpacity >= this.anima.opac ) {
 					this.maskOpacity = this.anima.opac;
 				}
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: this.anima.opac
+				    },
+				    duration: 0, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateX(' + uni.upx2px(this.popuplate) + 'px)'
+				    },
+				    duration: 0, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
 			},
 			touchend (e) {
 				if ( this.timer ) {
 					clearInterval(this.timer);
 				}
-				if ( this.popuplate <= -300 || (this.touchTime <= 0.3 && this.popuplate < -100) || (this.isMaskHide && this.popuplate > -10) ) {
+				if ( this.popuplate > -10 ) {
+					return;
+				}
+				if ( this.popuplate <= -300 || (this.touchTime <= 0.3 && this.popuplate < -100) ) {
 					this.hide();
 				} else {
 					this.show();
@@ -222,8 +256,7 @@
 				setTimeout(() => {
 					this.touchTime = 0;
 					this.pointX = 0;
-					this.isMaskHide = false;
-				}, 20)
+				}, 50)
 			},
 			clickOptions (item) {
 				if ( item.title == '关于' ) {
@@ -252,16 +285,34 @@
 				this.$emit('input', val);
 			},
 			translate (val) {
-				this.popuplate = val + this.anima.late;
+				this.popuplate = val + this.anima.late + 30;
 				if ( this.popuplate > 0 ) {
 					this.popuplate = 0;
 				}
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateX(' + uni.upx2px(this.popuplate) + 'px)'
+				    },
+				    duration: 0, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
 			},
 			opacity (val) {
 				this.maskOpacity = val;
 				if ( this.maskOpacity > this.anima.opac ) {
 					this.maskOpacity = this.anima.opac
 				}
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: this.maskOpacity
+				    },
+				    duration: 0, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
 			},
 			value (val) {
 				this.current = val;
@@ -289,6 +340,7 @@
 		right: 0;
 		bottom: 0;
 		background-color: #000000;
+		opacity: 0;
 	}
 	.popup {
 		position: absolute;
@@ -296,7 +348,7 @@
 		left: 0;
 		bottom: 0;
 		width: 540rpx;
-		box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+		transform: translateX(-540rpx);
 	}
 	.top-img {
 		height: 350rpx;

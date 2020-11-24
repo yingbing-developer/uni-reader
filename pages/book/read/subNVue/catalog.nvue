@@ -8,12 +8,9 @@
 			<text class="clear" v-if="showClear" @tap="clear">清空</text>
 		</view>
 		<list v-if="list.length > 0">
-			<cell v-for="(item, index) in list" :key='item.index'>
-				<view class="list actived" ref="list" @tap="clickItem(index)">
-					<text
-					class="list_text"
-					:style="{color: scrollTo == index ? '#DD524D' : skinColor.menuTitleColor}"
-					>{{item.title}}</text>
+			<cell v-for="(item, index) in list" :key='item.index' >
+				<view class="actived" @click="clickItem(index)" ref="list">
+					<list-item :item="item" :color="scrollTo == index ? '#DD524D' : skinColor.menuTitleColor"></list-item>
 				</view>
 			</cell>
 		</list>
@@ -24,6 +21,7 @@
 </template>
 
 <script>
+	import ListItem from './list-item.nvue'
 	import { skinMixin } from '@/common/mixin/index.js';
 	import { indexOf } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
@@ -98,7 +96,10 @@
 					type: 'clearMark'
 				});
 			}
-        }
+        },
+		components: {
+			ListItem
+		}
     }
 </script>
 
@@ -129,12 +130,6 @@
 	.clear {
 		color: #DD524D;
 		font-size: 25rpx;
-	}
-	.list {
-		padding: 15rpx 30rpx;
-	}
-	.list_text {
-		font-size: 28rpx;
 	}
 	.nodata-view {
 		flex: 1;

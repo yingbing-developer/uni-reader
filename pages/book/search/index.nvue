@@ -9,8 +9,7 @@
 			</view>
 		</nav-bar>
 		<c-search @confirm="setNameFilter"></c-search>
-		<list-scroll @scroll="scroll" :row-count="20" :line-height="108" :list="listSync">
-			<!-- 返回项 -->
+		<list-scroll @scroll="scroll" :line-height="108" :list="listSync">
 			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
 				<view class="list-icon">
 					<c-icon name="folder" size="75" color="#FFCA28"></c-icon>
@@ -19,7 +18,6 @@
 					<text class="list-title" :style="{'color': skinColor.titleColor}">..</text>
 				</view>
 			</view>
-			<!-- 文件列表 -->
 			<template v-slot="{item}">
 				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
 					<view class="list-icon" @tap.stop="check(item.path)">
@@ -69,7 +67,7 @@
 		  
 		<view class="fixed">
 			<view @tap="scrollTop">
-				<fixed-button :show="Math.abs(oldOffsetY) > 300">
+				<fixed-button :show="Math.abs(oldOffsetY) > 2000">
 					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
 				</fixed-button>
 			</view>
@@ -591,14 +589,14 @@
 		lines: 1;
 	}
 	.list {
-		flex-direction: row;
+		height: 108rpx;
 		border-bottom-width: 1px;
 		border-bottom-style: solid;
 		padding-left: 15rpx;
 		padding-right: 15rpx;
 		padding-top: 15rpx;
 		padding-bottom: 15rpx;
-		height: 108rpx;
+		flex-direction: row;
 	}
 	.list-icon {
 		justify-content: center;
@@ -614,16 +612,16 @@
 		flex-direction: row;
 		align-items: center;
 	}
-	.lr-top {
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-	}
 	.list-title {
 		flex: 1;
 		font-size: 30rpx;
 		lines: 1;
 		text-overflow: ellipsis;
+	}
+	.lr-top {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
 	}
 	.lt-right {
 		width: 70rpx;

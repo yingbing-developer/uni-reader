@@ -1,13 +1,13 @@
 <template>
 	<view class="list-scroll">
-		<list ref="list" :scrollable="scrollable" @scroll="scroll" :loadmoreoffset="loadmoreoffset" @loadmore="loadmore">
+		<list ref="list" :offset-accuracy="offsetAccuracy" @scroll="scroll" :scrollable="scrollable" :loadmoreoffset="loadmoreoffset" @loadmore="loadmore">
 			<cell>
 				<slot name="listTop"></slot>
 			</cell>
 			<cell v-for="(lists, i) in listSync" @appear="appear(i)" @disappear="disappear(i)">
-				<view class="list" ref="listItem">
-					<view class="list-item" :style="{width: itemWidth + 'rpx', height: lineHeight + 'rpx'}" v-for="(child, index) in lists" :key="index">
-						<block v-if="isShows.indexOf(i) > -1">
+				<view class="box" :style="listStyleObj" ref="listItem">
+					<view :style="itemStyleObj(index)" v-for="(child, index) in lists" :key="index">
+						<block v-if="isShows.indexOf(i) > -1 || isShows.indexOf(i + 1) > -1 || isShows.indexOf(i - 1) > -1">
 							<slot :item="child"></slot>
 						</block>
 					</view>
@@ -27,9 +27,20 @@
 				type: Number,
 				default: 1
 			},
+			//列宽
+			columnWidth: {
+				type: Number,
+				default: 750
+			},
+			//每列间隔
+			columnGap: {
+				type: Number,
+				default: 0
+			},
+			//每行高度
 			lineHeight: {
 				type: Number,
-				default: 100
+				default: 0
 			},
 			//是否禁用滚动
 			scrollable: {
@@ -51,12 +62,32 @@
 			//触发滚动事件的频率，没多少像素触发一次
 			offsetAccuracy: {
 				type: Number,
-				default: 5
+				default: 2000
 			}
 		},
 		computed: {
-			itemWidth() {
-				return 750 / this.columnCount;
+			listStyleObj () {
+				return {
+					paddingLeft: this.columnGap + 'rpx',
+					paddingRight: this.columnGap + 'rpx'
+				}
+			},
+			itemStyleObj () {
+				return function (index) {
+					let value = index >= this.columnCount ? index % this.columnCount : index;
+					if ( value < this.columnCount - 1 ) {
+						return {
+							width: this.columnWidth + 'rpx',
+							height: this.lineHeight + 'rpx',
+							marginRight: this.columnGap + 'rpx'
+						}
+					} else {
+						return {
+							width: this.columnWidth + 'rpx',
+							height: this.lineHeight + 'rpx',
+						}
+					}
+				}
 			}
 		},
 		mounted () {
@@ -82,7 +113,7 @@
 			getListSync() {
 				dom.getComponentRect(this.$refs.list, (res) => {
 					this.windowHeight = res.size.height;
-					let maxCount = parseInt(this.columnCount * Math.ceil(res.size.height / uni.upx2px(this.lineHeight)));
+					let maxCount = parseInt(this.columnCount * Math.ceil(res.size.height / uni.upx2px(this.lineHeight + this.columnGap)));
 					let arr = [];
 					let j = -1;
 					let len = this.list.length;
@@ -121,19 +152,10 @@
 <style scoped>
 	.list-scroll {
 		flex: 1;
-		width: 750rpx;
 	}
-
-	.list {
+	.box {
 		flex-direction: row;
 		flex-wrap: wrap;
-	}
-	.list-item {
-		position: relative;
-	}
-	.list-loading {
-		justify-content: center;
-		align-items: center;
-		flex: 1;
+		margin-left: 2rpx;
 	}
 </style>

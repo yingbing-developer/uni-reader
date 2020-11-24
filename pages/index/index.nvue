@@ -20,22 +20,23 @@
 			</view>
 			<view class="tab-line" :style="{'background-color': skinColor.iconColor, transform: `translateX(${currentTab * 375}rpx)`}"></view>
 		</view>
-		<list-scroll :column-count="3" @scroll="scroll" :list="list" :scrollable="scrollable" :line-height="305">
+		<list-scroll :column-count="3" :column-gap="11.25" :column-width="235" :line-height="285" @scroll="scroll" :list="list" :scrollable="scrollable">
 			<no-data slot="fixed" v-if="list.length <= 0" :title="noDataTitle"></no-data>
+			<view class="touch" slot="fixed" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend"></view>
 			<view class="fixed" slot="fixed">
 				<view @tap="changeReadStatus">
-					<fixed-button :show="btnShow">
+					<fixed-button>
 						<c-icon name="history" size="40" :color="skinColor.iconColor" v-if="!tabs[currentTab].isReaded"></c-icon>
 						<c-icon name="read" size="47.5" :color="skinColor.iconColor" v-if="tabs[currentTab].isReaded"></c-icon>
 					</fixed-button>
 				</view>
-				<view @tap="clear" v-if="list.length > 0">
-					<fixed-button :show="btnShow">
+				<view @tap="clear">
+					<fixed-button :show="list.length > 0">
 						<c-icon name="waste-fill" size="40" :color="skinColor.iconColor"></c-icon>
 					</fixed-button>
 				</view>
 				<view @tap="scrollTop">
-					<fixed-button :show="Math.abs(oldOffsetY) > 300">
+					<fixed-button :show="Math.abs(oldOffsetY) > 2000">
 						<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
 					</fixed-button>
 				</view>
@@ -54,7 +55,7 @@
 				</view>
 			</template>
 		</list-scroll>
-		<view class="touch" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend"></view>
+		
 		
 		<!-- 抽屉菜单 -->
 		<c-menu v-model="currentTab" :translate="menuLate" :opacity="menuOpac" ref="leftMenu"></c-menu>
@@ -92,8 +93,6 @@
 				}],
 				//滚动距离
 				oldOffsetY: 0,
-				//是否显示浮动按钮
-				btnShow: true,
 				//是否禁用路由函数
 				routeDisabled: false,
 				//操作列表
@@ -149,16 +148,6 @@
 		methods: {
 			...mapMutations(['deleteBook', 'clearBooks']),
 			scroll (e) {
-				//如果列表向上滑动，隐藏浮动按钮，否则显示浮动按钮
-				if ( e.contentOffset.y < this.oldOffsetY ) {
-					this.btnShow = false;
-				} else {
-					this.btnShow = true;
-				}
-				//如果列表y轴偏移为0，则显示浮动按钮
-				if ( e.contentOffset.y == 0 ) {
-					this.btnShow = true;
-				}
 				this.oldOffsetY = e.contentOffset.y;
 			},
 			clear () {
@@ -310,23 +299,23 @@
 		width: 15rpx;
 	}
 	.book {
-		width: 250rpx;
-		margin-top: 20rpx;
+		width: 235rpx;
+		margin-top: 11.25rpx;
 		position: relative;
 		height: 285rpx;
 	}
 	.book-img {
 		position: absolute;
 		top: 0;
-		left: 10rpx;
-		right: 10rpx;
+		left: 0;
+		right: 0;
 		bottom: 0;
 	}
 	.book-bottom {
 		position: absolute;
 		bottom: 0;
-		left: 10rpx;
-		right: 10rpx;
+		left: 0;
+		right: 0;
 		height: 100rpx;
 		background-color: rgba(0,0,0,0.5);
 		justify-content: space-between;

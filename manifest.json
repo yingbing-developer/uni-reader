@@ -2,8 +2,8 @@
     "name" : "好用阅读器",
     "appid" : "__UNI__8A96B42",
     "description" : "",
-    "versionName" : "2.6.0",
-    "versionCode" : 260,
+    "versionName" : "2.6.1",
+    "versionCode" : 261,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
@@ -117,7 +117,8 @@
                     }
                 }
             }
-        }
+        },
+        "nvueLaunchMode" : ""
     },
     /* 快应用特有相关 */
     "quickapp" : {},

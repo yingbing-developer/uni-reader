@@ -9,7 +9,7 @@
 			</view>
 		</nav-bar>
 		<c-search @confirm="setNameFilter"></c-search>
-		<list-scroll @scroll="scroll" :row-count="20" :line-height="108" :list="listSync">
+		<list-scroll @scroll="scroll" :line-height="108" :list="listSync">
 			<!-- 返回项 -->
 			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
 				<view class="list-icon">

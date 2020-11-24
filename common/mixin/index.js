@@ -34,6 +34,9 @@ export const menuTouchMixin = {
 			}, 100)
 		},
 		touchmove (e) {
+			if ( this.touchTime < 0.3 ) {
+				return;
+			}
 			const touch = e.touches[0];
 			this.menuLate = this.$refs.leftMenu.mulriple * (touch.pageX - this.pointX);
 			this.menuOpac = this.menuLate / Math.abs(this.$refs.leftMenu.anima.late) * this.$refs.leftMenu.anima.opac;
@@ -47,7 +50,7 @@ export const menuTouchMixin = {
 			} else {
 				this.$refs.leftMenu.hide();
 				setTimeout(() => {
-					this.menuLate = 0;
+					this.menuLate = -30;
 				}, this.$refs.leftMenu.anima.duration)
 			}
 			this.$nextTick(() => {

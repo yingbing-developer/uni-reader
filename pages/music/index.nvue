@@ -9,7 +9,7 @@
 					<c-icon name="random" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'random'"></c-icon>
 					<text class="modeName" :style="{color: skinColor.menuIconColor}">{{modeName}}</text>
 				</view>
-				<view class="clear" @tap="clear">
+				<view class="clear" @tap="clear" v-if="listSync.length > 0">
 					<c-icon name="waste-fill" size="42" :color="skinColor.menuIconColor"></c-icon>
 				</view>
 			</view>
