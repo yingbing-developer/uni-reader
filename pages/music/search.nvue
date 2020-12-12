@@ -399,37 +399,6 @@
 				//如果是文件夹则访问文件列表
 				if ( this.list[index].type == 'folder' ) {
 					this.getFileSystem(plus.android.newObject("java.io.File", path));
-					//如果是歌曲则进行播放
-				} else if ( suffixs.split(',').indexOf(this.list[index].type) ) {
-					let fd = plus.android.newObject("java.io.File", path);
-					if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
-						plus.nativeUI.toast("文件路径不存在！", {verticalAlign: 'bottom'});
-						this.list.splice(index, 1);
-						this.fileLength--;
-						return;
-					}
-					//查询有没有导入过该歌曲
-					let musicIndex = indexOf(this.playList, path, 'path');
-					//导入过直接播放
-					if ( musicIndex > -1 ) {
-						this.updateMusicPlayRecord(path);
-					} else {
-						//未导入，则先导入再进行播放
-						let music = [];
-						music.push({
-							name: this.list[index].name,
-							path: this.list[index].path
-						});
-						this.addMusic(music);
-						this.$nextTick(() => {
-							musicIndex = indexOf(this.playList, path, 'path');
-							if ( musicIndex > -1 ) {
-								this.updateMusicPlayRecord(path);
-							} else {
-								plus.nativeUI.toast("歌曲导入失败！", {verticalAlign: 'bottom'});
-							}
-						})
-					}
 				}
 			},
 			//前往内部存储根目录

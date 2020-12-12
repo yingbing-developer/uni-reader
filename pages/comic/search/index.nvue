@@ -149,8 +149,6 @@
 				actions: [],
 				//触发操作列表的路径
 				actionPath: '',
-				//路由防抖
-				routeDisabled: false,
 				//滚动距离
 				oldOffsetY: 0,
 				//扩展存储卡路径
@@ -597,34 +595,6 @@
 				//如果是文件夹则访问文件列表
 				if ( this.list[index].type == 'folder' ) {
 					this.getFileSystem(plus.android.newObject("java.io.File", path));
-					//如果是txt文件则进行阅读
-				} else if ( this.list[index].type == 'txt' ) {
-					let fd = plus.android.newObject("java.io.File", path);
-					if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
-						plus.nativeUI.toast("文件路径不存在！", {verticalAlign: 'bottom'});
-						this.list.splice(index, 1);
-						this.fileLength--;
-						return;
-					}
-					//查询有没有导入过该txt文件
-					let bookIndex = indexOf(this.bookList, path, 'path');
-					//导入过直接阅读
-					if ( bookIndex > -1 ) {
-						this.routePush('/pages/read/index?index=' + bookIndex);
-					} else {
-						//未导入，则先导入再进行阅读
-						let books = [];
-						books.push(this.list[index]);
-						this.addBooks(books);
-						this.$nextTick(() => {
-							bookIndex = indexOf(this.bookList, path, 'path');
-							if ( bookIndex > -1 ) {
-								this.routePush('/pages/read/index?index=' + bookIndex);
-							} else {
-								plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
-							}
-						})
-					}
 				}
 			},
 			//阅读漫画
@@ -640,7 +610,7 @@
 				let bookIndex = indexOf(this.bookList, path, 'path');
 				//导入过直接阅读
 				if ( bookIndex > -1 ) {
-					this.routePush('/pages/comic/read/index?index=' + bookIndex);
+					getApp().globalData.routePush('/pages/comic/read/index?index=' + bookIndex);
 				} else {
 					//未导入，则先导入再进行阅读
 					let books = [];
@@ -655,25 +625,12 @@
 					this.$nextTick(() => {
 						bookIndex = indexOf(this.bookList, path, 'path');
 						if ( bookIndex > -1 ) {
-							this.routePush('/pages/comic/read/index?index=' + bookIndex);
+							getApp().globalData.routePush('/pages/comic/read/index?index=' + bookIndex);
 						} else {
 							plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
 						}
 					})
 				}
-			},
-			routePush (url) {
-				//路由防抖
-				if ( this.routeDisabled ) {
-					return;
-				}
-				this.routeDisabled = true;
-				uni.navigateTo({
-					url: url,
-					complete: (res) => {
-						this.routeDisabled = false;
-					}
-				})
 			},
 			//根据文件对象获取文件列表
 			getFileSystem (ff) {

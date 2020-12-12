@@ -20,7 +20,7 @@
 			</view>
 			<view class="tab-line" :style="{'background-color': skinColor.iconColor, transform: `translateX(${currentTab * 375}rpx)`}"></view>
 		</view>
-		<list-scroll :column-count="3" :column-gap="11.25" :column-width="235" :line-height="285" @scroll="scroll" :list="list" :scrollable="scrollable">
+		<list-scroll :column-count="3" :column-width="230" :line-height="285" @scroll="scroll" :list="list" :scrollable="scrollable">
 			<no-data slot="fixed" v-if="list.length <= 0" :title="noDataTitle"></no-data>
 			<view class="touch" slot="fixed" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend"></view>
 			<view class="fixed" slot="fixed">
@@ -93,8 +93,6 @@
 				}],
 				//滚动距离
 				oldOffsetY: 0,
-				//是否禁用路由函数
-				routeDisabled: false,
 				//操作列表
 				actions: [],
 				//触发操作列表的图书路径
@@ -209,9 +207,9 @@
 				}
 				let index = indexOf(this.bookList, path, 'path');
 				if ( this.bookList[index].type == 'story' ) {
-					this.routePush('/pages/book/read/index?index=' + index);
+					getApp().globalData.routePush('/pages/book/read/index?index=' + index);
 				} else if ( this.bookList[index].type == 'comic' ) {
-					this.routePush('/pages/comic/read/index?index=' + index);
+					getApp().globalData.routePush('/pages/comic/read/index?index=' + index);
 				} else {
 					uni.showToast({
 						title: '无法识别的书籍类型',
@@ -222,23 +220,10 @@
 			},
 			searchBook () {
 				if ( this.currentTab == 0 ) {
-					this.routePush('/pages/book/search/index');
+					getApp().globalData.routePush('/pages/book/search/index');
 				} else {
-					this.routePush('/pages/comic/search/index');
+					getApp().globalData.routePush('/pages/book/search/index');
 				}
-			},
-			routePush (url) {
-				//路由防抖
-				if ( this.routeDisabled ) {
-					return;
-				}
-				this.routeDisabled = true;
-				uni.navigateTo({
-					url: url,
-					complete: (res) => {
-						this.routeDisabled = false;
-					}
-				})
 			}
 		},
 		onBackPress(event) {
@@ -299,8 +284,7 @@
 		width: 15rpx;
 	}
 	.book {
-		width: 235rpx;
-		margin-top: 11.25rpx;
+		width: 230rpx;
 		position: relative;
 		height: 285rpx;
 	}

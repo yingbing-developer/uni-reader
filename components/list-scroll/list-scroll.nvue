@@ -32,11 +32,6 @@
 				type: Number,
 				default: 750
 			},
-			//每列间隔
-			columnGap: {
-				type: Number,
-				default: 0
-			},
 			//每行高度
 			lineHeight: {
 				type: Number,
@@ -68,8 +63,9 @@
 		computed: {
 			listStyleObj () {
 				return {
-					paddingLeft: this.columnGap + 'rpx',
-					paddingRight: this.columnGap + 'rpx'
+					paddingLeft: this.columnGap + 'px',
+					paddingRight: this.columnGap + 'px',
+					paddingBottom: this.columnGap + 'px'
 				}
 			},
 			itemStyleObj () {
@@ -79,12 +75,14 @@
 						return {
 							width: this.columnWidth + 'rpx',
 							height: this.lineHeight + 'rpx',
-							marginRight: this.columnGap + 'rpx'
+							marginRight: this.columnGap + 'px',
+							marginTop: this.columnGap + 'px'
 						}
 					} else {
 						return {
 							width: this.columnWidth + 'rpx',
 							height: this.lineHeight + 'rpx',
+							marginTop: this.columnGap + 'px'
 						}
 					}
 				}
@@ -98,6 +96,7 @@
 		data() {
 			return {
 				windowHeight: 0,
+				columnGap: 0,
 				isShows: [],
 				listSync: []
 			}
@@ -113,7 +112,9 @@
 			getListSync() {
 				dom.getComponentRect(this.$refs.list, (res) => {
 					this.windowHeight = res.size.height;
-					let maxCount = parseInt(this.columnCount * Math.ceil(res.size.height / uni.upx2px(this.lineHeight + this.columnGap)));
+					let size = this.columnWidth / uni.upx2px(this.columnWidth);
+					this.columnGap = this.columnCount > 1 ? ((res.size.width - (this.columnCount * uni.upx2px(this.columnWidth))) / 4) : 0;
+					let maxCount = parseInt(this.columnCount * Math.ceil(res.size.height / uni.upx2px(this.lineHeight + this.columnGap * size)));
 					let arr = [];
 					let j = -1;
 					let len = this.list.length;
@@ -156,6 +157,5 @@
 	.box {
 		flex-direction: row;
 		flex-wrap: wrap;
-		margin-left: 2rpx;
 	}
 </style>

@@ -129,57 +129,57 @@
 			getContent () {
 				
 				//获取内容 正式用
-				let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
-				let readTxt = new ReadTxt();
-				this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
-				plus.nativeUI.closeWaiting();
-				//更新文本总长度
-				this.updateBookLength({
-					path: this.path,
-					length: this.bookContent.length
-				})
-				//获取章节目录
-				this.getCatalog();
-				//初始化页面
-				this.initPage();
-				readTxt = '';
+				// let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
+				// let readTxt = new ReadTxt();
+				// this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
+				// plus.nativeUI.closeWaiting();
+				// //更新文本总长度
+				// this.updateBookLength({
+				// 	path: this.path,
+				// 	length: this.bookContent.length
+				// })
+				// //获取章节目录
+				// this.getCatalog();
+				// //初始化页面
+				// this.initPage();
+				// readTxt = '';
 				
 				// 获取内容 调试用
-				// let file = plus.android.newObject("java.io.File", 'file://' + this.path);
-				// let stream = plus.android.newObject("java.io.FileInputStream", file);
-				// let reader = plus.android.newObject("java.io.InputStreamReader", stream, 'GBK');
-				// let bufferedReader = plus.android.newObject("java.io.bufferedReader", reader);
-				// let lineTxt = null;
-				// lineTxt = plus.android.invoke(bufferedReader, 'readLine');
-				// plus.android.invoke(reader, 'close');
-				// plus.nativeUI.closeWaiting();
-				// plus.io.resolveLocalFileSystemURL('file://' + this.path, ( entry ) => {
-				// 	entry.file( ( file ) => {
-				// 		let reader = new plus.io.FileReader();
-				// 		reader.onloadend = ( e ) => {
-				// 			plus.nativeUI.closeWaiting();
-				// 			this.bookContent = e.target.result;
-				// 			//更新文本总长度
-				// 			this.updateBookLength({
-				// 				path: this.path,
-				// 				length: this.bookContent.length
-				// 			})
-				// 			//获取章节目录
-				// 			this.getCatalog();
-				// 			//初始化页面
-				// 			this.initPage();
-				// 		};
-				// 		reader.readAsText( file, 'gb2312' );
-				// 	}, ( fail ) => {
-				// 		console.log("Request file system failed: " + fail.message);
-				// 	});
-				// }, ( fail ) => {
-				// 	console.log( "Request file system failed: " + fail.message );
-				// });
+				let file = plus.android.newObject("java.io.File", 'file://' + this.path);
+				let stream = plus.android.newObject("java.io.FileInputStream", file);
+				let reader = plus.android.newObject("java.io.InputStreamReader", stream, 'GBK');
+				let bufferedReader = plus.android.newObject("java.io.bufferedReader", reader);
+				let lineTxt = null;
+				lineTxt = plus.android.invoke(bufferedReader, 'readLine');
+				plus.android.invoke(reader, 'close');
+				plus.nativeUI.closeWaiting();
+				plus.io.resolveLocalFileSystemURL('file://' + this.path, ( entry ) => {
+					entry.file( ( file ) => {
+						let reader = new plus.io.FileReader();
+						reader.onloadend = ( e ) => {
+							plus.nativeUI.closeWaiting();
+							this.bookContent = e.target.result;
+							//更新文本总长度
+							this.updateBookLength({
+								path: this.path,
+								length: this.bookContent.length
+							})
+							//获取章节目录
+							this.getCatalog();
+							//初始化页面
+							this.initPage();
+						};
+						reader.readAsText( file, 'gb2312' );
+					}, ( fail ) => {
+						console.log("Request file system failed: " + fail.message);
+					});
+				}, ( fail ) => {
+					console.log( "Request file system failed: " + fail.message );
+				});
 			},
 			//获取章节目录
 			getCatalog () {
-				const reg = new RegExp(/(第?[一二两三四五六七八九十○零百千万亿0-9１２３４５６７８９０]{1,6}[章回卷节折篇幕集部]?[.\s][^\n]*)[_,-]?/g);
+				const reg = new RegExp(/(第?[一二两三四五六七八九十○零百千万亿0-9１２３４５６７８９０※✩★☆]{1,6}[章回卷节折篇幕集部]?[、.\s][^\n]*)[_,-]?/g);
 				let match = '';
 				let catalog = [];
 				while ((match = reg.exec(this.bookContent)) != null) {

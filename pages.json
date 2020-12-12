@@ -3,7 +3,6 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
 			}
 		},
@@ -11,7 +10,6 @@
 		{
 			"path": "pages/book/search/index",
 			"style": {
-				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
 			}
 		},
@@ -19,7 +17,6 @@
 		{
 			"path": "pages/book/read/index",
 			"style": {
-				"navigationStyle": "custom",
 				"disableScroll": "true",
 				"app-plus": {
 				    "subNVues":[{
@@ -49,7 +46,6 @@
 		{
 			"path": "pages/comic/search/index",
 			"style": {
-				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
 			}
 		},
@@ -57,7 +53,6 @@
 		{
 			"path": "pages/comic/read/index",
 			"style": {
-				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
 			}
 		},
@@ -65,7 +60,6 @@
 		{
 			"path": "pages/setting/index",
 			"style": {
-				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
 			}
 		},
@@ -73,7 +67,6 @@
 		{
 			"path": "pages/about/index",
 			"style": {
-				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
 			}
 		},
@@ -81,7 +74,6 @@
 		{
 			"path": "pages/music/index",
 			"style": {
-				"navigationStyle": "custom",
 				"backgroundColor": "transparent",
 				"disableScroll": true, // 不嵌套 scroller
 				"app-plus": {
@@ -94,15 +86,17 @@
 		{
 			"path": "pages/music/search",
 			"style": {
-				"navigationStyle": "custom",
 				"disableScroll": true // 不嵌套 scroller
 			}
 		}
 	],
 	"globalStyle": {
+		"navigationStyle": "custom",
 		"navigationBarTextStyle": "white",
-		"navigationBarTitleText": "uni-app",
-		"backgroundColor": "#F8F8F8"
+		"navigationBarBackgroundColor": "transparent",
+		"app-plus": {
+			"titleNView": false
+		}
 	},
 	"condition" : { //模式配置，仅开发期间生效
 		"current": 0, //当前激活的模式(list 的索引项)

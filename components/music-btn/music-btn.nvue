@@ -16,7 +16,6 @@
 	export default {
 		data () {
 			return {
-				routeDisabled: false,
 				windowWidth: 0,
 				windowHeight: 0,
 				lineWidth: 0,
@@ -317,7 +316,7 @@
 						return;
 					}
 				}
-				this.routePush('/pages/music/index');
+				getApp().globalData.routePush('/pages/music/index', 'slide-in-bottom');
 			},
 			//更换音乐
 			upMusicSrc () {
@@ -437,19 +436,6 @@
 				if ( this.playMode == 'random' ) {
 					this.randomIndex = randomSoleNumber(this.playList.length);
 				}
-			},
-			routePush (url) {
-				//路由防抖
-				if ( this.routeDisabled ) {
-					return;
-				}
-				this.routeDisabled = true;
-				uni.navigateTo({
-					url: url,
-					complete: (res) => {
-						this.routeDisabled = false;
-					}
-				})
 			}
 		},
 		watch: {

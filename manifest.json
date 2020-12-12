@@ -74,50 +74,7 @@
                 "androidStyle" : "default"
             }
         },
-        "nativePlugins" : {
-            "IO-YingBing-Plugin-GetFileList" : {
-                "插件需要配置的参数名称, 如appid" : "__UNI__8A96B42",
-                "__plugin_info__" : {
-                    "name" : "IOYingBingPluginGetFileList",
-                    "description" : "获取本地文件列表",
-                    "platforms" : "Android",
-                    "url" : "",
-                    "android_package_name" : "",
-                    "ios_bundle_id" : "",
-                    "isCloud" : false,
-                    "bought" : -1,
-                    "pid" : "",
-                    "parameters" : {
-                        "插件需要配置的参数名称, 如appid" : {
-                            "des" : "__UNI__8A96B42",
-                            "key" : "",
-                            "value" : ""
-                        }
-                    }
-                }
-            },
-            "IO-YingBing-Plugin-GetText" : {
-                "插件需要配置的参数名称, 如appid" : "__UNI__8A96B42",
-                "__plugin_info__" : {
-                    "name" : "IOYingBingPluginGetText",
-                    "description" : "获取TxT内容",
-                    "platforms" : "Android",
-                    "url" : "",
-                    "android_package_name" : "",
-                    "ios_bundle_id" : "",
-                    "isCloud" : false,
-                    "bought" : -1,
-                    "pid" : "",
-                    "parameters" : {
-                        "插件需要配置的参数名称, 如appid" : {
-                            "des" : "__UNI__8A96B42",
-                            "key" : "",
-                            "value" : ""
-                        }
-                    }
-                }
-            }
-        },
+        "nativePlugins" : {},
         "nvueLaunchMode" : ""
     },
     /* 快应用特有相关 */

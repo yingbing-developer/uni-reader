@@ -69,7 +69,6 @@
 				},
 				isShow: false,
 				maskOpacity: 0,
-				routeDisabled: false,
 				popuplate: -510,
 				pointX: 0,
 				touchTime: 0,
@@ -260,24 +259,11 @@
 			},
 			clickOptions (item) {
 				if ( item.title == '关于' ) {
-					this.routePush('/pages/about/index');
+					getApp().globalData.routePush('/pages/about/index');
 				}
 				if ( item.title == '设置' ) {
-					this.routePush('/pages/setting/index');
+					getApp().globalData.routePush('/pages/setting/index');
 				}
-			},
-			routePush (url) {
-				//路由防抖
-				if ( this.routeDisabled ) {
-					return;
-				}
-				this.routeDisabled = true;
-				uni.navigateTo({
-					url: url,
-					complete: (res) => {
-						this.routeDisabled = false;
-					}
-				})
 			}
 		},
 		watch: {

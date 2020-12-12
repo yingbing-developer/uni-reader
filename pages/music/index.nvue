@@ -58,11 +58,6 @@
 	const animation = weex.requireModule('animation');
 	export default {
 		mixins: [skinMixin],
-		data () {
-			return {
-				routeDisabled: false,
-			}
-		},
 		onReady() {
 			setTimeout(() => {
 				animation.transition(this.$refs.mask, {
@@ -175,17 +170,7 @@
 				})
 			},
 			routePush (url) {
-				//路由防抖
-				if ( this.routeDisabled ) {
-					return;
-				}
-				this.routeDisabled = true;
-				uni.navigateTo({
-					url: url,
-					complete: (res) => {
-						this.routeDisabled = false;
-					}
-				})
+				getApp().globalData.routePush(url);
 			}
 		},
 		onBackPress () {
@@ -255,8 +240,11 @@
 		width: 100rpx;
 	}
 	.list-name {
+		flex: 1;
 		font-size: 28rpx;
 		margin-left: 15rpx;
+		lines: 1;
+		text-overflow: ellipsis;
 	}
 	.progress-line {
 		padding: 20rpx 30rpx;
