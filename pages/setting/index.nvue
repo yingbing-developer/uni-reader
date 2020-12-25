@@ -3,9 +3,9 @@
 		<nav-bar title="阅读设置" :backColor="skinColor.iconColor" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor"></nav-bar>
 		<list>
 			<cell>
-				<view class="list" :style="{'border-bottom-color': skinColor.gapColor}">
+				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
 					<text class="list-title" :style="{'color': skinColor.titleColor}">阅读方式</text>
-					<view class="list-right">
+					<view class="list-right list-bottom">
 						<text
 						@tap="changeBookPageMode(item.value)"
 						:style="{
@@ -52,6 +52,12 @@
 				},{
 					title: '上下滑动',
 					value: 'U2DTrans'
+				},{
+					title: '仿真翻页',
+					value: 'RealPage'
+				},{
+					title: '覆盖翻页',
+					value: 'CoverPage'
 				}],
 				times: [{
 					title: '关闭',

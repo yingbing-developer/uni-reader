@@ -75,6 +75,14 @@ export function randomString(len) {
 }
 
 /**
+ * 生成随机ID
+*/
+export function randomID() {
+	let mydate = new Date();
+	return mydate.getMinutes() + mydate.getSeconds() + mydate.getMilliseconds() + Math.round(Math.random() * 10000);
+}
+
+/**
  * 生成随机不重复整数
  * @param {Number} len 长度
 */

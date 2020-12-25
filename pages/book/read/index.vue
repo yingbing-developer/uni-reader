@@ -1,17 +1,18 @@
 <template>
 	<view class="read" :style="{'background-color': skinColor.readBackColor, filter: 'brightness(' + light + '%)'}">
-		<view id="readTop" class="read-top" :style="{color: skinColor.readTextColor, 'background-color': skinColor.readBackColor}">
-			<gap-bar></gap-bar>
-			<view class="read-top-line">
-				<text class="read-top-text" style="width: 80%;">{{bookInfo.name}}</text>
-				<text class="read-top-text">{{progress}}%</text>
-			</view>
-		</view>
-		
 		<!-- 文本内容区域 -->
 		<view class="pageBox">
-			<swiper :disable-touch="bookReadMode.pageMode == 'click'" :vertical="bookReadMode.pageMode == 'U2DTrans'" :style="{'height': swiperHeight + 'px'}" :current="page" :duration="duration" @change="changePage">
-				<swiper-item class="pageItem" v-for="(item, index) in pages" :key="index">
+			<swiper v-if="swiperPages.indexOf(bookReadMode.pageMode) > -1" :disable-touch="bookReadMode.pageMode == 'click'" :vertical="bookReadMode.pageMode == 'U2DTrans'" :style="{'height': 100 + 'vh'}" :current="page" :duration="duration" @change="changePage">
+				<swiper-item
+				class="pageItem"
+				v-for="(item, index) in pages"
+				:key="index"
+				:style="{color: skinColor.readTextColor, 'background-color': skinColor.readBackColor}">
+					<gap-bar></gap-bar>
+					<view class="read-top-line">
+						<text class="read-top-text" style="width: 80%;">{{bookInfo.name}}</text>
+						<text class="read-top-text">{{progress}}%</text>
+					</view>
 					<page
 					ref="page"
 					class="pageContent"
@@ -26,6 +27,34 @@
 					@ready="ready"></page>
 				</swiper-item>
 			</swiper>
+			<real-page v-else :current="page" ref="realPage" @change="realPageChange" :type="bookReadMode.pageMode == 'RealPage' ? 'real' : 'cover'" style="height: 100vh">
+				<real-page-item
+				:boxColor="skinColor.readBackColor"
+				:bgColor="skinColor.readBackColor"
+				v-for="(item, index) in pages"
+				:key="item.id"
+				:style="{zIndex: -index}">
+					<view class="pageItem" :style="{color: skinColor.readTextColor, 'background-color': skinColor.readBackColor}">
+						<gap-bar></gap-bar>
+						<view class="read-top-line">
+							<text class="read-top-text" style="width: 80%;">{{bookInfo.name}}</text>
+							<text class="read-top-text">{{progress}}%</text>
+						</view>
+						<page
+						ref="page"
+						class="pageContent"
+						:color="skinColor.readTextColor"
+						:content="item.content"
+						:supContent="item.supContent"
+						:fontSize="fontSize"
+						:type="item.type"
+						:record="item.record"	
+						:length="bookContent.length"
+						:isPageNow="item.isPageNow"
+						@ready="ready"></page>
+					</view>
+				</real-page-item>
+			</real-page>
 		</view>
 		
 		<!-- 触摸区域 -->
@@ -44,9 +73,11 @@
 <script>
 	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
-	import { indexOf } from '@/common/js/util.js'
+	import { indexOf, randomID } from '@/common/js/util.js'
 	import GapBar from '@/components/nav-bar/nav-bar.nvue'
 	import Page from '@/components/page/page.vue'
+	import RealPage from '@/components/real-page/real-page.vue';
+	import RealPageItem from '@/components/real-page-item/real-page-item.vue';
 	//文本截取长度
 	const sliceLen = 1500;
 	export default {
@@ -63,14 +94,16 @@
 				touchChange: false,
 				//滑动动画时间
 				duration: 300,
-				//文本高度
-				swiperHeight: 0,
 				//设置窗口是否打开
 				settingShow: false,
 				//目录
 				catalog: [],
 				//当前页书签文本
-				markTitle: ''
+				markTitle: '',
+				//需要用swiper的翻页方式
+				swiperPages: ['click', 'L2RTrans', 'U2DTrans'],
+				//需要用到real-page的翻页方式
+				realPages: ['RealPage', 'CoverPage']
 			}
 		},
 		computed: {
@@ -118,11 +151,7 @@
 		onReady () {
 			//更新阅读时间
 			this.updateBookReadTime(this.path);
-			let view = uni.createSelectorQuery().in(this).select(".pageBox");
-			view.boundingClientRect( data => {
-				this.swiperHeight = data.height;
-				this.getContent();
-			}).exec();
+			this.getContent();
 		},
 		methods: {
 			...mapMutations(['updateBookReadStatus', 'updateBookLength', 'updateBookReadTime', 'updateBookRecord']),
@@ -197,6 +226,7 @@
 					let len = this.record > 0 ? 3 : 2;
 					for ( let i = 0; i < len; i++ ) {
 						this.pages.push({
+							id: randomID(),
 							content: '',
 							supContent: '',
 							record: 0,
@@ -236,6 +266,7 @@
 			createPrev (e) {
 				let start = e.start - sliceLen > 0 ? e.start - sliceLen : 0;
 				this.pages.unshift({
+					id: randomID(),
 					content: this.bookContent.substring(start, e.start),
 					supContent: this.bookContent.substr(e.start, 500),
 					record: e.start,
@@ -252,6 +283,7 @@
 			//创建下一页内容
 			createNext (e) {
 				this.pages.push({
+					id: randomID(),
 					content: this.bookContent.substr(e.end, sliceLen),
 					supContent: this.bookContent.substr(e.end + sliceLen, 500),
 					record: e.end,
@@ -319,11 +351,6 @@
 				if ( e.target.source == 'touch' ) {
 					let go = this.page - e.target.current;
 					this.page = e.target.current;
-					//将原本的当前页面改为非当前页面
-					let index = indexOf(this.pages, true, 'isPageNow');
-					if ( index > -1 ) {
-						this.$set(this.pages[index], 'isPageNow', false);
-					}
 					//翻页触发事件
 					this.pageEvent(go);
 				}
@@ -348,21 +375,32 @@
 					}
 				}
 				this.page = current;
+				//翻页触发事件
+				this.pageEvent(go);
+			},
+			//仿真翻页页面改变事件
+			realPageChange (e) {
+				this.page = e.current;
+				this.pageEvent(e.value)
+			},
+			//翻页事件
+			pageEvent (go) {
+				this.touchChange = true;
 				//将原本的当前页面改为非当前页面
 				let index = indexOf(this.pages, true, 'isPageNow');
 				if ( index > -1 ) {
 					this.$set(this.pages[index], 'isPageNow', false);
 				}
-				//翻页触发事件
-				this.pageEvent(go);
-			},
-			//翻页事件
-			pageEvent (go) {
-				this.touchChange = true;
-				let e = {start: this.$refs.page[this.page].start, end: this.$refs.page[this.page].end };
 				setTimeout(() => {
 					//向前翻页
 					if ( go > 0 ) {
+						let minIndex = 0;
+						for ( let i = 0;  i < this.$refs.page.length; i++ ) {
+							if ( this.$refs.page[i].start < this.$refs.page[minIndex].start ) {
+								minIndex = i;
+							}
+						}
+						let e = {start: this.$refs.page[minIndex].start, end: this.$refs.page[minIndex].end };
 						//不是第一页 并且没有上一页 则创建上一页
 						if ( e.start > 0 && !this.pages[this.page - 1] ) {
 							this.createPrev(e);
@@ -378,6 +416,13 @@
 					}
 					//向后翻页
 					if ( go < 0 ) {
+						let maxIndex = 0;
+						for ( let i = 0;  i < this.$refs.page.length; i++ ) {
+							if ( this.$refs.page[i].start > this.$refs.page[maxIndex].start ) {
+								maxIndex = i;
+							}
+						}
+						let e = {start: this.$refs.page[maxIndex].start, end: this.$refs.page[maxIndex].end };
 						//不是最后一页，并且没有下一页，则创建下一页
 						if ( e.end < this.bookContent.length && !this.pages[this.page + 1] ) {
 							this.createNext(e);
@@ -394,7 +439,7 @@
 					this.$nextTick(() => {
 						this.$set(this.pages[this.page], 'isPageNow', true);
 					})
-				}, this.duration + 30)
+				}, this.swiperPages.indexOf(this.bookReadMode.pageMode) > -1 ? this.duration + 30 : 30)
 			},
 			//页面数量变化后，会造成显示页异常，设置可以正常显示的page值 
 			recoverPage (start) {
@@ -457,7 +502,9 @@
 		},
 		components: {
 			GapBar,
-			Page
+			Page,
+			RealPage,
+			RealPageItem
 		}
 	}
 </script>
@@ -469,14 +516,12 @@
 		display: flex;
 		flex-direction: column;
 	}
-	.read-top {
-		font-size: 12rpx;
-		padding: 0 20rpx;
-	}
 	.read-top-line {
+		font-size: 12rpx;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		padding: 0 20rpx;
 	}
 	.read-top-text {
 		font-size: 22rpx;
@@ -490,10 +535,16 @@
 	.pageItem {
 		width: 100%;
 		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+	.page-item {
+		display: flex;
+		flex-direction: column;
 	}
 	.pageContent {
 		width: 100%;
-		height: 100%;
+		flex: 1;
 	}
 	.touch-box  {
 		display: flex;
