@@ -222,7 +222,7 @@
 				if ( this.currentTab == 0 ) {
 					getApp().globalData.routePush('/pages/book/search/index');
 				} else {
-					getApp().globalData.routePush('/pages/book/search/index');
+					getApp().globalData.routePush('/pages/comic/search/index');
 				}
 			}
 		},

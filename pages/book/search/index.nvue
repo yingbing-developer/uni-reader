@@ -129,10 +129,10 @@
 				})
 			} else {
 				//获取扩展存储卡
-				// let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
-				// let getSDPath = new GetSDPath();
-				// let pathStr = getSDPath.getSDPath();
-				// this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
+				let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
+				let getSDPath = new GetSDPath();
+				let pathStr = getSDPath.getSDPath();
+				this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
 				
 				setTimeout(() => {
 					this.getFileSystem(plus.android.newObject("java.io.File", this.bookPathHistory));
@@ -446,52 +446,52 @@
 				this.updateBookPath(plus.android.invoke(fd, 'getPath'));
 				
 				//获取文件列表 正式用
-				// let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-				// let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
-				// let getFile = new GetFileList();
-				// let getDirectory = new GetDirectoryList();
-				// let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
-				// let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
-				// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				// let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+				let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+				let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
+				let getFile = new GetFileList();
+				let getDirectory = new GetDirectoryList();
+				let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
+				let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
+				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+				let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
 				
 				// 获取文件列表 调试用
-				let list = plus.android.invoke(fd, "listFiles");
-				let len = list ? list.length : 0;
-				let file = [];
-				let folder = [];
-				for(let i=0; i<len; i++){
-				    // 过滤隐藏文件  
-				    if ( !plus.android.invoke(list[i],"isHidden") ){
-						let name = plus.android.invoke(list[i], 'getName');
-						if ( plus.android.invoke(list[i],"isDirectory") ){
-							folder.push({
-								name: name,
-								type: 'folder',
-								size: '0B',
-								time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-								createTime: plus.android.invoke(list[i],"lastModified"),
-								path: plus.android.invoke(list[i],"getPath")
-							})
-						    // 文件夹
-						} else{
-							//是否是txt文件
-						    if ( plus.android.invoke(name, "endsWith", '.txt') ) {
-						    	file.push({
-									name: name,
-									type: suffix(name),
-									size: this.readFileSize(list[i]),
-									time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-									createTime: plus.android.invoke(list[i],"lastModified"),
-									path: plus.android.invoke(list[i],"getPath")
-								})
-						    }
-						}  
-				    }
-				}
-				file.sort((a, b) => {
-					return b.createTime - a.createTime;
-				})
+				// let list = plus.android.invoke(fd, "listFiles");
+				// let len = list ? list.length : 0;
+				// let file = [];
+				// let folder = [];
+				// for(let i=0; i<len; i++){
+				//     // 过滤隐藏文件  
+				//     if ( !plus.android.invoke(list[i],"isHidden") ){
+				// 		let name = plus.android.invoke(list[i], 'getName');
+				// 		if ( plus.android.invoke(list[i],"isDirectory") ){
+				// 			folder.push({
+				// 				name: name,
+				// 				type: 'folder',
+				// 				size: '0B',
+				// 				time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+				// 				createTime: plus.android.invoke(list[i],"lastModified"),
+				// 				path: plus.android.invoke(list[i],"getPath")
+				// 			})
+				// 		    // 文件夹
+				// 		} else{
+				// 			//是否是txt文件
+				// 		    if ( plus.android.invoke(name, "endsWith", '.txt') ) {
+				// 		    	file.push({
+				// 					name: name,
+				// 					type: suffix(name),
+				// 					size: this.readFileSize(list[i]),
+				// 					time: dateFormat(plus.android.invoke(list[i],"lastModified")),
+				// 					createTime: plus.android.invoke(list[i],"lastModified"),
+				// 					path: plus.android.invoke(list[i],"getPath")
+				// 				})
+				// 		    }
+				// 		}  
+				//     }
+				// }
+				// file.sort((a, b) => {
+				// 	return b.createTime - a.createTime;
+				// })
 				
 				
 				

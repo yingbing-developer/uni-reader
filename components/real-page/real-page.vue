@@ -58,7 +58,8 @@
 				startX: 0,
 				moveX: 0,
 				oldMoveX: 0,
-				currentSync: 0
+				currentSync: 0,
+				isTouch: false
 			}
 		},
 		mounted () {
@@ -76,6 +77,10 @@
 				myTouch.setOption(this.touchProp);
 			},
 			onTouchstart(e, instance) {
+				if ( this.isTouch ) {
+					return;
+				}
+				this.isTouch = true;
 				if ( e.touches.length > 1 ) {
 					return;
 				}
@@ -111,6 +116,9 @@
 				if ( length <= 0 ) {
 					return;
 				}
+				if ( e.touches.length > 1 ) {
+					return;
+				}
 				let touch = e.touches[0];
 				if (  this.startX < this.windowWidth / 2) {
 					if ( this.currentSync > 0 ) {
@@ -138,6 +146,8 @@
 				let length = document.getElementsByClassName(boxClass).length;
 				if ( length <= 0 ) {
 					return;
+				} else {
+					this.isTouch = false;
 				}
 				let value = 0;
 				if (  this.startX < this.windowWidth / 2) {
@@ -172,10 +182,11 @@
 					box.style.boxShadow = '';
 					bg.style.boxShadow = '';
 					shadow.style.width = '0px';
+					this.isTouch = false;
 					if ( value != 0 ) {
 						this.changeCurrent(value);
 					}
-				}, 300)
+				}, 350)
 			},
 			touchPropChange (newVal, oldVal) {
 				if ( newVal.current != oldVal.current ) {
@@ -198,7 +209,6 @@
 			restart (newVal) {
 				if ( newVal ) {
 					this.setDomStyle();
-					this.setDom(this.currentSync);
 				}
 			},
 			setDom (value) {
@@ -215,25 +225,25 @@
 				let boxs = document.getElementsByClassName(boxClass);
 				for ( let i = 0; i < boxs.length; i++ ) {
 					if ( i < this.currentSync ) {
-						boxs[i].style.transform = 'translate(-100%)';
+						boxs[i].style.transform = 'translateX(-100%)';
 						if ( this.touchProp.type == 'real' ) {
-							boxs[i].firstChild.style.transform = 'translate(100%)';
-							boxs[i].childNodes[1].style.transform = 'translate(0)';
+							boxs[i].firstChild.style.transform = 'translateX(100%)';
+							boxs[i].childNodes[1].style.transform = 'translateX(0)';
 							boxs[i].lastChild.style.width = '0px';
 						}
 						if ( this.touchProp.type == 'cover' ) {
-							boxs[i].firstChild.style.transform = 'translate(0)';
-							boxs[i].childNodes[1].style.transform = 'translate(100%)';
+							boxs[i].firstChild.style.transform = 'translateX(0)';
+							boxs[i].childNodes[1].style.transform = 'translateX(100%)';
 							boxs[i].lastChild.style.width = '0px';
 						}
 					}
 				}
 			},
 			setMoveStyle () {
-				box.style.transform = `translate(-${this.moveX}%)`;
+				box.style.transform = `translateX(-${this.moveX}%)`;
 				if ( this.touchProp.type == 'real' ) {
-					page.style.transform = `translate(${this.moveX}%)`;
-					bg.style.transform = `translate(${100 - this.moveX}%)`;
+					page.style.transform = `translateX(${this.moveX}%)`;
+					bg.style.transform = `translateX(${100 - this.moveX}%)`;
 					shadow.style.width = this.moveX > 30 ? '30px' : this.moveX + 'px';
 				}
 			},
