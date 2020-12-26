@@ -2,7 +2,7 @@
 	export default {
 		globalData: {
 			routeDisabled: false,
-			routePush: function (url, animationType = 'slide-in-right') {
+			routePush: function (url, animationType = 'zoom-fade-out') {
 				//路由防抖
 				if ( getApp().globalData.routeDisabled ) {
 					return;

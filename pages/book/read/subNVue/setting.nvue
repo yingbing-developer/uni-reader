@@ -93,7 +93,7 @@
 						</view>
 					</view>
 					<view class="bottom-box">
-						<view class="bottom-item" @tap="routePush('/pages/setting/index')">
+						<view class="bottom-item" @tap="routerPush">
 							<c-icon name="setting" :size="42" color="#8A8A8A"></c-icon>
 							<text class="bottom-name">设置</text>
 						</view>
@@ -388,18 +388,8 @@
 				// 打开 nvue 子窗体 
 				subNvue.show('slide-in-right', 400);
 			},
-			routePush (url) {
-				//路由防抖
-				if ( this.routeDisabled ) {
-					return;
-				}
-				this.routeDisabled = true;
-				uni.navigateTo({
-					url: url,
-					complete: (res) => {
-						this.routeDisabled = false;
-					}
-				})
+			routerPush () {
+				getApp().globalData.routePush('/pages/setting/index');
 			}
 		},
 		beforeDestroy () {

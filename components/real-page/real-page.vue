@@ -57,9 +57,10 @@
 				windowWidth: 0,
 				startX: 0,
 				moveX: 0,
-				oldMoveX: 0,
 				currentSync: 0,
-				isTouch: false
+				//是否可以移动页面
+				isStart: false,
+				endTimer: ''
 			}
 		},
 		mounted () {
@@ -77,10 +78,9 @@
 				myTouch.setOption(this.touchProp);
 			},
 			onTouchstart(e, instance) {
-				if ( this.isTouch ) {
+				if ( this.isStart ) {
 					return;
 				}
-				this.isTouch = true;
 				if ( e.touches.length > 1 ) {
 					return;
 				}
@@ -105,6 +105,7 @@
 				if ( length <= 0 ) {
 					return;
 				}
+				this.isStart = true;
 				this.moveX = 0;
 				box.style.boxShadow = '5px 0 10px 2px rgba(0,0,0,0.1)';
 				if ( this.touchProp.type == 'real' ) {
@@ -112,27 +113,15 @@
 				}
 			},
 			onTouchmove (e, instance) {
-				let length = document.getElementsByClassName(boxClass).length;
-				if ( length <= 0 ) {
-					return;
-				}
-				if ( e.touches.length > 1 ) {
+				if ( !this.isStart ) {
 					return;
 				}
 				let touch = e.touches[0];
 				if (  this.startX < this.windowWidth / 2) {
-					if ( this.currentSync > 0 ) {
-						this.moveX = 100 - (((touch.pageX - this.startX) / this.windowWidth) * 100);
-					} else {
-						return
-					}
+					this.moveX = 100 - (((touch.pageX - this.startX) / this.windowWidth) * 100);
 				}
 				if (  this.startX > this.windowWidth / 2) {
-					if ( this.currentSync < length - 1 ) {
-						this.moveX = -(((touch.pageX - this.startX) / this.windowWidth) * 100);
-					} else {
-						return
-					}
+					this.moveX = -(((touch.pageX - this.startX) / this.windowWidth) * 100);
 				}
 				if ( this.moveX > 100 ) {
 					this.moveX = 100;
@@ -143,50 +132,40 @@
 				this.setMoveStyle();
 			},
 			onTouchend (e, instance) {
-				let length = document.getElementsByClassName(boxClass).length;
-				if ( length <= 0 ) {
+				if ( !this.isStart ) {
 					return;
-				} else {
-					this.isTouch = false;
 				}
 				let value = 0;
 				if (  this.startX < this.windowWidth / 2) {
-					if ( this.currentSync > 0 ) {
-						if ( this.moveX < 70 && this.moveX > 0 ) {
-							this.moveX = 0;
-							this.currentSync--;
-							value = 1;
-						} else {
-							this.moveX = 100;
-						}
+					if ( this.moveX < 70 && this.moveX > 0 ) {
+						this.moveX = 0;
+						this.currentSync--;
+						value = 1;
 					} else {
-						return
+						this.moveX = 100;
 					}
 				}
 				if (  this.startX > this.windowWidth / 2) {
-					if ( this.currentSync < length - 1 ) {
-						if ( this.moveX > 30 ) {
-							this.moveX = 100;
-							this.currentSync++;
-							value = -1;
-						} else {
-							this.moveX = 0;
-						}
+					if ( this.moveX > 30 ) {
+						this.moveX = 100;
+						this.currentSync++;
+						value = -1;
 					} else {
-						return
+						this.moveX = 0;
 					}
 				}
 				this.setAnimationStyle();
 				this.setMoveStyle();
-				window.setTimeout(() => {
+				window.clearTimeout(this.endTimer);
+				this.endTimer = window.setTimeout(() => {
 					box.style.boxShadow = '';
 					bg.style.boxShadow = '';
 					shadow.style.width = '0px';
-					this.isTouch = false;
+					this.isStart = false;
 					if ( value != 0 ) {
 						this.changeCurrent(value);
 					}
-				}, 350)
+				}, 300)
 			},
 			touchPropChange (newVal, oldVal) {
 				if ( newVal.current != oldVal.current ) {
