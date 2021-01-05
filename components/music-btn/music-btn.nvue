@@ -48,6 +48,14 @@
 				return this.playList;
 			}
 		},
+		beforeCreate () {
+			uni.$on('musicBtn-hide', (data) => {
+				this.btnHide()
+			})
+			uni.$on('musicBtn-show', (data) => {
+				this.btnShow()
+			})
+		},
 		created() {
 			this.init();
 			this.initMusic();
@@ -436,6 +444,14 @@
 				if ( this.playMode == 'random' ) {
 					this.randomIndex = randomSoleNumber(this.playList.length);
 				}
+			},
+			btnHide () {
+				musicBox.hide();
+				musicLine.hide();
+			},
+			btnShow () {
+				musicBox.show();
+				musicLine.show();
 			}
 		},
 		watch: {
@@ -472,6 +488,8 @@
 			uni.$off('app-hide');
 			uni.$off('update-time');
 			uni.$off('change-status');
+			uni.$off('musicBtn-show');
+			uni.$off('musicBtn-hide');
 		}
 	}
 </script>

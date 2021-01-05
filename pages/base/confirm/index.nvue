@@ -1,0 +1,163 @@
+<template>
+	<view class="toast" @touchmove.stop.prevent="">
+		<view class="mask" ref="mask" @tap="hide('cancel')"></view>
+		<view class="popup" ref="popup" :style="{'background-color': skinColor.menuBgColor}"  @touchmove.stop.prevent="">
+			<view class="title"><text class="title-text" :style="{color: skinColor.titleColor}">{{title}}</text></view>
+			<view class="message" :style="{'borderBottomColor': skinColor.gapColor}"><text class="msg-text" :style="{color: skinColor.textColor}">{{message}}</text></view>
+			<view class="btns">
+				<view class="btn actived" @tap="hide('cancel')"><text class="btn-text" :style="{color: skinColor.menuTitleColor}">取消</text></view>
+				<view class="line-gap" :style="{'background-color': skinColor.gapColor}"></view>
+				<view class="btn actived" @tap="hide('confirm')"><text class="btn-text" :style="{color: skinColor.menuTitleColor}">确认</text></view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const animation = weex.requireModule('animation');
+	import { skinMixin } from '@/common/mixin/index.js'
+	export default {
+		mixins: [skinMixin],
+		data () {
+			return {
+				title: '',
+				message: '',
+				anima: {
+					duration: 300,
+					scale: 1,
+					opac: 1
+				}
+			}
+		},
+		beforeCreate () {
+			//获取提示信息
+			uni.$on('message-info', (data) => {
+			    this.title = data.title;
+				this.message = data.message;
+			})
+			uni.$emit('musicBtn-hide');
+		},
+		onReady() {
+			const pages = getCurrentPages();
+			this.show();
+		},
+		methods: {
+			show () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: this.anima.opac
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: `scale(${this.anima.scale})`,
+						opacity: this.anima.opac
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+			},
+			hide (flag) {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'scale(1.2)',
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					uni.$emit('message-btn', {
+						flag: flag
+					})
+				})
+			}
+		},
+		onBackPress(event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide('cancel');
+				return true;
+			}
+			return false
+		},
+		beforeDestroy() {
+			uni.$off('message-info');
+			uni.$emit('musicBtn-show');
+		}
+	}
+</script>
+
+<style scoped>
+	.toast {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		align-items: center;
+		justify-content: center;
+	}
+	.mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0,0,0,0.4);
+		opacity: 0;
+	}
+	.popup {
+		width: 650rpx;
+		border-radius: 30rpx;
+		transform: scale(1.2);
+		opacity: 0;
+	}
+	.title {
+		align-items: center;
+		padding: 30rpx 0;
+	}
+	.title-text {
+		font-size: 35rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.message {
+		align-items: center;
+		border-bottom-width: 1px;
+		padding: 50rpx 0 40rpx 0;
+	}
+	.msg-text {
+		font-size: 35rpx;
+		padding: 0 20rpx;
+	}
+	.btns {
+		flex-direction: row;
+	}
+	.line-gap {
+		width: 1px;
+	}
+	.btn {
+		flex: 1;
+		padding: 35rpx 0;
+		align-items: center;
+	}
+	.btn-text {
+		font-size: 35rpx;
+	}
+</style>

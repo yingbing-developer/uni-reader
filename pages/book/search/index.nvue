@@ -42,8 +42,6 @@
 				  <text class="btn-text">导入书籍</text>
 			  </view>
 		  </view>
-		  <!-- 操作列表 -->
-		  <action-sheet ref="action" :list="actions" @select="selectItem"></action-sheet>
 		  <!-- 气泡弹窗 -->
 		  <bubble ref="bubble">
 				<block v-if="fileLength > 0">
@@ -80,7 +78,6 @@
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
-	import ActionSheet from '@/components/action-sheet/action-sheet.nvue'
 	import Bubble from '@/components/bubble/bubble.nvue'
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import { dateFormat, suffix, indexOf } from '@/common/js/util.js'
@@ -100,8 +97,6 @@
 				types: ['txt'],
 				//名称过滤
 				nameFilter: '',
-				//操作列表
-				actions: [],
 				//触发操作列表的路径
 				actionPath: '',
 				//滚动距离
@@ -165,15 +160,11 @@
 				if ( this.checkes.length <= 0 ) {
 					return;
 				}
-				uni.showModal({
-					title: '操作提示',
-					content: '确认删除选择的文件?',
-					success: (res) => {
-						if ( res.confirm ) {
-							this.deleteFiles(this.checkes);
-						}
+				getApp().globalData.message('操作提示', '确认删除选择的文件吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.deleteFiles(this.checkes);
 					}
-				})
+				});
 				this.$refs.bubble.hide();
 			},
 			//选择文件
@@ -239,11 +230,11 @@
 				if ( this.list[flag].type == 'folder' ) {
 					return;
 				}
-				this.actions = [];
+				let actions = [];
 				this.actionPath = path;
 				//已经导入的文件操作列表
 				if ( this.isLead(path) > -1 ) {
-					this.actions = [{
+					actions = [{
 						title: '取消导入',
 						value: 'pop'
 					},{
@@ -255,7 +246,7 @@
 					}]
 				} else {
 					//未导入的文件的操作列表
-					this.actions = [{
+					actions = [{
 						title: '导入',
 						value: 'push'
 					},{
@@ -266,61 +257,52 @@
 						value: 'share'
 					}]
 				}
-				this.$refs.action.show();
-			},
-			selectItem (val) {
-				//用户选择导入操作
-				if ( val == 'push' ) {
-					//根据文件路径判断文件有没有被导入过
-					if ( this.isLead(this.actionPath) == -1 ) {
-						let flag = indexOf(this.list, this.actionPath, 'path');
-						let books = [];
-						books.push({
-							name: this.list[flag].name,
-							type: 'story',
-							path: this.list[flag].path
-						});
-						this.addBooks(books);
-						uni.showToast({
-							title: '导入成功'
-						})
-					} else {
-						uni.showToast({
-							title: '这本书已经导入了',
-							icon: 'none'
-						})
+				getApp().globalData.actionSheet(actions).then((val) => {
+					//用户选择导入操作
+					if ( val == 'push' ) {
+						//根据文件路径判断文件有没有被导入过
+						if ( this.isLead(this.actionPath) == -1 ) {
+							let flag = indexOf(this.list, this.actionPath, 'path');
+							let books = [];
+							books.push({
+								name: this.list[flag].name,
+								type: 'story',
+								path: this.list[flag].path
+							});
+							this.addBooks(books);
+							uni.showToast({
+								title: '导入成功'
+							})
+						} else {
+							uni.showToast({
+								title: '这本书已经导入了',
+								icon: 'none'
+							})
+						}
 					}
-				}
-				//选择取消导入
-				if ( val == 'pop' ) {
-					let name = this.list[indexOf(this.list, this.actionPath, 'path')].name;
-					uni.showModal({
-						title: '操作提示',
-						content: '确认将  ' + name +'  从导入列表删除吗？',
-						success: (res) => {
-							if ( res.confirm ) {
+					//选择取消导入
+					if ( val == 'pop' ) {
+						let name = this.list[indexOf(this.list, this.actionPath, 'path')].name;
+						getApp().globalData.message('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
+							if ( res == 'confirm' ) {
 								this.deleteBook(this.actionPath);
 							}
-						}
-					})
-				}
-				//用户选择删除操作
-				if ( val == 'delete' ) {
-					let name = this.list[indexOf(this.list, this.actionPath, 'path')].name;
-					uni.showModal({
-						title: '操作提示',
-						content: '确认要删除  ' + name + '  吗？',
-						success: (res) => {
-							if ( res.confirm ) {
+						});
+					}
+					//用户选择删除操作
+					if ( val == 'delete' ) {
+						let name = this.list[indexOf(this.list, this.actionPath, 'path')].name;
+						getApp().globalData.message('操作提示', '确认要删除  ' + name + '  吗？').then((res) => {
+							if ( res == 'confirm' ) {
 								this.deleteFiles([this.actionPath]);
 							}
-						}
-					})
-				}
-				//用户选择删除操作
-				if ( val == 'share' ) {
-					this.share();
-				}
+						});
+					}
+					//用户选择删除操作
+					if ( val == 'share' ) {
+						this.share();
+					}
+				})
 			},
 			//删除多个文件
 			deleteFiles (list) {
@@ -537,11 +519,6 @@
 			}
 		},
 		onBackPress(event) {
-			//操作列表打开时,先关闭操作列表
-			if ( this.$refs.action.isShow ) {
-				this.$refs.action.hide();
-				return true;
-			}
 			//气泡菜单打开时,先关闭气泡菜单
 			if ( this.$refs.bubble.isShow ) {
 				this.$refs.bubble.hide();
@@ -552,7 +529,6 @@
 		components: {
 			CIcon,
 			CSearch,
-			ActionSheet,
 			Bubble,
 			BubbleItem,
 			ListScroll

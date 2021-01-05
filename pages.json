@@ -89,6 +89,22 @@
 			"style": {
 				"disableScroll": true // 不嵌套 scroller
 			}
+		},
+		//确认弹窗
+		{
+			"path": "pages/base/confirm/index",
+			"style": {
+				"backgroundColor": "transparent",
+				"disableScroll": true // 不嵌套 scroller
+			}
+		},
+		//选择对话框
+		{
+			"path": "pages/base/actionSheet/index",
+			"style": {
+				"backgroundColor": "transparent",
+				"disableScroll": true // 不嵌套 scroller
+			}
 		}
 	],
 	"globalStyle": {

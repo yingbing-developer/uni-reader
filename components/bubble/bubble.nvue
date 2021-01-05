@@ -37,6 +37,7 @@
 			},
 			show () {
 				this.isShow = true;
+				uni.$emit('musicBtn-hide');
 				this.$nextTick(() => {
 					animation.transition(this.$refs.mask, {
 					    styles: {
@@ -81,6 +82,7 @@
 				}, (res) => {
 					this.isShow = false;
 					this.$emit('cancel');
+					uni.$emit('musicBtn-show');
 				})
 			}
 		}

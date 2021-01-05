@@ -116,28 +116,20 @@
 			},
 			//清空歌曲
 			clear () {
-				uni.showModal({
-					title: '操作提示！',
-					content: '确认清空歌曲列表吗？',
-					success: (res) => {
-						if ( res.confirm ) {
-							this.clearMusic();
-						}
+				getApp().globalData.message('操作提示', '确认清空歌曲列表吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.clearMusic();
 					}
-				})
+				});
 			},
 			//删除指定歌曲
 			deleteItem (path) {
 				let index = indexOf(this.playList, path, 'path');
-				uni.showModal({
-					title: '操作提示！',
-					content: '确认删除 ' + this.playList[index].name + ' 吗？',
-					success: (res) => {
-						if ( res.confirm ) {
-							this.deleteMusic(path);
-						}
+				getApp().globalData.message('操作提示', '确认删除 ' + this.playList[index].name + ' 吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.deleteMusic(path);
 					}
-				})
+				});
 			},
 			//改变播放模式
 			changeMode () {

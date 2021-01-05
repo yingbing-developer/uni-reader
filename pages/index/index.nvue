@@ -59,8 +59,6 @@
 		
 		<!-- 抽屉菜单 -->
 		<c-menu v-model="currentTab" :translate="menuLate" :opacity="menuOpac" ref="leftMenu"></c-menu>
-		<!-- 操作列表 -->
-		<action-sheet ref="action" :list="actions" @select="selectAction"></action-sheet>
 		
 		<music-btn></music-btn>
 	</view>
@@ -72,7 +70,6 @@
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
-	import ActionSheet from '@/components/action-sheet/action-sheet.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import MusicBtn from '@/components/music-btn/music-btn.nvue'
 	import { skinMixin, menuTouchMixin } from '@/common/mixin/index.js'
@@ -93,8 +90,6 @@
 				}],
 				//滚动距离
 				oldOffsetY: 0,
-				//操作列表
-				actions: [],
 				//触发操作列表的图书路径
 				actionPath: '',
 				//名称过滤
@@ -137,47 +132,35 @@
 				});
 			}
 		},
-		created () {
-			this.actions = [{
-				title: '删除',
-				value: 'delete'
-			}]
-		},
 		methods: {
 			...mapMutations(['deleteBook', 'clearBooks']),
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},
 			clear () {
-				uni.showModal({
-					title: '操作提示',
-					content: '是否清空当前所有书籍？',
-					success: (res) => {
-						if ( res.confirm ) {
-							let type = this.currentTab == 0 ? 'story' : 'comic';
-							this.clearBooks(type);
-						}
+				getApp().globalData.message('操作提示', '是否清空当前所有书籍？').then((res) => {
+					if ( res == 'confirm' ) {
+						let type = this.currentTab == 0 ? 'story' : 'comic';
+						this.clearBooks(type);
 					}
-				})
+				});
 			},
 			showAction (path) {
 				this.actionPath = path;
-				this.$refs.action.show();
-			},
-			selectAction (e) {
-				if ( e == 'delete' ) {
-					let name = this.bookList[indexOf(this.bookList, this.actionPath, 'path')].name;
-					uni.showModal({
-						title: '操作提示',
-						content: '是否删除  ' + name + '  ？',
-						success: (res) => {
-							if ( res.confirm ) {
+				getApp().globalData.actionSheet([{
+					title: '删除',
+					value: 'delete'
+				}]).then((res) => {
+					if ( res == 'delete' ) {
+						let name = this.bookList[indexOf(this.bookList, this.actionPath, 'path')].name;
+						getApp().globalData.message('操作提示', '是否删除  ' + name + '  ？').then((res) => {
+							if ( res == 'confirm' ) {
 								this.deleteBook(this.actionPath);
 								this.actionPath = '';
 							}
-						}
-					})
-				}
+						});
+					}
+				})
 			},
 			changeReadStatus () {
 				this.$set(this.tabs[this.currentTab], 'isReaded', !this.tabs[this.currentTab].isReaded);
@@ -231,17 +214,12 @@
 				this.$refs.leftMenu.hide();
 				return true;
 			}
-			if ( this.$refs.action.isShow ) {
-				this.$refs.action.hide();
-				return true;
-			}
 			return false;
 		},
 		components: {
 			CIcon,
 			CMenu,
 			NoData,
-			ActionSheet,
 			CSearch,
 			ListScroll,
 			CImage,

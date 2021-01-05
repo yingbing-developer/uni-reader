@@ -4,7 +4,7 @@
 		<list>
 			<cell>
 				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">阅读方式</text>
+					<text class="list-title" :style="{'color': skinColor.titleColor}">阅读动画</text>
 					<view class="list-right list-bottom">
 						<text
 						@tap="changeBookPageMode(item.value)"
@@ -17,17 +17,17 @@
 					</view>
 				</view>
 			</cell>
-			<cell>
+			<cell v-if="bookReadMode.pageMode != 'none'">
 				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">翻页动画</text>
+					<text class="list-title" :style="{'color': skinColor.titleColor}">翻页方式</text>
 					<view class="list-right list-bottom">
 						<text
-						@tap="changeBookReadDuration(item.value)"
+						@tap="changeBookReadPageType(item.value)"
 						:style="{
-							'background-color': bookReadMode.duration == item.value ? skinColor.activeBgColor : '',
-							'color': bookReadMode.duration == item.value ? skinColor.activeColor : skinColor.titleColor
+							'background-color': bookReadMode.pageType == item.value ? skinColor.activeBgColor : '',
+							'color': bookReadMode.pageType == item.value ? skinColor.activeColor : skinColor.titleColor
 						}"
-						class="lr-text" v-for="(item, index) in times"
+						class="lr-text" v-for="(item, index) in pageTypes"
 						:key="index">{{item.title}}</text>
 					</view>
 				</view>
@@ -44,9 +44,6 @@
 		data () {
 			return {
 				pages: [{
-					title: '点击翻页',
-					value: 'click'
-				},{
 					title: '左右滑动',
 					value: 'L2RTrans'
 				},{
@@ -58,28 +55,16 @@
 				},{
 					title: '覆盖翻页',
 					value: 'CoverPage'
+				},{
+					title: '关闭动画',
+					value: 'none'
 				}],
-				times: [{
-					title: '关闭',
-					value: 0
+				pageTypes: [{
+					title: '触摸',
+					value: 'touch'
 				},{
-					title: '0.1s',
-					value: 100
-				},{
-					title: '0.2s',
-					value: 200
-				},{
-					title: '0.3s',
-					value: 300
-				},{
-					title: '0.4s',
-					value: 400
-				},{
-					title: '0.5s',
-					value: 500
-				},{
-					title: '0.6s',
-					value: 600
+					title: '点击',
+					value: 'click'
 				}]
 			}
 		},
@@ -87,7 +72,7 @@
 			...mapGetters(['bookReadMode'])
 		},
 		methods: {
-			...mapMutations(['changeBookPageMode', 'changeBookReadDuration'])
+			...mapMutations(['changeBookPageMode', 'changeBookReadPageType'])
 		}
 	}
 </script>

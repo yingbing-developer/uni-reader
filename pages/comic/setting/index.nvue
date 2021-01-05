@@ -94,6 +94,7 @@
 			...mapMutations(['updateBookRecord', 'changeComicOrien']),
 			show () {
 				this.isShow = true;
+				uni.$emit('musicBtn-show');
 				setTimeout(() => {
 					animation.transition(this.$refs.readTop, {
 					    styles: {
@@ -135,6 +136,7 @@
 				    delay: 0 //ms
 				}, (res) => {
 					this.isShow = false;
+					uni.$emit('musicBtn-hide');
 				})
 			},
 			changeChapter (value) {

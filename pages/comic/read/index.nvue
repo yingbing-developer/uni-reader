@@ -83,6 +83,7 @@
 			}
 		},
 		onLoad () {
+			uni.$emit('musicBtn-hide');
 			this.changeOrien();
 		},
 		onReady () {
@@ -270,6 +271,9 @@
 			comicOrien () {
 				this.changeOrien()
 			}
+		},
+		beforeDestroy() {
+			uni.$emit('musicBtn-show');
 		},
 		onResize () {
 			//重新计算屏幕宽度和图片高度

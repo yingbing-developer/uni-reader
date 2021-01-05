@@ -133,14 +133,7 @@
 				//文件路径
 				path: '',
 				duration: 200,
-				lightPercent: 0,
-				scroll: [{
-					title: '上下滚动',
-					value: 'scroll'
-				},{
-					title: '左右翻页',
-					value: 'paging'
-				}]
+				lightPercent: 0
 			}
 		},
 		computed: {
@@ -347,21 +340,17 @@
 			},
 			//清空书签
 			clearMark () {
-				uni.showModal({
-					title: '清空提示！',
-					content: '确认要清空本书籍保存的书签吗？',
-					success: (res) => {
-						if ( res.confirm ) {
-							this.clearBookmark(this.path);
-							uni.$emit('page-popup', {
-								path: this.path,
-							    title: '书签',
-							    list: this.bookmark,
-								showClear: this.bookmark.length > 0 ? true : false
-							});
-						}
+				getApp().globalData.message('清空提示', '确认要清空本书籍保存的书签吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.clearBookmark(this.path);
+						uni.$emit('page-popup', {
+							path: this.path,
+						    title: '书签',
+						    list: this.bookmark,
+							showClear: this.bookmark.length > 0 ? true : false
+						});
 					}
-				})
+				});
 			},
 			upRecord (percent) {
 				if ( this.timer ) {

@@ -2,7 +2,7 @@
 	<view class="read" :style="{'background-color': skinColor.readBackColor, filter: 'brightness(' + light + '%)'}">
 		<!-- 文本内容区域 -->
 		<view class="pageBox">
-			<swiper v-if="swiperPages.indexOf(bookReadMode.pageMode) > -1" :disable-touch="bookReadMode.pageMode == 'click'" :vertical="bookReadMode.pageMode == 'U2DTrans'" :style="{'height': 100 + 'vh'}" :current="page" :duration="duration" @change="changePage">
+			<swiper v-if="swiperPages.indexOf(bookReadMode.pageMode) > -1" :disable-touch="bookReadMode.pageType == 'click' || bookReadMode.pageMode == 'none'" :vertical="bookReadMode.pageMode == 'U2DTrans'" :style="{'height': 100 + 'vh'}" :current="page" :duration="bookReadMode.pageMode == 'none' ? 0 : duration" @change="changePage">
 				<swiper-item
 				class="pageItem"
 				v-for="(item, index) in pages"
@@ -27,7 +27,7 @@
 					@ready="ready"></page>
 				</swiper-item>
 			</swiper>
-			<real-page v-else :current="page" ref="realPage" @change="realPageChange" :type="bookReadMode.pageMode == 'RealPage' ? 'real' : 'cover'" style="height: 100vh">
+			<real-page v-if="realPages.indexOf(bookReadMode.pageMode) > -1" :current="page" ref="realPage" @change="realPageChange" :type="bookReadMode.pageMode == 'RealPage' ? 'real' : 'cover'" :isClick="bookReadMode.pageType == 'click'" style="height: 100vh">
 				<real-page-item
 				:boxColor="skinColor.readBackColor"
 				:bgColor="skinColor.readBackColor"
@@ -58,13 +58,13 @@
 		</view>
 		
 		<!-- 触摸区域 -->
-		<view class="touch-box touch-prev" @tap="pageClick(0)" v-if="bookReadMode.pageMode == 'click'">
+		<view class="touch-box touch-prev" @tap="pageClick(0)" v-if="(bookReadMode.pageType == 'click' && swiperPages.indexOf(bookReadMode.pageMode) > -1) || bookReadMode.pageMode == 'none'">
 			上一页
 		</view>
 		<view class="touch-box touch-menu" @tap="openSettingNvue">
 			菜单
 		</view>
-		<view class="touch-box touch-next" @tap="pageClick(pages.length - 1)" v-if="bookReadMode.pageMode == 'click'">
+		<view class="touch-box touch-next" @tap="pageClick(pages.length - 1)" v-if="(bookReadMode.pageType == 'click' && swiperPages.indexOf(bookReadMode.pageMode) > -1) || bookReadMode.pageMode == 'none'">
 			下一页
 		</view>
 	</view>
@@ -80,6 +80,7 @@
 	import RealPageItem from '@/components/real-page-item/real-page-item.vue';
 	//文本截取长度
 	const sliceLen = 1500;
+	const readDuration = 200;
 	export default {
 		mixins: [skinMixin],
 		data () {
@@ -93,7 +94,7 @@
 				//是否是触摸翻页
 				touchChange: false,
 				//滑动动画时间
-				duration: 300,
+				duration: 200,
 				//设置窗口是否打开
 				settingShow: false,
 				//目录
@@ -101,7 +102,7 @@
 				//当前页书签文本
 				markTitle: '',
 				//需要用swiper的翻页方式
-				swiperPages: ['click', 'L2RTrans', 'U2DTrans'],
+				swiperPages: ['L2RTrans', 'U2DTrans', 'none'],
 				//需要用到real-page的翻页方式
 				realPages: ['RealPage', 'CoverPage']
 			}
@@ -126,9 +127,6 @@
 			fontSize () {
 				return this.bookReadMode.fontSize;
 			},
-			readDuration () {
-				return this.bookReadMode.duration;
-			},
 			progress () {
 				if ( this.bookInfo.record == 0 ) {
 					return 0
@@ -141,12 +139,18 @@
 			}
 		},
 		created () {
+			uni.$emit('musicBtn-hide');
 			//监听原生子窗体显示
 			uni.$on('setting-isShow', (data) => {
 				this.settingShow = data.show;
+				if ( this.settingShow ) {
+					uni.$emit('musicBtn-show');
+				} else {
+					uni.$emit('musicBtn-hide');
+				}
 			})
 			plus.nativeUI.showWaiting("读取文本中..");
-			this.duration = this.readDuration;
+			this.duration = readDuration;
 		},
 		onReady () {
 			//更新阅读时间
@@ -456,7 +460,7 @@
 				//如果出现滑动动画异常的情况，可能是这里出了问题，将延迟时间设长一点试试
 				setTimeout(() => {
 					//恢复滑动动画时间
-					this.duration = this.readDuration;
+					this.duration = readDuration;
 				}, 50)
 			},
 			//设置当前页面书签的前50个字
@@ -495,6 +499,7 @@
 		beforeDestroy () {
 			//注销监听原生子窗体是否显示
 			uni.$off('setting-isShow');
+			uni.$emit('musicBtn-show');
 		},
 		onBackPress (event) {
 			if ( event.from == 'backbutton' ) {

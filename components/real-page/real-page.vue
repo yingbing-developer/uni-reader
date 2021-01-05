@@ -14,6 +14,10 @@
 			type: {
 				type: String,
 				default: 'real'
+			},
+			isClick: {
+				type: Boolean,
+				default: false
 			}
 		},
 		data () {
@@ -26,7 +30,8 @@
 				return {
 					current: this.current,
 					type: this.type,
-					isRestart: this.isRestart
+					isRestart: this.isRestart,
+					isClick: this.isClick
 				};
 			}
 		},
@@ -78,10 +83,10 @@
 				myTouch.setOption(this.touchProp);
 			},
 			onTouchstart(e, instance) {
-				if ( this.isStart ) {
+				if ( e.touches.length > 1 ) {
 					return;
 				}
-				if ( e.touches.length > 1 ) {
+				if ( this.isStart ) {
 					return;
 				}
 				let touch = e.touches[0];
@@ -116,6 +121,9 @@
 				if ( !this.isStart ) {
 					return;
 				}
+				if ( this.touchProp.isClick ) {
+					return;
+				}
 				let touch = e.touches[0];
 				if (  this.startX < this.windowWidth / 2) {
 					this.moveX = 100 - (((touch.pageX - this.startX) / this.windowWidth) * 100);
@@ -137,21 +145,33 @@
 				}
 				let value = 0;
 				if (  this.startX < this.windowWidth / 2) {
-					if ( this.moveX < 70 && this.moveX > 0 ) {
+					if ( this.touchProp.isClick ) {
 						this.moveX = 0;
 						this.currentSync--;
 						value = 1;
 					} else {
-						this.moveX = 100;
+						if ( this.moveX < 70 && this.moveX > 0 ) {
+							this.moveX = 0;
+							this.currentSync--;
+							value = 1;
+						} else {
+							this.moveX = 100;
+						}
 					}
 				}
 				if (  this.startX > this.windowWidth / 2) {
-					if ( this.moveX > 30 ) {
+					if ( this.touchProp.isClick ) {
 						this.moveX = 100;
 						this.currentSync++;
 						value = -1;
 					} else {
-						this.moveX = 0;
+						if ( this.moveX > 30 ) {
+							this.moveX = 100;
+							this.currentSync++;
+							value = -1;
+						} else {
+							this.moveX = 0;
+						}
 					}
 				}
 				this.setAnimationStyle();
