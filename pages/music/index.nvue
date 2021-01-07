@@ -13,10 +13,10 @@
 					<c-icon name="waste-fill" size="42" :color="skinColor.menuIconColor"></c-icon>
 				</view>
 			</view>
-			<list-scroll :list="listSync" :lineHeight="100">
+			<list-scroll :list="listSync" :lineHeight="100" ref="musicList">
 				<template v-slot="{item}">
 					<view class="list actived" @tap="playMusic(item.path)">
-						<text class="list-name" :style="{color: skinColor.menuTitleColor}">{{item.name}}</text>
+						<text class="list-name" :style="{color: playRecord == item.path ? '#d43c33' : skinColor.menuTitleColor}">{{item.name}}</text>
 						<view class="list-right">
 							<view class="list-icon">
 								<c-icon name="pause" size="37" color="#d43c33" v-if="playStatus && playRecord == item.path"></c-icon>
@@ -60,6 +60,8 @@
 		mixins: [skinMixin],
 		onReady() {
 			setTimeout(() => {
+				let index = indexOf(this.listSync, this.playRecord, 'path');
+				this.$refs.musicList.scrollTo(index);
 				animation.transition(this.$refs.mask, {
 				    styles: {
 						opacity: 1

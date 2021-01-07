@@ -143,8 +143,8 @@
 					if ( this.clickTime <= 300 ) {
 						return;
 					}
-					this.pageX = e.pageX;
-					this.pageY = e.pageY;
+					this.pageX = e.pageX - (height / 2);
+					this.pageY = e.pageY - (height / 2);
 					let lineLeft = 0;
 					//限制滑动距离不能超过屏幕左边10px
 					if ( this.pageX < 0 ) {

@@ -6,7 +6,7 @@
 			</cell>
 			<cell v-for="(lists, i) in listSync" @appear="appear(i)" @disappear="disappear(i)">
 				<view class="box" :style="listStyleObj" ref="listItem">
-					<view :style="itemStyleObj(index)" v-for="(child, index) in lists" :key="index">
+					<view :style="itemStyleObj(index)" v-for="(child, index) in lists" :key="index" ref="item">
 						<block v-if="isShows.indexOf(i) > -1 || isShows.indexOf(i + 1) > -1 || isShows.indexOf(i - 1) > -1">
 							<slot :item="child"></slot>
 						</block>
@@ -139,6 +139,9 @@
 					this.isShows.splice(index, 1);
 				}
 			},
+			scrollTo (index) {
+				dom.scrollToElement(this.$refs['item'][index], {animated: false});
+			}
 		},
 		watch: {
 			list () {
