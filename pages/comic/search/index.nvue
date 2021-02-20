@@ -229,6 +229,9 @@
 				let getComicList = new GetComicList();
 				let comicStr = getComicList.getComic(path);
 				this.comicList = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
+				this.comicList.sort((a, b) => {
+					return b.createTime; - a.createTime
+				})
 				
 				//调试用
 				// let comicList = []
