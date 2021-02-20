@@ -1,7 +1,7 @@
 <template>
 	<view class="music">
-		<view class="mask" ref="mask" @tap="back"></view>
-		<view class="popup" :style="{'background-color': skinColor.bgColor}">
+		<view class="mask" ref="mask" @tap="hide"></view>
+		<view class="popup" ref="popup" :style="{'background-color': skinColor.bgColor}">
 			<view class="top">
 				<view class="mode" @tap="changeMode">
 					<c-icon name="loop" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'loop'"></c-icon>
@@ -40,7 +40,7 @@
 					<text class="add-text" :style="{color: skinColor.menuTitleColor}">添加歌曲</text>
 				</view>
 			</view>
-			<view class="close" @tap="back" :style="{'background-color': skinColor.navColor}">
+			<view class="close" @tap="hide" :style="{'background-color': skinColor.navColor}">
 				<text class="close-text" :style="{color: skinColor.activeColor}">关闭</text>
 			</view>
 		</view>
@@ -58,20 +58,16 @@
 	const animation = weex.requireModule('animation');
 	export default {
 		mixins: [skinMixin],
+		data () {
+			return {
+				anima: {
+					opac: 0.4,
+					duration: 300
+				}
+			}
+		},
 		onReady() {
-			setTimeout(() => {
-				let index = indexOf(this.listSync, this.playRecord, 'path');
-				this.$refs.musicList.scrollTo(index);
-				animation.transition(this.$refs.mask, {
-				    styles: {
-						opacity: 1
-				    },
-				    duration: 300, //ms
-				    timingFunction: 'ease',
-				    needLayout:false,
-				    delay: 0 //ms
-				})
-			}, 300)
+			this.show()
 		},
 		computed: {
 			...mapGetters(['playList', 'getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayRecord', 'getMusicPlayTime', 'getMusicPlayDuration']),
@@ -111,9 +107,46 @@
 		},
 		methods: {
 			...mapMutations(['changeMusicPlayMode', 'changeMusicPlayStatus', 'clearMusic', 'deleteMusic', 'updateMusicPlayRecord']),
-			back () {
-				uni.navigateBack({
-					delta: 1
+			show () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: this.anima.opac
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateY(0)'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+			},
+			hide () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateY(' + Math.abs(1000) + 'rpx)'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, () => {
+					getApp().globalData.routeBack();
 				})
 			},
 			//清空歌曲
@@ -167,16 +200,12 @@
 				getApp().globalData.routePush(url);
 			}
 		},
-		onBackPress () {
-			animation.transition(this.$refs.mask, {
-			    styles: {
-					opacity: 0
-			    },
-			    duration: 0, //ms
-			    timingFunction: 'ease',
-			    needLayout:false,
-			    delay: 0 //ms
-			})
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide();
+				return true;
+			}
+			return false
 		},
 		components: {
 			ListScroll,
@@ -195,14 +224,15 @@
 		right: 0;
 		bottom: 0;
 		opacity: 0;
-		background-color: rgba(0,0,0,0.2);
+		background-color: #000000;
 	}
 	.popup {
 		position: fixed;
-		top: 300rpx;
+		bottom: 0;
 		left: 0;
 		right: 0;
-		bottom: 0;
+		height: 1000rpx;
+		transform: translateY(1000rpx);
 		border-top-left-radius: 50rpx;
 		border-top-right-radius: 50rpx;
 	}

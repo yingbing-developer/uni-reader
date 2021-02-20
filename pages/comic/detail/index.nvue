@@ -1,0 +1,300 @@
+<template>
+	<view class="detail" :style="{'background-color': skinColor.bgColor}">
+		<nav-bar title="漫画详情" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor"></nav-bar>
+		<view class="book-info">
+			<c-image class="book-img" :src="comicInfo.image" mode="aspectFill"></c-image>
+			<view class="book-info-right">
+				<text class="book-name" :style="{'color': skinColor.titleColor}">{{comicInfo.name}}</text>
+				<text class="book-intro-title" :style="{'color': skinColor.menuTitleColor}">{{comicInfo.source == 'local' ? '佚名' : author}}</text>
+				<view class="book-intro">
+					<text class="book-intro-title" :style="{'color': skinColor.titleColor}">内容简介</text>
+					<text class="book-intro-text" :style="{'color': skinColor.textColor}">{{comicInfo.source == 'local' ? '暂无介绍' : intro}}</text>
+				</view>
+			</view>
+		</view>
+		<view class="btns">
+			<view class="old-btn btn" @tap="readComic(readed.path)">
+				<text class="btn-text" :style="{'color': skinColor.bgColor}">上次读到 {{readed ? readed.name : cNum}} 第{{pNum + 1}}p</text>
+			</view>
+			<view class="new-btn btn" @tap="startRead">
+				<text class="btn-text new-btn-text">开始阅读</text>
+			</view>
+		</view>
+		
+		<view class="catalog-line">
+			<text class="catalog-title" :style="{'color': skinColor.titleColor}">漫画章节</text>
+			<text class="sort-title" @tap="changeSortType">{{sortType == 'reverse' ? '倒序' : '正序'}}</text>
+		</view>
+		
+		<!-- 漫画列表 -->
+		<list-scroll :column-count="5" :column-width="130" :line-height="80" :list="catalog" :bounce="false">
+			<no-data slot="fixed" v-if="catalog.length <= 0" title="貌似没有章节哦"></no-data>
+			<template v-slot="{item}">
+				<view class="catalog-block" :style="{'background-color': item.path == readed.path ? skinColor.gapColor : '', 'border-color': skinColor.gapColor}" @tap="readComic(item.path)">
+					<text class="catalog-text" :style="{'color': skinColor.menuTextColor}">{{item.name}}</text>
+				</view>
+			</template>
+		</list-scroll>
+	</view>
+</template>
+
+<script>
+	import CImage from '@/components/c-image/c-image.nvue'
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import { mapGetters, mapMutations } from 'vuex'
+	import { indexOf, deepClone } from '@/common/js/util.js'
+	import { skinMixin } from '@/common/mixin/index.js'
+	import { getComicDetail, getComicNum } from '@/common/online/getComic.js'
+	export default {
+		mixins: [skinMixin],
+		data () {
+			return {
+				catalog: [],
+				author: '',
+				intro: '',
+				sortType: 'reverse'
+			}
+		},
+		computed: {
+			...mapGetters(['bookList']),
+			//漫画信息
+			comicInfo () {
+				const pages = getCurrentPages();
+				const page = pages[pages.length - 1];
+				let index =  page.options.index;
+				return this.bookList[index];
+			},
+			//上次阅读章节
+			readed () {
+				let index = this.comicInfo.record.split('-')[0];
+				let arr = deepClone(this.catalog);
+				if ( this.sortType == 'reverse' ) {
+					arr.reverse();
+				}
+				return arr[index];
+			},
+			cNum () {
+				return parseInt(this.comicInfo.record.split('-')[0]);
+			},
+			pNum () {
+				return parseInt(this.comicInfo.record.split('-')[1]);
+			}
+		},
+		onReady () {
+			//更新阅读时间
+			this.updateBookReadTime(this.comicInfo.path);
+			if ( this.comicInfo.source == 'local' ) {
+				this.getLocalComicCatalog()
+			} else {
+				this.getDetail({
+					source: this.comicInfo.source,
+					href: this.comicInfo.path
+				})
+			}
+		},
+		methods: {
+			...mapMutations(['updateBookName', 'updateBookLength', 'updateBookReadTime', 'updateBookRecord']),
+			//获取漫画详情信息
+			getDetail (data) {
+				uni.showLoading({
+					title: '解析中',
+					mask: true
+				})
+				const getIntro = getComicDetail(data);
+				const getNum = getComicNum(data)
+				Promise.all([
+				    getIntro,
+					getNum
+				]).then((res) => {
+					uni.hideLoading();
+					if ( res[0].code == 200 ) {
+						let data = res[0].data;
+						this.author = data.author;
+						this.intro = data.intro;
+						//如果名字发生更改，则更新本地记录的名称
+						if ( data.name != this.comicInfo.name ) {
+							this.updateBookName({
+								path: this.comicInfo.path,
+								name: data.name
+							})
+						}
+					}
+					if ( res[1].code == 200 ) {
+						//如果章节有更新，更新本地漫画章节数量
+						if ( this.catalog.length != res[1].data.length && res[1].data ) {
+							this.updateBookLength({
+								path: this.comicInfo.path,
+								length: res[1].data.length || 0
+							})
+						}
+						this.catalog = res[1].data;
+					}
+				}).catch((err) => {
+					uni.showToast({
+						title: '解析失败',
+						icon: 'none'
+					})
+				})
+			},
+			//开始阅读
+			startRead () {
+				let arr = deepClone(this.catalog);
+				let nums = this.sortType == 'reverse' ? arr.reverse() : arr;
+				this.readComic(nums[0].path);
+			},
+			//阅读漫画
+			readComic (path) {
+				let arr = deepClone(this.catalog);
+				let nums = this.sortType == 'reverse' ? JSON.stringify(arr.reverse()) : JSON.stringify(arr);
+				let readIndex = indexOf(arr, path, 'path');
+				//更新阅读章节记录
+				let record = readIndex + '-' + (this.cNum == readIndex ? this.pNum : 0);
+				this.updateBookRecord({
+					path: this.comicInfo.path,
+					record: record
+				})
+				let index = indexOf(this.bookList, this.comicInfo.path, 'path');
+				getApp().globalData.routePush(`/pages/comic/read/index?index=${index}&nums=${encodeURIComponent(nums)}&readIndex=${readIndex}`);
+			},
+			//获取本地漫画章节
+			getLocalComicCatalog () {
+				let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
+				let list = plus.android.invoke(fd, "listFiles");
+				let length = 0;
+				let len = list.length;
+				for ( let i = 0; i < len; i++ ) {
+					if ( plus.android.invoke(list[i], "isDirectory") ) {
+						length += 1;
+						this.catalog.push({
+							path: plus.android.invoke(list[i], "getPath"),
+							name: plus.android.invoke(list[i], "getName")
+						})
+					}
+				}
+				if ( list.length > 0 && this.catalog.length == 0 ) {
+					this.catalog.push({
+						path: plus.android.invoke(fd, "getPath"),
+						name: '全本'
+					})
+				}
+				this.catalog.reverse();
+				//名称有改变则更新本地记录
+				let comicName = plus.android.invoke(fd, "getName");
+				if ( comicName != this.comicInfo.name ) {
+					this.updateBookName({
+						path: this.comicInfo.path,
+						name: comicName
+					})
+				}
+				//更新本地章节数量
+				this.updateBookLength({
+					path: this.comicInfo.path,
+					length: length == 0 && list.length > 0 ? 1 : length
+				})
+			},
+			//改变排序方式
+			changeSortType () {
+				this.sortType = this.sortType == 'reverse' ? 'positive' : 'reverse';
+				this.catalog.reverse();
+			}
+		},
+		components: {
+			CImage,
+			ListScroll
+		}
+	}
+</script>
+
+<style scoped>
+	.book-info {
+		flex-direction: row;
+		padding: 20rpx;
+	}
+	.book-img {
+		width: 200rpx;
+		height: 240rpx;
+	}
+	.book-info-right {
+		flex: 1;
+		padding: 0 15rpx;
+	}
+	.book-name {
+		font-size: 30rpx;
+		font-weight: bold;
+		lines: 1;
+		text-overflow: ellipsis;
+		margin: 20rpx 0;
+	}
+	.book-intro {
+		margin-top: 20rpx;
+	}
+	.book-intro-title {
+		font-size: 24rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.book-intro-text {
+		margin-top: 10rpx;
+		font-size: 20rpx;
+		lines: 3;
+		text-overflow: ellipsis;
+	}
+	.btns {
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 0 20rpx;
+	}
+	.btn {
+		flex: 1;
+		height: 75rpx;
+		justify-content: center;
+		align-items: center;
+		border-radius: 5rpx;
+		border-color: #21C088;
+		border-style: solid;
+		border-width: 1px;
+	}
+	.btn-text {
+		font-size: 30rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.new-btn {
+		margin-left: 10rpx;
+	}
+	.new-btn-text {
+		color: #21C088;
+	}
+	.old-btn {
+		margin-right: 10rpx;
+		background-color: #21C088;
+	}
+	.catalog-line {
+		padding: 20rpx 20rpx;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+	.catalog-title {
+		font-size: 28rpx;
+		font-weight: bold;
+		color: #333333;
+	}
+	.sort-title {
+		color: #DD524D;
+		font-size: 28rpx;
+	}
+	.catalog-block {
+		width: 130rpx;
+		height: 80rpx;
+		border-width: 1px;
+		border-radius: 5rpx;
+		justify-content: center;
+		align-items: center;
+	}
+	.catalog-text {
+		font-size: 24rpx;
+		color: #898989;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+</style>

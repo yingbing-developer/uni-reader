@@ -4,7 +4,7 @@
 		
 		<!-- 顶部 -->
 		<view class="read-top" ref="readTop" @touchmove.stop.prevent="">
-			<nav-bar :title="comicInfo.name + '  第' + (chapter + 1) + '话'" bgColor="#333333" titleColor="#EFEFEF">
+			<nav-bar :title="comicInfo.name + '  ' + chapters[chapter].name" bgColor="#333333" titleColor="#EFEFEF">
 				<view class="nav-right" slot="right">
 					<view class="nr-item" @tap="changeComicOrien(comicOrienMode == 'portrait' ? 'landscape' : 'portrait')">
 						<c-icon name="screenrotation" :size="38" color="#EFEFEF"></c-icon>
@@ -25,8 +25,8 @@
 				<text class="chapter-text" @tap="changeChapter(-1)">上一话</text>
 				<text class="chapter-text" @tap="changeChapter(1)">下一话</text>
 			</view>
-			<view class="read-board-line img-line">
-				<crosswise class="img-scroll" :list="comicSync" :actId="actNum">
+			<!-- <view class="read-board-line img-line">
+				<crosswise class="img-scroll" :list="comicSync" :actId="actNum" :itemWidth="100">
 					<template v-slot="{item}">
 						<view class="img-box" @tap="upPNum(item.index)">
 							<view style="position: relative;">
@@ -39,7 +39,7 @@
 						</view>
 					</template>
 				</crosswise>
-			</view>
+			</view> -->
 		</view>
 	</view>
 </template>
@@ -69,6 +69,12 @@
 			actNum: {
 				type: String,
 				default: '0'
+			},
+			chapters: {
+				type: Array,
+				default () {
+					return new Array();
+				}
 			}
 		},
 		data () {
@@ -147,7 +153,7 @@
 					})
 					return;
 				}
-				if ( this.chapter == this.comicInfo.length - 1 && value > 0 ) {
+				if ( this.chapter == this.chapters.length - 1 && value > 0 ) {
 					uni.showToast({
 						title: '已经是最后一话了',
 						icon: 'none'
@@ -228,22 +234,22 @@
 		align-items: center;
 	}
 	.img-line {
-		height: 320rpx;
+		height: 150rpx;
 		justify-content: center;
 	}
 	.img-scroll {
 		flex: 1;
 	}
 	.img-box {
-		width: 230rpx;
-		height: 330rpx;
+		width: 100rpx;
+		height: 120rpx;
 		margin: 0 5rpx;
 		justify-content: center;
 		align-items: center;
 	}
 	.img {
-		width: 200rpx;
-		height: 260rpx;
+		width: 80rpx;
+		height: 120rpx;
 	}
 	.img-actived {
 		position: absolute;

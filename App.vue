@@ -58,6 +58,7 @@
 					});
 				})
 			},
+			//选择对话框
 			actionSheet: function (list) {
 				return new Promise((resolve, reject) => {
 					getApp().globalData.routePush('/pages/base/actionSheet/index', 'none').then((res) => {

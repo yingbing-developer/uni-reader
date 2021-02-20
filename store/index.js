@@ -18,7 +18,7 @@ const store = new Vuex.Store({
     state: {
 		skin: uni.getStorageSync(SKIN) || 'default', //皮肤
 		books: uni.getStorageSync(BOOKS) || [],//书籍列表(包括小说和漫画)
-		bookRead: uni.getStorageSync(BOOKREAD) || {pageMode: 'L2RTrans', pageType: 'touch', fontSize: 20, light: 1},//小说阅读模式包含字体大小，翻页方式和动画时间
+		bookRead: uni.getStorageSync(BOOKREAD) || {pageMode: 'RealPage', pageType: 'touch', fontSize: 20, light: 1},//小说阅读模式包含字体大小，翻页方式和动画时间
 		bookPath: uni.getStorageSync(BOOKPATH) || '',//上次访问的小说文件夹路径
 		bookmark: uni.getStorageSync(BOOKMARK) || [],//小说书签
 		comicPath: uni.getStorageSync(COMICPATH) || '',//上次访问的漫画文件夹路径
@@ -143,7 +143,9 @@ const store = new Vuex.Store({
 					lastReadTime: time,
 					isReaded: false,
 					//书籍类型 默认小说story
-					type: books[i].type || 'story'
+					type: books[i].type || 'story',
+					//来源 网络或者本地
+					source: books[i].source || 'local'
 				})
 			}
 			uni.setStorageSync(BOOKS, state.books);
@@ -163,6 +165,12 @@ const store = new Vuex.Store({
 					return item;
 				}
 			})
+			uni.setStorageSync(BOOKS, state.books);
+		},
+		// 更新书籍名称
+		updateBookName (state, book) {
+			let index = indexOf(state.books, book.path, 'path');
+			state.books[index].name = book.name;
 			uni.setStorageSync(BOOKS, state.books);
 		},
 		// 更新书籍文本长度

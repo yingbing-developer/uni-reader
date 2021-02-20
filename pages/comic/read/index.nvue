@@ -1,16 +1,13 @@
 <template>
 	<view class="read" :style="{'background-color': skinColor.bgColor}">
+		<gap-bar :color="skinColor.navColor"></gap-bar>
 		<list @scroll="scroll">
-			<header>
-				<gap-bar color="rgba(0,0,0,0.5)"></gap-bar>
-			</header>
-			
 			<!-- 利用appear通用事件，来判断列表是否触顶 -->
 			<cell><view style="height: 1px;" @appear="prevShow = true" @disappear="prevShow = false" v-if="comicSync.length"></view></cell>
 			
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
-				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @tap="preview(item.path)">
-					<c-image :enable-mask="false" enable-hidden class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="aspectFit"></c-image>
+				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @longpress="preview(item.path)">
+					<c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="aspectFit"></c-image>
 				</view>
 			</cell>
 			
@@ -31,7 +28,7 @@
 			<text class="chapter-text">前没有了，点击前往上一话</text>
 		</view>
 		
-		<comic-setting ref="comicSetting" :path="comicInfo.path" :comicSync="comicSync" :actNum="nowIndex"></comic-setting>
+		<comic-setting ref="comicSetting" :chapters="chapters" :path="comicInfo.path" :comicSync="comicSync" :actNum="nowIndex"></comic-setting>
 	</view>
 </template>
 
@@ -44,6 +41,9 @@
 	import GapBar from '@/components/gap-bar/gap-bar.nvue'
 	const dom = weex.requireModule('dom');
 	const GetComicContent = plus.android.importClass('com.itstudy.io.GetComicContent');
+	const main = plus.android.runtimeMainActivity();
+	const Intent = plus.android.importClass("android.content.Intent");
+	const Uri = plus.android.importClass("android.net.Uri");
 	const suffixs = 'jpg,png,gif,JPG,PNG,GIF';
 	const options = 'name,path';
 	export default {
@@ -57,13 +57,27 @@
 				let index =  page.options.index;
 				return this.bookList[index];
 			},
-			//章节 第几话
-			chapter () {
-				return parseFloat(this.comicInfo.record.split('-')[0]);
+			//全部章节
+			chapters () {
+				const pages = getCurrentPages();
+				const page = pages[pages.length - 1];
+				return JSON.parse(decodeURIComponent(page.options.nums));
 			},
-			//章节第几张图
+			//当前读取的章节
+			readIndex () {
+				const pages = getCurrentPages();
+				const page = pages[pages.length - 1];
+				return page.options.readIndex;
+			},
+			//阅读章节记录
+			chapter () {
+				let chapter = parseFloat(this.comicInfo.record.split('-')[0]);
+				return chapter;
+			},
+			//上次阅读到章节第几张图
 			pNum () {
-				return parseFloat(this.comicInfo.record.split('-')[1]);
+				let chapter = parseFloat(this.comicInfo.record.split('-')[0]);
+				return chapter == this.readIndex ? parseFloat(this.comicInfo.record.split('-')[1]) : 0;
 			},
 			//屏幕方向
 			comicOrien () {
@@ -87,79 +101,99 @@
 			this.changeOrien();
 		},
 		onReady () {
-			//更新阅读时间
-			this.updateBookReadTime(this.comicInfo.path);
-			setTimeout(async () => {
-				this.windowWidth = await this.getSystemWidth();
-				this.getComicSync();
-				setTimeout(() => {
-					this.upComicLength();
-				}, 10)
+			setTimeout(() => {
+				this.getSystemWidth().then((res) => {
+					this.windowWidth = res;
+					this.getComicSync();
+				});
 			}, 300)
 		},
 		methods: {
-			...mapMutations(['updateBookLength', 'updateBookRecord', 'updateBookReadStatus', 'updateBookReadTime']),
+			...mapMutations(['updateBookRecord', 'updateBookReadStatus']),
 			//读取漫画内容
-			async getComicSync () {
+			getComicSync () {
 				uni.showLoading({
-					title: '读取中..'
+					title: '读取中..',
+					mask: true
 				})
-				
-				//正式用
-				let getComicContent = new GetComicContent();
-				let comicStr = getComicContent.getContent(this.comicInfo.path, this.chapter);
-				this.comicSync = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
-				
-				//调试用
-				// let arr = [];
-				// let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
-				// let list = plus.android.invoke(fd, "listFiles");
-				// if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
-				// 	let childList = plus.android.invoke(list[this.chapter], "listFiles")
-				// 	let len = childList.length;
-				// 	for ( let i = 0; i < len; i++ ) {
-				// 		let path = plus.android.invoke(childList[i], "getPath");
-				// 		arr.push({
-				// 			path: path,
-				// 			name: plus.android.invoke(childList[i], "getName"),
-				// 			height: await this.countImageHeight(path) + 'px'
-				// 		})
-				// 	}
-				// } else {
-				// 	let len = list.length;
-				// 	for ( let i = 0; i < len; i++ ) {
-				// 		let path = plus.android.invoke(list[i], "getPath");
-				// 		arr.push({
-				// 			path: path,
-				// 			name: plus.android.invoke(list[i], "getName"),
-				// 			height: await this.countImageHeight(path) + 'px'
-				// 		})
-				// 	}
-				// }
-				// arr.sort((a, b) => {
-				// 	return cnnumtonum(a.name) - cnnumtonum(b.name);
-				// })
-				// this.comicSync = arr;
-				
-				setTimeout(() => {
-					this.scrollTo();
-				}, 50)
-				uni.hideLoading();
-			},
-			//更新漫画章节数
-			upComicLength () {
-				let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
-				let list = plus.android.invoke(fd, "listFiles");
-				let length = 0;
-				let len = list.length;
-				for ( let i = 0; i < len; i++ ) {
-					if ( plus.android.invoke(list[i], "isDirectory") ) {
-						length += 1;
-					}
+				if ( this.comicInfo.source == 'local' ) {
+					//读取本地漫画内容
+					//正式用
+					let getComicContent = new GetComicContent();
+					let comicStr = getComicContent.getContent(this.comicInfo.path, this.chapter);
+					this.comicSync = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
+					
+					//调试用
+					// let arr = [];
+					// let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
+					// let list = plus.android.invoke(fd, "listFiles");
+					// this.$nextTick(async () => {
+					// 	if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
+					// 		let childList = plus.android.invoke(list[this.chapter], "listFiles")
+					// 		let len = childList.length;
+					// 		for ( let i = 0; i < len; i++ ) {
+					// 			let path = plus.android.invoke(childList[i], "getPath");
+					// 			arr.push({
+					// 				path: path,
+					// 				name: plus.android.invoke(childList[i], "getName"),
+					// 				imageWidth: 750,
+					// 				imageHeight: await this.countImageHeight(path)
+					// 			})
+					// 		}
+					// 	} else {
+					// 		let len = list.length;
+					// 		for ( let i = 0; i < len; i++ ) {
+					// 			let path = plus.android.invoke(list[i], "getPath");
+					// 			arr.push({
+					// 				path: path,
+					// 				name: plus.android.invoke(list[i], "getName"),
+					// 				imageWidth: 750,
+					// 				imageHeight: await this.countImageHeight(path)
+					// 			})
+					// 		}
+					// 	}
+					// 	arr.sort((a, b) => {
+					// 		return cnnumtonum(a.name) - cnnumtonum(b.name);
+					// 	})
+					// 	this.comicSync = arr;
+						
+						
+						setTimeout(() => {
+							this.scrollTo();
+						}, 50)
+						uni.hideLoading();
+					// }, 1)
+				} else {
+					//读取在线漫画内容
+					this.getOnlineComicContent().then((res) => {
+						this.comicSync = res;
+						setTimeout(() => {
+							this.scrollTo();
+						}, 50)
+						uni.hideLoading();
+					}).catch((err) => {
+						uni.showToast({
+							title: '解析失败',
+							icon: 'none'
+						})
+					});
 				}
-				this.updateBookLength({
-					path: this.comicInfo.path,
-					length: length == 0 && list.length > 0 ? 1 : length
+			},
+			//获取在线漫画内容
+			getOnlineComicContent () {
+				return new Promise((resolve, reject) => {
+					getApp().globalData.routePush(
+					`/pages/comic/getComicContent/index?url=${this.chapters[this.chapter].path}&source=${this.comicInfo.source}`,
+					'none'
+					).then(() => {
+						uni.$on('comicContent', (res) => {
+							resolve(res.data)
+							getApp().globalData.routeBack();
+							uni.$off('comicContent');
+						})
+					}).catch((err) => {
+						reject(err)
+					});
 				})
 			},
 			//计算图片高度 (nvue的bug,image组件的widthFix无效,无法自适应高度)
@@ -178,12 +212,102 @@
 			preview (path) {
 				let index = indexOf(this.comicSync, path, 'path');
 				let imgs = [];
-				for ( let i = 0 ; i < this.comicSync.length; i++ ) {
-					imgs.push('file://' + this.comicSync[i].path);
+				if ( this.comicInfo.source == 'local' ) {
+					for ( let i = 0 ; i < this.comicSync.length; i++ ) {
+						imgs.push('file://' + this.comicSync[i].path);
+					}
+				} else {
+					for ( let i = 0 ; i < this.comicSync.length; i++ ) {
+						imgs.push(this.comicSync[i].path);
+					}
 				}
 				uni.previewImage({
 					current: index,
-					urls: imgs
+					urls: imgs,
+					longPressActions: {
+					    itemList: ['分享', '保存相册'],
+					    success: (data) => {
+							//选择分享
+							if ( data.tapIndex == 0 ) {
+								this.shareImage(imgs[data.index]);
+							}
+							//保存图片
+							if ( data.tapIndex == 1 ) {
+								this.saveImage(imgs[data.index]);
+							}
+					    },
+					    fail: function(err) {
+					        console.log(err.errMsg);
+					    }
+					}
+				});
+			},
+			//分享图片
+			shareImage (url) {
+				if ( this.comicInfo.source == 'local' ) {
+					//本地图片直接分享
+					this.intentImage(url);
+				} else {
+					//网络图片先下载
+					uni.downloadFile({
+						url,
+						success: (res) => {
+							if (res.statusCode === 200) {
+								this.intentImage(res.tempFilePath);
+							} else {
+								uni.showToast({
+									title: '分享失败',
+									icon: 'none'
+								})
+							}
+						}
+					});
+				}
+			},
+			intentImage (path) {
+				let shareIntent = new Intent(Intent.ACTION_SEND);
+				let filePath = plus.io.convertLocalFileSystemURL(path);
+				let file = plus.android.newObject("java.io.File", filePath);
+				shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+				shareIntent.setType("image/*");//此处可发送txt文件
+				main.startActivity(Intent.createChooser(shareIntent,"分享图片"));
+			},
+			//保存图片
+			saveImage (url) {
+				if ( this.comicInfo.source == 'local' ) {
+					//本地图片直接保存
+					this.photoImage(url);
+				} else {
+					//网络图片先下载
+					uni.downloadFile({
+						url,
+						success: (res) => {
+							if (res.statusCode === 200) {
+								this.photoImage(res.tempFilePath);
+							} else {
+								uni.showToast({
+									title: '下载失败',
+									icon: 'none'
+								})
+							}
+						}
+					});
+				}
+			},
+			photoImage (path) {
+				uni.saveImageToPhotosAlbum({
+					filePath: path,
+					success: function() {
+						uni.showToast({
+							title: '保存成功'
+						})
+					},
+					fail: function() {
+						uni.showToast({
+							title: '保存失败',
+							icon: 'none'
+						})
+					}
 				});
 			},
 			//打开设置窗口
@@ -228,15 +352,16 @@
 					})
 					return;
 				}
-				if ( this.chapter == this.comicInfo.length - 1 && value > 0 ) {
+				if ( this.chapter == this.chapters.length - 1 && value > 0 ) {
 					uni.showToast({
 						title: '已经是最后一话了',
 						icon: 'none'
 					})
 					return;
 				}
-				let chapter = this.chapter + value;
+				let chapter = parseInt(this.chapter) + value;
 				this.upChapter(chapter);
+				this.getComicSync();
 			},
 			//更新章节
 			upChapter (chapter) {
@@ -265,7 +390,7 @@
 			pNum () {
 				this.scrollTo();
 			},
-			chapter (newVal) {
+			chapter () {
 				this.getComicSync();
 			},
 			comicOrien () {
@@ -283,6 +408,7 @@
 		},
 		onBackPress(event) {
 			if ( event.from == 'backbutton' ) {
+				//判断设置窗口是否打开
 				if ( this.$refs.comicSetting.isShow ) {
 					this.$refs.comicSetting.hide();
 					return true;
@@ -303,7 +429,7 @@
 			if ( this.nextShow ) {
 				this.updateBookReadStatus({
 					path: this.comicInfo.path,
-					isReaded: this.chapter + 1 >= this.comicInfo.length
+					isReaded: this.chapter + 1 >= this.chapters.length
 				})
 			} else {
 				this.updateBookReadStatus({

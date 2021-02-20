@@ -43,11 +43,33 @@
 				}
 			}
 		},
-		//漫画添加页
+		//本地漫画添加页
 		{
 			"path": "pages/comic/search/index",
 			"style": {
 				"disableScroll": true // 不嵌套 scroller
+			}
+		},
+		//在线漫画添加页
+		{
+			"path": "pages/comic/online/index",
+			"style": {
+				"disableScroll": true // 不嵌套 scroller
+			}
+		},
+		//漫画详情页
+		{
+			"path": "pages/comic/detail/index",
+			"style": {
+				"disableScroll": true // 不嵌套 scroller
+			}
+		},
+		//在线漫画内容获取页
+		{
+			"path": "pages/comic/getComicContent/index",
+			"style": {
+				"disableScroll": true, // 不嵌套 scroller
+				"backgroundColor": "transparent"
 			}
 		},
 		//漫画阅读页
@@ -76,11 +98,7 @@
 			"path": "pages/music/index",
 			"style": {
 				"backgroundColor": "transparent",
-				"disableScroll": true, // 不嵌套 scroller
-				"app-plus": {
-					"animationType": "slide-in-bottom",
-					"animationDuration": 300
-				}
+				"disableScroll": true
 			}
 		},
 		//添加音乐

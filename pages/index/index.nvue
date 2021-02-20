@@ -35,6 +35,11 @@
 						<c-icon name="waste-fill" size="40" :color="skinColor.iconColor"></c-icon>
 					</fixed-button>
 				</view>
+				<view @tap="comicOnline">
+					<fixed-button :show="currentTab == 1">
+						<c-icon name="network" size="40" :color="skinColor.iconColor"></c-icon>
+					</fixed-button>
+				</view>
 				<view @tap="scrollTop">
 					<fixed-button :show="Math.abs(oldOffsetY) > 2000">
 						<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
@@ -182,17 +187,19 @@
 			},
 			//读取书籍
 			readBook (path) {
-				let fd = plus.android.newObject("java.io.File", path);
-				if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
-					plus.nativeUI.toast("文件路径不存在！", {verticalAlign: 'center'});
-					this.deleteBook(path);
-					return;
-				}
 				let index = indexOf(this.bookList, path, 'path');
+				if ( this.bookList[index].source == 'local' ) {
+					let fd = plus.android.newObject("java.io.File", path);
+					if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
+						plus.nativeUI.toast("文件路径不存在！", {verticalAlign: 'center'});
+						this.deleteBook(path);
+						return;
+					}
+				}
 				if ( this.bookList[index].type == 'story' ) {
 					getApp().globalData.routePush('/pages/book/read/index?index=' + index);
 				} else if ( this.bookList[index].type == 'comic' ) {
-					getApp().globalData.routePush('/pages/comic/read/index?index=' + index);
+					getApp().globalData.routePush('/pages/comic/detail/index?index=' + index);
 				} else {
 					uni.showToast({
 						title: '无法识别的书籍类型',
@@ -201,12 +208,17 @@
 					this.deleteBook(path);
 				}
 			},
+			//搜索本地书籍
 			searchBook () {
 				if ( this.currentTab == 0 ) {
 					getApp().globalData.routePush('/pages/book/search/index');
 				} else {
 					getApp().globalData.routePush('/pages/comic/search/index');
 				}
+			},
+			//搜索在线漫画
+			comicOnline () {
+				getApp().globalData.routePush('/pages/comic/online/index');
 			}
 		},
 		onBackPress(event) {

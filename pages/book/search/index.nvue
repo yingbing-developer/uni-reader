@@ -127,7 +127,7 @@
 				let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
 				let getSDPath = new GetSDPath();
 				let pathStr = getSDPath.getSDPath();
-				this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
+				this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr))) || [];
 				
 				setTimeout(() => {
 					this.getFileSystem(plus.android.newObject("java.io.File", this.bookPathHistory));

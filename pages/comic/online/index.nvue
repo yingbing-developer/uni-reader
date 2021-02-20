@@ -1,0 +1,379 @@
+<template>
+	<view class="search" :style="{'background-color': skinColor.bgColor}">
+		<nav-bar title="在线漫画" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+			<!-- <view class="nav-right" slot="right">
+				<view @tap="$refs.bubble.show()">
+					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
+				</view>
+			</view> -->
+		</nav-bar>
+		<c-search @confirm="setNameFilter"></c-search>
+		
+		<!-- 漫画列表 -->
+		<list-scroll ref="list" @scroll="scroll" :line-height="200" :list="comicList" @loadmore="loadmore">
+			<no-data slot="fixed" v-if="comicList.length <= 0" :title="noDataTitle"></no-data>
+			<!-- 列表顶部 用于返回顶部 -->
+			<view slot="listTop" ref="listTop"></view>
+			<template v-slot="{item}">
+				<view @tap="readComic(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor}">
+					<view class="comic-list-icon" @tap.stop="check(item.path)">
+						<c-image class="comic-image" :src="item.image" mode="aspectFill"></c-image>
+					</view>
+					<view class="comic-list-right">
+						<view class="comic-lr-line comic-title-line">
+							<text class="comic-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
+							<text class="comic-list-source" :style="{'color': skinColor.textColor}">{{item.source}}</text>
+						</view>
+						<view class="comic-lr-line">
+							<text class="comic-list-text" :style="{'color': skinColor.textColor}">{{item.author}}</text>
+						</view>
+						<view class="comic-lr-line">
+							<text class="comic-list-text" :style="{'color': skinColor.textColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
+						</view>
+						<view class="comic-lr-line">
+							<text class="comic-list-text" :style="{'color': skinColor.textColor}">简介：{{item.intro}}</text>
+						</view>
+					</view>
+				</view>
+			</template>
+			<view slot="listBottom" class="comic-loading" v-if="isLastPage && comicList.length > 0"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">没有更多了</text></view>
+			<loading slot="loading" class="comic-loading" v-if="comicList.length >= 6 && !isLastPage"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">加载中...</text></loading>
+		</list-scroll>
+		
+		<!-- 气泡弹窗 -->
+		<bubble ref="bubble">
+			<view v-for="(item, index) in types" :key="index">
+				<bubble-item :title="item"></bubble-item>
+			</view>
+		</bubble>
+		  
+		<view class="fixed">
+			<view @tap="scrollTop">
+				<fixed-button :show="Math.abs(oldOffsetY) > 300">
+					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
+				</fixed-button>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import { skinMixin } from '@/common/mixin/index.js'
+	import { getComic, getComicNum} from '@/common/online/getComic.js'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CSearch from '@/components/search/search.nvue'
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import Bubble from '@/components/bubble/bubble.nvue'
+	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
+	import CImage from '@/components/c-image/c-image.nvue'
+	import NoData from '@/components/no-data/no-data.nvue'
+	import { indexOf } from '@/common/js/util.js'
+	import { mapGetters, mapMutations } from 'vuex'
+	const dom = weex.requireModule('dom');
+	export default {
+		mixins: [skinMixin],
+		data () {
+			return {
+				types: ['百合', '热血', '少女'],
+				//漫画列表
+				comicList: [],
+				//名称过滤
+				nameFilter: '',
+				//当前页数
+				nowPage: 1,
+				//是否已经加载完了所有数据
+				isLastPage: false,
+				//滚动距离
+				oldOffsetY: 0
+			}
+		},
+		computed: {
+			...mapGetters(['bookList', 'comicPathHistory']),
+			noDataTitle () {
+				return this.nameFilter ? '没有搜索结果' : '请输入漫画名称'
+			}
+		},
+		onLoad () {
+			
+		},
+		methods: {
+			...mapMutations(['addBooks', 'deleteBook']),
+			scroll (e) {
+				this.oldOffsetY = e.contentOffset.y;
+			},
+			//设置搜索名称
+			setNameFilter (val) {
+				this.nameFilter = val;
+				if ( this.nameFilter ) {
+					uni.showLoading({
+						title: '搜索中',
+						mask: true
+					})
+					this.nowPage = 1;
+					this.isLastPage = false;
+					this.searchComic()
+				} else {
+					if ( this.comicList.length == 0 ) {
+						uni.showToast({
+							title: '请输入漫画名称',
+							icon: 'none'
+						})
+					} else {
+						this.comicList = [];
+					}
+				}
+			},
+			//触底加载更多漫画
+			loadmore (e) {
+				if ( this.nameFilter && !this.isLastPage && this.comicList.length >= 6 ) {
+					setTimeout(() => {
+						this.nowPage += 1;
+						this.searchComic();
+					}, 1000)
+				}
+			},
+			//搜索网络漫画
+			searchComic () {
+				getComic({
+					title: this.nameFilter,
+					page: this.nowPage
+				}).then((res) => {
+					uni.hideLoading();
+					this.$refs["list"].resetLoadmore();
+					if ( res[0].code == 200 ) {
+						if ( this.nowPage > 1 ) {
+							this.comicList = this.comicList.concat(res[0].data);
+						} else {
+							this.comicList = res[0].data;
+							this.scrollTop();
+						}
+						if ( res[0].data.length == 0 ) {
+							this.isLastPage = true;
+						}
+					}
+				}).catch((err) => {
+					this.$refs["list"].resetLoadmore();
+					uni.showToast({
+						title: '请求失败',
+						icon: 'none'
+					})
+				});
+			},
+			//展示操作列表
+			showAction (path) {
+				let flag = indexOf(this.comicList, path, 'path');
+				let actions = [];
+				this.actionPath = path;
+				//已经导入的文件操作列表
+				if ( this.isLead(path) > -1 ) {
+					actions = [{
+						title: '取消导入',
+						value: 'pop'
+					}]
+				} else {
+					//未导入的文件的操作列表
+					actions = [{
+						title: '导入',
+						value: 'push'
+					}]
+				}
+				getApp().globalData.actionSheet(actions).then((val) => {
+					//用户选择导入操作
+					if ( val == 'push' ) {
+						//根据文件路径判断文件有没有被导入过
+						if ( this.isLead(this.actionPath) == -1 ) {
+							this.leadBook(this.actionPath);
+							
+						} else {
+							uni.showToast({
+								title: '这本书已经导入了',
+								icon: 'none'
+							})
+						}
+					}
+					//选择取消导入
+					if ( val == 'pop' ) {
+						let name = this.comicList[indexOf(this.comicList, this.actionPath, 'path')].name;
+						getApp().globalData.message('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
+							if ( res == 'confirm' ) {
+								this.deleteBook(this.actionPath);
+							}
+						});
+					}
+					
+					//分享
+					if ( val == 'share' ) {
+						this.share();
+					}
+				})
+			},
+			//阅读漫画
+			readComic (path) {
+				//查询有没有导入过该漫画
+				let bookIndex = indexOf(this.bookList, path, 'path');
+				//导入过直接阅读
+				if ( bookIndex > -1 ) {
+					getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
+				} else {
+					//未导入，则先导入再进行阅读
+					this.leadBook(path, true);
+				}
+			},
+			//导入书籍
+			leadBook (path, isRead = false) {
+				uni.showLoading({
+					title: '正在解析',
+					mask: true
+				})
+				let flag = indexOf(this.comicList, path, 'path');
+				let books = [];
+				getComicNum({
+					source: this.comicList[flag].source,
+					href: path
+				}).then((res) => {
+					if ( res.code == 200 ) {
+						uni.hideLoading();
+						books.push({
+							name: this.comicList[flag].name,
+							image: this.comicList[flag].image,
+							length: res.data.length,
+							type: 'comic',
+							path: this.comicList[flag].path,
+							source: this.comicList[flag].source
+						});
+						this.addBooks(books);
+						if ( isRead ) {
+							this.$nextTick(() => {
+								let bookIndex = indexOf(this.bookList, path, 'path');
+								if ( bookIndex > -1 ) {
+									getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
+								} else {
+									uni.showToast({
+										title: '漫画导入失败',
+										icon: 'none'
+									});
+								}
+							})
+						} else {
+							uni.showToast({
+								title: '导入成功'
+							});
+						}
+					}
+				}).catch((err) => {
+					uni.showToast({
+						title: '解析失败',
+						icon: 'none'
+					})
+				})
+			},
+			//返回顶部
+			scrollTop () {
+				dom.scrollToElement(this.$refs.listTop, {animated: false});
+			},
+			//根据文件路径判断当前文件是否已经导入,返回下标
+			isLead (path) {
+				return indexOf(this.bookList, path, 'path');
+			}
+		},
+		onBackPress(event) {
+			//气泡菜单打开时,先关闭气泡菜单
+			if ( this.$refs.bubble.isShow ) {
+				this.$refs.bubble.hide();
+				return true;
+			}
+			return false;
+		},
+		components: {
+			CIcon,
+			CSearch,
+			Bubble,
+			BubbleItem,
+			CImage,
+			ListScroll,
+			NoData
+		}
+	}
+</script>
+
+<style scoped>
+	.nav-right {
+		flex-direction: row;
+		flex: 1;
+		justify-content: flex-end;
+		align-items: center;
+	}
+	.nav-text {
+		font-size: 30rpx;
+		margin-right: 22.5rpx;
+		text-overflow: ellipsis;
+		lines: 1;
+	}
+	.comic-list {
+		flex-direction: row;
+		border-bottom-width: 1px;
+		border-bottom-style: solid;
+		padding: 20rpx;
+		height: 200rpx;
+		position: relative;
+	}
+	.comic-list-icon {
+		justify-content: center;
+		align-items: center;
+		width: 150rpx;
+		position: relative;
+	}
+	.comic-image {
+		width: 150rpx;
+		height: 200rpx;
+	}
+	.comic-list-right {
+		flex: 1;
+		justify-content: space-between;
+		margin-left: 20rpx;
+	}
+	.comic-list-right-back {
+		flex-direction: row;
+		align-items: center;
+	}
+	.comic-lr-line {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.comic-list-title {
+		flex: 1;
+		font-size: 30rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.comic-list-source {
+		font-size: 30rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.comic-lt-right {
+		width: 70rpx;
+	}
+	.comic-list-text {
+		flex: 1;
+		font-size: 24rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.comic-loading {
+		align-items: center;
+		padding: 20rpx 0;
+	}
+	.comic-loading-text {
+		font-size: 24rpx;
+	}
+	.fixed {
+		position: fixed;
+		bottom: 20px;
+		right: 20px;
+		width: 90rpx;
+		align-items: center;
+		justify-content: flex-end;
+	}
+</style>

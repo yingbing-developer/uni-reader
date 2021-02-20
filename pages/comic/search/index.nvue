@@ -173,7 +173,8 @@
 					let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
 					let getSDPath = new GetSDPath();
 					let pathStr = getSDPath.getSDPath();
-					this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
+					this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr))) || [];
+					
 					if ( this.comicPathHistory ) {
 						this.getComicList(this.comicPathHistory);
 					} else {
@@ -214,7 +215,7 @@
 				uni.showLoading({
 					title: '读取中..'
 				})
-				let ff = plus.android.newObject("java.io.File", path)
+				let ff = plus.android.newObject("java.io.File", path);
 				if ( ff == null && !plus.android.invoke(ff, 'exists') ) {
 					uni.showToast({
 						title: '资源路径失效，请重新选择资源路径',
@@ -232,7 +233,7 @@
 				//调试用
 				// let comicList = []
 				// let list = plus.android.invoke(ff, 'listFiles');
-				// let len = this.list.length;
+				// let len = list.length;
 				// for(let i = 0; i < len; i++){
 				// 	// 文件夹
 				// 	if ( plus.android.invoke(list[i], 'isDirectory') ) {
@@ -588,7 +589,7 @@
 				let bookIndex = indexOf(this.bookList, path, 'path');
 				//导入过直接阅读
 				if ( bookIndex > -1 ) {
-					getApp().globalData.routePush('/pages/comic/read/index?index=' + bookIndex);
+					getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
 				} else {
 					//未导入，则先导入再进行阅读
 					let books = [];
@@ -603,7 +604,7 @@
 					this.$nextTick(() => {
 						bookIndex = indexOf(this.bookList, path, 'path');
 						if ( bookIndex > -1 ) {
-							getApp().globalData.routePush('/pages/comic/read/index?index=' + bookIndex);
+							getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
 						} else {
 							plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
 						}
