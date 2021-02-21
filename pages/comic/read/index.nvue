@@ -117,68 +117,71 @@
 					title: '读取中..',
 					mask: true
 				})
-				if ( this.comicInfo.source == 'local' ) {
-					//读取本地漫画内容
-					//正式用
-					let getComicContent = new GetComicContent();
-					let comicStr = getComicContent.getContent(this.comicInfo.path, this.chapter);
-					this.comicSync = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
-					
-					//调试用
-					// let arr = [];
-					// let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
-					// let list = plus.android.invoke(fd, "listFiles");
-					// this.$nextTick(async () => {
-					// 	if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
-					// 		let childList = plus.android.invoke(list[this.chapter], "listFiles")
-					// 		let len = childList.length;
-					// 		for ( let i = 0; i < len; i++ ) {
-					// 			let path = plus.android.invoke(childList[i], "getPath");
-					// 			arr.push({
-					// 				path: path,
-					// 				name: plus.android.invoke(childList[i], "getName"),
-					// 				imageWidth: 750,
-					// 				imageHeight: await this.countImageHeight(path)
-					// 			})
-					// 		}
-					// 	} else {
-					// 		let len = list.length;
-					// 		for ( let i = 0; i < len; i++ ) {
-					// 			let path = plus.android.invoke(list[i], "getPath");
-					// 			arr.push({
-					// 				path: path,
-					// 				name: plus.android.invoke(list[i], "getName"),
-					// 				imageWidth: 750,
-					// 				imageHeight: await this.countImageHeight(path)
-					// 			})
-					// 		}
-					// 	}
-					// 	arr.sort((a, b) => {
-					// 		return cnnumtonum(a.name) - cnnumtonum(b.name);
-					// 	})
-					// 	this.comicSync = arr;
+				this.comicSync = [];
+				this.timer = setTimeout(() => {
+					if ( this.comicInfo.source == 'local' ) {
+						//读取本地漫画内容
+						//正式用
+						let getComicContent = new GetComicContent();
+						let comicStr = getComicContent.getContent(this.comicInfo.path, this.chapter);
+						this.comicSync = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
 						
-						
-						setTimeout(() => {
-							this.scrollTo();
-						}, 50)
-						uni.hideLoading();
-					// }, 1)
-				} else {
-					//读取在线漫画内容
-					this.getOnlineComicContent().then((res) => {
-						this.comicSync = res;
-						setTimeout(() => {
-							this.scrollTo();
-						}, 50)
-						uni.hideLoading();
-					}).catch((err) => {
-						uni.showToast({
-							title: '解析失败',
-							icon: 'none'
-						})
-					});
-				}
+						//调试用
+						// let arr = [];
+						// let fd = plus.android.newObject("java.io.File", this.comicInfo.path);
+						// let list = plus.android.invoke(fd, "listFiles");
+						// this.$nextTick(async () => {
+						// 	if ( plus.android.invoke(list[this.chapter], "isDirectory") ) {
+						// 		let childList = plus.android.invoke(list[this.chapter], "listFiles")
+						// 		let len = childList.length;
+						// 		for ( let i = 0; i < len; i++ ) {
+						// 			let path = plus.android.invoke(childList[i], "getPath");
+						// 			arr.push({
+						// 				path: path,
+						// 				name: plus.android.invoke(childList[i], "getName"),
+						// 				imageWidth: 750,
+						// 				imageHeight: await this.countImageHeight(path)
+						// 			})
+						// 		}
+						// 	} else {
+						// 		let len = list.length;
+						// 		for ( let i = 0; i < len; i++ ) {
+						// 			let path = plus.android.invoke(list[i], "getPath");
+						// 			arr.push({
+						// 				path: path,
+						// 				name: plus.android.invoke(list[i], "getName"),
+						// 				imageWidth: 750,
+						// 				imageHeight: await this.countImageHeight(path)
+						// 			})
+						// 		}
+						// 	}
+						// 	arr.sort((a, b) => {
+						// 		return cnnumtonum(a.name) - cnnumtonum(b.name);
+						// 	})
+						// 	this.comicSync = arr;
+							
+							
+							setTimeout(() => {
+								this.scrollTo();
+							}, 50)
+							uni.hideLoading();
+						// }, 1)
+					} else {
+						//读取在线漫画内容
+						this.getOnlineComicContent().then((res) => {
+							this.comicSync = res;
+							setTimeout(() => {
+								this.scrollTo();
+							}, 50)
+							uni.hideLoading();
+						}).catch((err) => {
+							uni.showToast({
+								title: '解析失败',
+								icon: 'none'
+							})
+						});
+					}
+				}, 50)
 			},
 			//获取在线漫画内容
 			getOnlineComicContent () {
@@ -441,6 +444,7 @@
 					isReaded: false
 				})
 			}
+			clearTimeout(this.timer);
 			return false;
 		},
 		components: {

@@ -126,7 +126,8 @@
 			//触底加载更多漫画
 			loadmore (e) {
 				if ( this.nameFilter && !this.isLastPage && this.comicList.length >= 6 ) {
-					setTimeout(() => {
+					clearTimeout(this.timer);
+					this.timer = setTimeout(() => {
 						this.nowPage += 1;
 						this.searchComic();
 					}, 1000)
@@ -282,6 +283,7 @@
 				this.$refs.bubble.hide();
 				return true;
 			}
+			clearTimeout(this.timer);
 			return false;
 		},
 		components: {
