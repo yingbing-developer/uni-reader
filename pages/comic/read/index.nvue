@@ -87,7 +87,6 @@
 		},
 		data () {
 			return {
-				comic: [1,2,3,4,5,6,5],
 				comicSync: [],
 				nowIndex: 0,
 				//屏幕宽度，用于计算图片的高度
@@ -117,7 +116,11 @@
 					title: '读取中..',
 					mask: true
 				})
+				//重置页面
 				this.comicSync = [];
+				this.nextShow = false;
+				this.prevShow = false;
+				clearTimeout(this.timer);
 				this.timer = setTimeout(() => {
 					if ( this.comicInfo.source == 'local' ) {
 						//读取本地漫画内容

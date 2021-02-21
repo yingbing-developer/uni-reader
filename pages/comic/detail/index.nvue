@@ -31,7 +31,7 @@
 			<no-data slot="fixed" v-if="catalog.length <= 0" title="貌似没有章节哦"></no-data>
 			<template v-slot="{item}">
 				<view class="catalog-block" :style="{'background-color': item.path == readed.path ? skinColor.gapColor : '', 'border-color': skinColor.gapColor}" @tap="readComic(item.path)">
-					<text class="catalog-text" :style="{'color': skinColor.menuTextColor}">{{item.name}}</text>
+					<text class="catalog-text" :style="{'color': skinColor.menuTitleColor}">{{item.name}}</text>
 				</view>
 			</template>
 		</list-scroll>
@@ -293,7 +293,6 @@
 	}
 	.catalog-text {
 		font-size: 24rpx;
-		color: #898989;
 		lines: 1;
 		text-overflow: ellipsis;
 	}
