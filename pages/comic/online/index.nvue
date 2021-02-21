@@ -7,7 +7,7 @@
 				</view>
 			</view> -->
 		</nav-bar>
-		<c-search @confirm="setNameFilter"></c-search>
+		<c-search @confirm="setNameFilter" close-clear></c-search>
 		
 		<!-- 漫画列表 -->
 		<list-scroll ref="list" @scroll="scroll" :line-height="200" :list="comicList" @loadmore="loadmore">

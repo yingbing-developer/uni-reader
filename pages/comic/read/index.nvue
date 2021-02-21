@@ -7,7 +7,8 @@
 			
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
 				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @longpress="preview(item.path)">
-					<c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="aspectFit"></c-image>
+					<!-- <c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="widthFix"></c-image> -->
+					<c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix"></c-image>
 				</view>
 			</cell>
 			
@@ -427,10 +428,13 @@
 			})
 			//退出前判断有没有读完漫画
 			if ( this.nextShow ) {
-				this.updateBookReadStatus({
-					path: this.comicInfo.path,
-					isReaded: this.chapter + 1 >= this.chapters.length
-				})
+				//本地漫画才判断有没有读完
+				if ( this.comicInfo.source == 'local' ) {
+					this.updateBookReadStatus({
+						path: this.comicInfo.path,
+						isReaded: this.chapter + 1 >= this.chapters.length
+					})
+				}
 			} else {
 				this.updateBookReadStatus({
 					path: this.comicInfo.path,
@@ -451,9 +455,10 @@
 	.comic-box {
 		border-bottom-width: 1px;
 	}
-	/* .comic-image {
-		width: 750rpx;
-	} */
+	.comic-image {
+		/* width: 750rpx; */
+		padding: 1rpx 0;
+	}
 	.touch-box {
 		justify-content: center;
 		align-items: center;

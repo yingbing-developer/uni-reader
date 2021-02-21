@@ -18,6 +18,12 @@
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	export default {
 		mixins: [skinMixin],
+		props: {
+			closeClear: {
+				type: Boolean,
+				default: false
+			}
+		},
 		data () {
 			return {
 				//过滤内容
@@ -37,8 +43,10 @@
 		},
 		watch: {
 			filterContent (val) {
-				if ( val.length <= 0 ) {
-					this.$emit('confirm', '');
+				if ( !this.closeClear ) {
+					if ( val.length <= 0 ) {
+						this.$emit('confirm', '');
+					}
 				}
 			}
 		},

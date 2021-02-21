@@ -69,7 +69,10 @@
 			"path": "pages/comic/getComicContent/index",
 			"style": {
 				"disableScroll": true, // 不嵌套 scroller
-				"backgroundColor": "transparent"
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"bounce":"none"
+				}
 			}
 		},
 		//漫画阅读页
