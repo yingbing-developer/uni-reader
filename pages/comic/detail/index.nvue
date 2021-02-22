@@ -8,7 +8,7 @@
 				<text class="book-intro-title" :style="{'color': skinColor.menuTitleColor}">{{comicInfo.source == 'local' ? '佚名' : author}}</text>
 				<view class="book-intro">
 					<text class="book-intro-title" :style="{'color': skinColor.titleColor}">内容简介</text>
-					<text class="book-intro-text" :style="{'color': skinColor.textColor}">{{comicInfo.source == 'local' ? '暂无介绍' : intro}}</text>
+					<text class="book-intro-text" :style="{'color': skinColor.menuTitleColor}">{{comicInfo.source == 'local' ? '暂无介绍' : intro}}</text>
 				</view>
 			</view>
 		</view>

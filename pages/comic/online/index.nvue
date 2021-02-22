@@ -31,7 +31,7 @@
 							<text class="comic-list-text" :style="{'color': skinColor.textColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-text" :style="{'color': skinColor.textColor}">简介：{{item.intro}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">简介：{{item.intro}}</text>
 						</view>
 					</view>
 				</view>

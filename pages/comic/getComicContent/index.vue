@@ -25,7 +25,7 @@
 		},
 		onReady () {
 			//遮挡层，将web-view组件挡住避免背景色不同引起的闪屏
-			bgBox = new plus.nativeObj.View('box',{
+			bgBox = new plus.nativeObj.View('bg',{
 				top:'0',left:'0', width: '100%', height: '100%', backgroundColor: this.skinColor.bgColor
 			});
 			bgBox.show();
