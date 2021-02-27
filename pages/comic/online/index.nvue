@@ -22,13 +22,13 @@
 					<view class="comic-list-right">
 						<view class="comic-lr-line comic-title-line">
 							<text class="comic-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-							<text class="comic-list-source" :style="{'color': skinColor.textColor}">{{item.source}}</text>
+							<text class="comic-list-source" :style="{'color': skinColor.menuTitleColor}">{{item.source}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-text" :style="{'color': skinColor.textColor}">{{item.author}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">{{item.author}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-text" :style="{'color': skinColor.textColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
 						</view>
 						<view class="comic-lr-line">
 							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">简介：{{item.intro}}</text>
@@ -228,48 +228,45 @@
 				})
 				let flag = indexOf(this.comicList, path, 'path');
 				let books = [];
-				clearTimeout(this.readTimer);
-				this.readTimer = setTimeout(() => {
-					getComicNum({
-						source: this.comicList[flag].source,
-						href: path
-					}).then((res) => {
-						if ( res.code == 200 ) {
-							uni.hideLoading();
-							books.push({
-								name: this.comicList[flag].name,
-								image: this.comicList[flag].image,
-								length: res.data.length,
-								type: 'comic',
-								path: this.comicList[flag].path,
-								source: this.comicList[flag].source
+				getComicNum({
+					source: this.comicList[flag].source,
+					href: path
+				}).then((res) => {
+					if ( res.code == 200 ) {
+						uni.hideLoading();
+						books.push({
+							name: this.comicList[flag].name,
+							image: this.comicList[flag].image,
+							length: res.data.length,
+							type: 'comic',
+							path: this.comicList[flag].path,
+							source: this.comicList[flag].source
+						});
+						this.addBooks(books);
+						if ( isRead ) {
+							this.$nextTick(() => {
+								let bookIndex = indexOf(this.bookList, path, 'path');
+								if ( bookIndex > -1 ) {
+									getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
+								} else {
+									uni.showToast({
+										title: '漫画导入失败',
+										icon: 'none'
+									});
+								}
+							})
+						} else {
+							uni.showToast({
+								title: '导入成功'
 							});
-							this.addBooks(books);
-							if ( isRead ) {
-								this.$nextTick(() => {
-									let bookIndex = indexOf(this.bookList, path, 'path');
-									if ( bookIndex > -1 ) {
-										getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
-									} else {
-										uni.showToast({
-											title: '漫画导入失败',
-											icon: 'none'
-										});
-									}
-								})
-							} else {
-								uni.showToast({
-									title: '导入成功'
-								});
-							}
 						}
-					}).catch((err) => {
-						uni.showToast({
-							title: '解析失败',
-							icon: 'none'
-						})
+					}
+				}).catch((err) => {
+					uni.showToast({
+						title: '解析失败',
+						icon: 'none'
 					})
-				}, 20) 
+				})
 			},
 			//返回顶部
 			scrollTop () {
@@ -287,7 +284,6 @@
 				return true;
 			}
 			clearTimeout(this.timer);
-			clearTimeout(this.readTimer);
 			return false;
 		},
 		components: {

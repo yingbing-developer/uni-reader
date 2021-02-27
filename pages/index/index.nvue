@@ -312,6 +312,11 @@
 		lines:1;
 		text-overflow:ellipsis;
 	}
+	.book-tip {
+		position: absolute;
+		right: 0;
+		top: 10rpx;
+	}
 	.nav-left {
 		margin-right: 60rpx;
 	}

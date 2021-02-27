@@ -96,6 +96,12 @@
 				prevShow: false
 			}
 		},
+		beforeCreate () {
+			uni.$on('app-hide', (res) => {
+				//app后台运行时更新阅读记录
+				this.upReadStatus();
+			})
+		},
 		onLoad () {
 			uni.$emit('musicBtn-hide');
 			this.changeOrien();
@@ -141,9 +147,7 @@
 						// 			let path = plus.android.invoke(childList[i], "getPath");
 						// 			arr.push({
 						// 				path: path,
-						// 				name: plus.android.invoke(childList[i], "getName"),
-						// 				imageWidth: 750,
-						// 				imageHeight: await this.countImageHeight(path)
+						// 				name: plus.android.invoke(childList[i], "getName")
 						// 			})
 						// 		}
 						// 	} else {
@@ -152,9 +156,7 @@
 						// 			let path = plus.android.invoke(list[i], "getPath");
 						// 			arr.push({
 						// 				path: path,
-						// 				name: plus.android.invoke(list[i], "getName"),
-						// 				imageWidth: 750,
-						// 				imageHeight: await this.countImageHeight(path)
+						// 				name: plus.android.invoke(list[i], "getName")
 						// 			})
 						// 		}
 						// 	}
@@ -203,18 +205,6 @@
 					});
 				})
 			},
-			//计算图片高度 (nvue的bug,image组件的widthFix无效,无法自适应高度)
-			countImageHeight (imagePath) {
-				return new Promise((resolve, reject) => {
-					uni.getImageInfo({
-						src: 'file://' + imagePath,
-						success: (image) => {
-							let power = this.windowWidth / image.width;
-							resolve(image.height * power);
-						}
-					});
-				})
-			},
 			//预览图片
 			preview (path) {
 				let index = indexOf(this.comicSync, path, 'path');
@@ -236,11 +226,11 @@
 					    success: (data) => {
 							//选择分享
 							if ( data.tapIndex == 0 ) {
-								this.shareImage(imgs[data.index]);
+								this.shareImage(imgs[data.index], data.tapIndex);
 							}
 							//保存图片
 							if ( data.tapIndex == 1 ) {
-								this.saveImage(imgs[data.index]);
+								this.saveImage(imgs[data.index], data.tapIndex);
 							}
 					    },
 					    fail: function(err) {
@@ -250,57 +240,35 @@
 				});
 			},
 			//分享图片
-			shareImage (url) {
+			shareImage (url, flag) {
 				if ( this.comicInfo.source == 'local' ) {
 					//本地图片直接分享
 					this.intentImage(url);
 				} else {
 					//网络图片先下载
-					uni.downloadFile({
-						url,
-						success: (res) => {
-							if (res.statusCode === 200) {
-								this.intentImage(res.tempFilePath);
-							} else {
-								uni.showToast({
-									title: '分享失败',
-									icon: 'none'
-								})
-							}
-						}
-					});
+					this.downloadImage(url, flag);
 				}
 			},
+			//分享图片
 			intentImage (path) {
 				let shareIntent = new Intent(Intent.ACTION_SEND);
 				let filePath = plus.io.convertLocalFileSystemURL(path);
 				let file = plus.android.newObject("java.io.File", filePath);
 				shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
-				shareIntent.setType("image/*");//此处可发送txt文件
+				shareIntent.setType("image/*");//此处可发送image图片
 				main.startActivity(Intent.createChooser(shareIntent,"分享图片"));
 			},
 			//保存图片
-			saveImage (url) {
+			saveImage (url, flag) {
 				if ( this.comicInfo.source == 'local' ) {
 					//本地图片直接保存
 					this.photoImage(url);
 				} else {
 					//网络图片先下载
-					uni.downloadFile({
-						url,
-						success: (res) => {
-							if (res.statusCode === 200) {
-								this.photoImage(res.tempFilePath);
-							} else {
-								uni.showToast({
-									title: '下载失败',
-									icon: 'none'
-								})
-							}
-						}
-					});
+					this.downloadImage(url, flag);
 				}
 			},
+			//将图片保存到相册
 			photoImage (path) {
 				uni.saveImageToPhotosAlbum({
 					filePath: path,
@@ -312,6 +280,34 @@
 					fail: function() {
 						uni.showToast({
 							title: '保存失败',
+							icon: 'none'
+						})
+					}
+				});
+			},
+			//下载图片
+			downloadImage (url, flag) {
+				//网络图片先下载
+				uni.downloadFile({
+					url,
+					success: (res) => {
+						if (res.statusCode === 200) {
+							if ( flag == 0 ) {
+								this.intentImage(res.tempFilePath);
+							}
+							if ( flag == 1 ) {
+								this.photoImage(res.tempFilePath);
+							}
+						} else {
+							uni.showToast({
+								title: '图片下载失败',
+								icon: 'none'
+							})
+						}
+					},
+					fail: (err) => {
+						uni.showToast({
+							title: '网络错误',
 							icon: 'none'
 						})
 					}
@@ -391,6 +387,28 @@
 			//改变屏幕方向
 			changeOrien () {
 				plus.screen.lockOrientation(this.comicOrien + '-primary');
+			},
+			upReadStatus () {
+				//退出前更新本章节的阅读位置
+				this.updateBookRecord({
+					path: this.comicInfo.path,
+					record: this.chapter + '-' + this.nowIndex
+				})
+				//退出前判断有没有读完漫画
+				if ( this.nextShow ) {
+					//本地漫画才判断有没有读完
+					if ( this.comicInfo.source == 'local' ) {
+						this.updateBookReadStatus({
+							path: this.comicInfo.path,
+							isReaded: this.chapter + 1 >= this.chapters.length
+						})
+					}
+				} else {
+					this.updateBookReadStatus({
+						path: this.comicInfo.path,
+						isReaded: false
+					})
+				}
 			}
 		},
 		watch: {
@@ -406,6 +424,11 @@
 		},
 		beforeDestroy() {
 			uni.$emit('musicBtn-show');
+			uni.$off('app-hide');
+		},
+		onUnload () {
+			//页面卸载更新阅读记录
+			this.upReadStatus();
 		},
 		onResize () {
 			//重新计算屏幕宽度和图片高度
@@ -426,26 +449,6 @@
 			if ( size.width > size.height ) {
 				//退出前锁定为竖屏
 				plus.screen.lockOrientation('portrait-primary');
-			}
-			//退出前更新本章节的阅读位置
-			this.updateBookRecord({
-				path: this.comicInfo.path,
-				record: this.chapter + '-' + this.nowIndex
-			})
-			//退出前判断有没有读完漫画
-			if ( this.nextShow ) {
-				//本地漫画才判断有没有读完
-				if ( this.comicInfo.source == 'local' ) {
-					this.updateBookReadStatus({
-						path: this.comicInfo.path,
-						isReaded: this.chapter + 1 >= this.chapters.length
-					})
-				}
-			} else {
-				this.updateBookReadStatus({
-					path: this.comicInfo.path,
-					isReaded: false
-				})
 			}
 			clearTimeout(this.timer);
 			return false;

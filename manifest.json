@@ -5,6 +5,10 @@
     "versionName" : "2.8.2",
     "versionCode" : 282,
     "transformPx" : false,
+	"networkTimeout" : {
+		"request" : 15000,
+		"downloadFile" : 15000
+	},
     /* 5+App特有相关 */
     "app-plus" : {
         "usingComponents" : true,

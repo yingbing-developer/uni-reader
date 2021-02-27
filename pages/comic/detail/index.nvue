@@ -81,8 +81,6 @@
 			}
 		},
 		onReady () {
-			//更新阅读时间
-			this.updateBookReadTime(this.comicInfo.path);
 			if ( this.comicInfo.source == 'local' ) {
 				this.getLocalComicCatalog()
 			} else {
@@ -154,6 +152,8 @@
 					record: record
 				})
 				let index = indexOf(this.bookList, this.comicInfo.path, 'path');
+				//更新阅读时间
+				this.updateBookReadTime(this.comicInfo.path);
 				getApp().globalData.routePush(`/pages/comic/read/index?index=${index}&nums=${encodeURIComponent(nums)}&readIndex=${readIndex}`);
 			},
 			//获取本地漫画章节

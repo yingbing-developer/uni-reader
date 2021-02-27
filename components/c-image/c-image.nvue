@@ -1,12 +1,15 @@
 <template>
 	<view class="c-image" @appear="appear" @disappear="disappear" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : ''}">
-		<image :class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : ''}"></image>
+		<image @load="getImageInfo" ref="image" :class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : ''}"></image>
 		<view class="img-mask" :style="{opacity: skinColor.imgMask}" v-if="enableMask"></view>
 	</view>
 </template>
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
+	// #ifdef APP-NVUE
+	const dom = weex.requireModule('dom');
+	// #endif
 	export default {
 		mixins: [skinMixin],
 		props: {
@@ -68,13 +71,6 @@
 				if ( this.enableHidden ) {
 					this.hidden = false;
 				}
-				if ( !this.width && !this.height && this.mode == 'widthFix' ) {
-					this.timer = setTimeout(async () => {
-						let size = await this.getImageInfo();
-						this.width = size.width;
-						this.height = size.height;
-					}, 20)
-				}
 			},
 			disappear () {
 				if ( this.enableHidden ) {
@@ -82,20 +78,14 @@
 				}
 			},
 			getImageInfo () {
-				//判断是网络图片还是本地图片，本地图片需要加上file://
-				let reg = /^https?/ig;
-				let url = reg.test(this.url) ? this.url : 'file://' + this.url;
-				return new Promise((resolve, reject) => {
-					uni.getImageInfo({
-					  src: url,
-					  success: (res) => {
-					    resolve(res);
-					  },
-					  fail: (err) => {
-					    reject(err);
-					  }
-					});
-				})
+				if ( !this.width && !this.height && this.mode == 'widthFix' ) {
+					this.timer = setTimeout(() => {
+						dom.getComponentRect(this.$refs.image, (res) => {
+							this.width = res.size.width;
+							this.height = res.size.height;
+						});
+					}, 100)
+				}
 			}
 		},
 		beforeDestroy() {

@@ -63,7 +63,8 @@ function getMangabz (data) {
 
 //获取mangaBz网站的漫画章节
 function getMangabzNum (href) {
-	return new Promise((resolve, reject) => {
+	let abort;
+	let p1 = new Promise((resolve, reject) => {
 		http.get(COMICURL['mangabz'] + href).then((res) => {
 			let str = JSON.stringify(res.data);//将获得的html转化为字符串
 			str = str.replace(/\\/g,'');//替换无关的斜杠
@@ -91,6 +92,10 @@ function getMangabzNum (href) {
 			reject(response)
 		})
 	})
+	let p2 = new Promise((resolve, reject) => (abort = reject));
+	let p = Promise.race([p1, p2]);
+	p.abort = abort;
+	return p;
 }
 
 //获取mangaBz网站的漫画详情信息
