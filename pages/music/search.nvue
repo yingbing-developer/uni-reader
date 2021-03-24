@@ -24,7 +24,7 @@
 				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
 					<view class="list-icon" @tap.stop="check(item.path)">
 						<c-icon name="folder" size="75" color="#FFCA28" v-if="item.type == 'folder'"></c-icon>
-						<c-image style="width: 75rpx;height: 75rpx;border-radius: 75rpx;" src="/static/music/music-type.png" mode="scaleToFill" v-else></c-image>
+						<c-image style="width: 75rpx;height: 75rpx" borderRadius="75" src="/static/music/music-type.png" mode="scaleToFill" v-else></c-image>
 					</view>
 					<view class="list-right">
 						<view class="lr-top">
@@ -40,7 +40,7 @@
 			</template>
 		</list-scroll>
 		  <view class="btn-box" v-if="checkes.length > 0" :style="{'border-top-color': skinColor.gapColor}">
-			  <view class="btn" @tap="leadBook">
+			  <view class="btn" @tap="leadCheck">
 				  <text class="btn-text">导入歌曲</text>
 			  </view>
 		  </view>
@@ -100,8 +100,6 @@
 				fileLength: 0,
 				//名称过滤
 				nameFilter: '',
-				//触发操作列表的路径
-				actionPath: '',
 				//路由防抖
 				routeDisabled: false,
 				//滚动距离
@@ -111,7 +109,7 @@
 			}
 		},
 		computed: {
-			...mapGetters(['playList', 'musicPathHistory']),
+			...mapGetters(['playList', 'musicPathHistory', 'getMusicPlayRecord', 'getMusicPlayStatus']),
 			listSync () {
 				let arr = this.list.filter((item) => {
 					if ( item.name.indexOf(this.nameFilter) > -1 ) {
@@ -119,6 +117,12 @@
 					}
 				})
 				return arr;
+			},
+			playRecord () {
+				return this.getMusicPlayRecord;
+			},
+			playStatus () {
+				return this.getMusicPlayStatus;
 			}
 		},
 		created () {
@@ -186,8 +190,8 @@
 					this.checkes.push(path);
 				}
 			},
-			//导入文件
-			leadBook () {
+			//导入选择的文件
+			leadCheck () {
 				if ( this.checkes.length <= 0 ) {
 					uni.showToast({
 						icon: 'none',
@@ -196,32 +200,81 @@
 					return;
 				}
 				let music = [];
-				let err = 0;
-				let len = this.checkes.length;
-				for ( let i = 0; i < len; i++ ) {
-					//根据文件路径判断文件有没有被导入过
+				for ( let i in this.checkes ) {
 					let index = indexOf(this.list, this.checkes[i], 'path');
-					if ( this.isLead(this.list[index].path) == -1 ) {
-						music.push({
-							name: this.list[index].name,
-							path: this.list[index].path
-						});
-					} else {
-						err++;
-					}
+					music.push({
+						name: this.list[index].name,
+						path: this.list[index].path
+					});
 				}
-				this.addMusic(music);
-				if ( err == 0 ) {
+				this.leadMusic(music).then((res) => {
 					uni.showToast({
-						title: '添加成功'
-					})
-				} else {
-					uni.showToast({
-						title: '成功导入' + (this.checkes.length - err) + '首歌曲，' + '有' + err + '首歌曲导入失败',
+						title: res.title,
 						icon: 'none'
 					})
+					this.checkes= [];
+				});
+			},
+			//导入文件
+			leadMusic (arr) {
+				return new Promise((resolve, reject) => {
+					let err = 0;
+					let len = arr.length;
+					let music = [];
+					for ( let i = 0; i < len; i++ ) {
+						//根据文件路径判断文件有没有被导入过
+						if ( this.isLead(arr[i].path) == -1 ) {
+							music.push(arr[i]);
+						} else {
+							err++;
+						}
+					}
+					this.addMusic(music);
+					if ( err == 0 ) {
+						resolve({
+							title: '添加成功',
+							code: 200
+						});
+					} else {
+						if ( arr.length > 1 ) {
+							resolve({
+								title: '成功导入' + (arr.length - err) + '首歌曲，' + '有' + err + '首歌曲导入失败',
+								code: 205
+							});
+						} else {
+							resolve({
+								title: '已经添加过这首歌了',
+								code: 300
+							});
+						}
+					}
+				})
+			},
+			playMusic (path) {
+				let flag = this.isLead(path);
+				//如果这首歌已经导入了直接播放
+				if ( flag > -1 ) {
+					this.changeMusic(path);
+				} else {
+					let index = indexOf(this.list, path, 'path');
+					let music = [];
+					music.push({
+						name: this.list[index].name,
+						path: this.list[index].path
+					});
+					this.leadMusic(music).then((res) => {
+						if ( res.code == 200 ) {
+							this.changeMusic(path);
+						}
+					})
 				}
-				this.checkes = [];
+				
+			},
+			changeMusic (path) {
+				if ( this.playRecord != path ) {
+					this.updateMusicPlayRecord(path);
+				}
+				getApp().globalData.routePush('/pages/music/player', 'fade-in');
 			},
 			//过滤名称
 			setNameFilter (val) {
@@ -234,7 +287,6 @@
 				if ( this.list[flag].type == 'folder' ) {
 					return;
 				}
-				this.actionPath = path;
 				let actions = [];
 				//已经导入的文件操作列表
 				if ( this.isLead(path) > -1 ) {
@@ -262,48 +314,42 @@
 					}]
 				}
 				getApp().globalData.actionSheet(actions).then((val) => {
+					let index = indexOf(this.list, path, 'path');
 					//用户选择导入操作
 					if ( val == 'push' ) {
-						//根据文件路径判断文件有没有被导入过
-						if ( this.isLead(this.actionPath) == -1 ) {
-							let flag = indexOf(this.list, this.actionPath, 'path');
-							let music = [];
-							music.push({
-								name: this.list[flag].name,
-								path: this.list[flag].path
-							});
-							this.addMusic(music);
+						let music = [];
+						music.push({
+							name: this.list[index].name,
+							path: this.list[index].path
+						});
+						this.leadMusic(music).then((res) => {
 							uni.showToast({
-								title: '导入成功'
-							})
-						} else {
-							uni.showToast({
-								title: '歌曲已经导入过了',
+								title: res.title,
 								icon: 'none'
 							})
-						}
+						})
 					}
 					//选择取消导入
 					if ( val == 'pop' ) {
-						let name = this.list[indexOf(this.list, this.actionPath, 'path')].name;
+						let name = this.list[index].name;
 						getApp().globalData.message('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
 							if ( res == 'confirm' ) {
-								this.deleteMusic(this.actionPath);
+								this.deleteMusic(path);
 							}
 						});
 					}
 					//用户选择删除操作
 					if ( val == 'delete' ) {
-						let name = this.list[indexOf(this.list, this.actionPath, 'path')].name;
+						let name = this.list[index].name;
 						getApp().globalData.message('操作提示', '确认要删除  ' + name + '  吗？').then((res) => {
 							if ( res == 'confirm' ) {
-								this.deleteFiles([this.actionPath]);
+								this.deleteFiles([path]);
 							}
 						});
 					}
 					
 					if ( val == 'share' ) {
-						this.share();
+						this.share(path);
 					}
 				})
 				
@@ -382,6 +428,8 @@
 				//如果是文件夹则访问文件列表
 				if ( this.list[index].type == 'folder' ) {
 					this.getFileSystem(plus.android.newObject("java.io.File", path));
+				} else {
+					this.playMusic(path)
 				}
 			},
 			//前往内部存储根目录
@@ -443,21 +491,20 @@
 				// 		}  
 				//     }
 				// }
-				// file.sort((a, b) => {
-				// 	return b.createTime - a.createTime;
-				// })
 				
 				
-				
+				file.sort((a, b) => {
+					return b.createTime - a.createTime;
+				})
 				this.fileLength = file.length;
 				this.list = folder.concat(file);
 				this.scrollTop();
 				this.checkes = [];
 			},
 			//分享文件
-			share () {
+			share (path) {
 				let shareIntent = new Intent(Intent.ACTION_SEND);
-				let filePath=plus.io.convertLocalFileSystemURL(this.actionPath);
+				let filePath=plus.io.convertLocalFileSystemURL(path);
 				let file = plus.android.newObject("java.io.File", filePath);
 				shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
 				shareIntent.setType("audio/*");//此处可发送音频文件
@@ -466,6 +513,7 @@
 			//返回顶部
 			scrollTop () {
 				dom.scrollToElement(this.$refs.listTop, {animated: false});
+				this.oldOffsetY = 0;
 			},
 			readFileSize (file) {
 			    let fileSize = plus.android.newObject("java.io.FileInputStream", file);

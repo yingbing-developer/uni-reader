@@ -10,7 +10,7 @@
 		</nav-bar>
 		<c-search @confirm="setNameFilter"></c-search>
 		<list-scroll @scroll="scroll" :line-height="108" :list="listSync">
-			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
+			<view slot="listTop" ref="listTop" @tap="backParent(bookPathHistory)" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
 				<view class="list-icon">
 					<c-icon name="folder" size="75" color="#FFCA28"></c-icon>
 				</view>
@@ -74,7 +74,7 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import { skinMixin, localSearchMixin } from '@/common/mixin/index.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
@@ -88,31 +88,15 @@
 	const environment = plus.android.importClass("android.os.Environment");
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, localSearchMixin],
 		data () {
 			return {
-				list: [],
-				checkes: [],
 				fileLength: 0,
-				types: ['txt'],
-				//名称过滤
-				nameFilter: '',
-				//滚动距离
-				oldOffsetY: 0,
-				//扩展存储卡路径
-				SDpaths: []
+				types: ['txt']
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'bookPathHistory']),
-			listSync () {
-				let arr = this.list.filter((item) => {
-					if ( item.name.indexOf(this.nameFilter) > -1 ) {
-						return item;
-					}
-				})
-				return arr;
-			}
+			...mapGetters(['bookList', 'bookPathHistory'])
 		},
 		created () {
 			if( environment.getExternalStorageState() !== environment.MEDIA_MOUNTED ) {
@@ -121,11 +105,7 @@
 					icon: 'none'
 				})
 			} else {
-				//获取扩展存储卡
-				let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
-				let getSDPath = new GetSDPath();
-				let pathStr = getSDPath.getSDPath();
-				this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr))) || [];
+				this.getSDPath();
 				
 				setTimeout(() => {
 					this.getFileSystem(plus.android.newObject("java.io.File", this.bookPathHistory));
@@ -134,51 +114,6 @@
 		},
 		methods: {
 			...mapMutations(['addBooks', 'deleteBook', 'updateBookPath']),
-			scroll (e) {
-				this.oldOffsetY = e.contentOffset.y;
-			},
-			//全选文件
-			selectAll () {
-				this.checkes = [];
-				let len = this.list.length;
-				for ( let i = 0; i < len; i++ ) {
-					if ( this.list[i].type != 'folder' ) {
-						this.checkes.push(this.list[i].path)
-					}
-				}	
-				this.$refs.bubble.hide();
-			},
-			//取消全选
-			cancelAll () {
-				this.checkes = [];
-				this.$refs.bubble.hide();
-			},
-			//删除操作
-			deleteAction () {
-				if ( this.checkes.length <= 0 ) {
-					return;
-				}
-				getApp().globalData.message('操作提示', '确认删除选择的文件吗？').then((res) => {
-					if ( res == 'confirm' ) {
-						this.deleteFiles(this.checkes);
-					}
-				});
-				this.$refs.bubble.hide();
-			},
-			//选择文件
-			check (path) {
-				let flag = indexOf(this.list, path, 'path');
-				//如果为文件夹则不能选择
-				if ( this.list[flag].type == 'folder') {
-					return;
-				}
-				let index = this.checkes.indexOf(path);
-				if ( index > -1 ) {
-					this.checkes.splice(index, 1);
-				} else {
-					this.checkes.push(path);
-				}
-			},
 			//导入文件
 			leadBook () {
 				if ( this.checkes.length <= 0 ) {
@@ -217,10 +152,6 @@
 				}
 				this.checkes = [];
 			},
-			//过滤名称
-			setNameFilter (val) {
-				this.nameFilter = val;
-			},
 			//展示操作列表
 			showAction (path) {
 				let flag = indexOf(this.list, path, 'path');
@@ -232,20 +163,8 @@
 				//已经导入的文件操作列表
 				if ( this.isLead(path) > -1 ) {
 					actions = [{
-						title: '取消导入',
-						value: 'pop'
-					},{
-						title: '删除',
-						value: 'delete'
-					},{
-						title: '分享',
-						value: 'share'
-					}]
-				} else {
-					//未导入的文件的操作列表
-					actions = [{
-						title: '导入',
-						value: 'push'
+						title: this.isLead(path) > -1 ? '取消导入' : '导入',
+						value: this.isLead(path) > -1 ? 'pop' : 'push'
 					},{
 						title: '删除',
 						value: 'delete'
@@ -350,23 +269,6 @@
 						icon: 'none',
 						title: '删除成功'
 					})
-				}
-			},
-			//返回上级目录
-			backParent () {
-				let fd = plus.android.newObject("java.io.File", this.bookPathHistory);
-				if ( fd != null && plus.android.invoke(fd, 'exists') ) {
-					let parent = plus.android.invoke(fd, 'getParent');
-					if ( parent ) {
-						this.getFileSystem(plus.android.newObject("java.io.File", parent));
-					} else {
-						uni.showToast({
-							icon: 'none',
-							title: '没有上级文件夹了'
-						})
-					}
-				} else {
-					this.getFileSystem();
 				}
 			},
 			//点击文件夹访问

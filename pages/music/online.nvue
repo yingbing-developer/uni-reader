@@ -1,0 +1,485 @@
+<template>
+	<view class="search" :style="{'background-color': skinColor.bgColor}">
+		<nav-bar title="在线音乐" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+			<view class="nav-right" slot="right">
+				<view @tap="$refs.bubble.show()">
+					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
+				</view>
+			</view>
+		</nav-bar>
+		<c-search @confirm="setNameFilter" close-clear></c-search>
+		
+		<!-- 音乐列表 -->
+		<list-scroll ref="list" @scroll="scroll" :line-height="115" :list="musicList" @loadmore="loadmore">
+			<no-data slot="fixed" v-if="musicList.length <= 0" :title="noDataTitle"></no-data>
+			<!-- 列表顶部 用于返回顶部 -->
+			<view slot="listTop" ref="listTop"></view>
+			<template v-slot="{item}">
+				<view @tap="playMusic(item.path)" @longpress="showAction(item.path)" class="music-list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
+					<view class="music-list-icon" @tap.stop="check(item.path)">
+						<c-image class="music-image" borderRadius="80" src="/static/music/music-type.png" mode="scaleToFill"></c-image>
+					</view>
+					<view class="music-list-right">
+						<view class="music-lr-line music-title-line">
+							<text class="music-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
+							<text v-if="isLead(item.path) > -1" class="music-list-source" :style="{'color': skinColor.menuTitleColor}">已导入</text>
+						</view>
+						<view class="music-lr-line">
+							<text class="music-list-text" :style="{'color': skinColor.menuTitleColor}">{{item.singer}}</text>
+						</view>
+					</view>
+				</view>
+			</template>
+			<view slot="listBottom" class="music-loading" v-if="isLastPage && musicList.length > 0"><text class="music-loading-text" :style="{'color': skinColor.titleColor}">没有更多了</text></view>
+			<loading slot="loading" class="music-loading" v-if="musicList.length >= 6 && !isLastPage"><text class="music-loading-text" :style="{'color': skinColor.titleColor}">加载中...</text></loading>
+		</list-scroll>
+		
+		<view class="btn-box" v-if="checkes.length > 0" :style="{'border-top-color': skinColor.gapColor}">
+			<view class="btn" @tap="leadCheck">
+			  <text class="btn-text">导入歌曲</text>
+			</view>
+		</view>
+		
+		<!-- 气泡弹窗 -->
+		<bubble ref="bubble">
+			<block v-if="musicList.length > 0">
+				<view @tap="selectAll" v-if="checkes.length < musicList.length">
+					<bubble-item title="全选"></bubble-item>
+				</view>
+				<view @tap="cancelAll" v-if="checkes.length == musicList.length">
+					<bubble-item title="取消全选"></bubble-item>
+				</view>
+			</block>
+		</bubble>
+		  
+		<view class="fixed">
+			<view @tap="scrollTop">
+				<fixed-button :show="Math.abs(oldOffsetY) > 300">
+					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
+				</fixed-button>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import { skinMixin } from '@/common/mixin/index.js'
+	import { getMusic} from '@/common/online/getMusic.js'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CSearch from '@/components/search/search.nvue'
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import Bubble from '@/components/bubble/bubble.nvue'
+	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
+	import CImage from '@/components/c-image/c-image.nvue'
+	import NoData from '@/components/no-data/no-data.nvue'
+	import { indexOf } from '@/common/js/util.js'
+	import { MUSICURL } from '@/common/js/config.js'
+	import { mapGetters, mapMutations } from 'vuex'
+	const dom = weex.requireModule('dom');
+	export default {
+		mixins: [skinMixin],
+		data () {
+			return {
+				//音乐列表
+				musicList: [],
+				//名称过滤
+				nameFilter: '',
+				//当前页数
+				nowPages: {},
+				//是否已经加载完了所有数据
+				isLastPages: {},
+				//滚动距离
+				oldOffsetY: 0,
+				isLastPage: false,
+				checkes: [],
+				actionPath: ''
+			}
+		},
+		computed: {
+			...mapGetters(['playList', 'getMusicPlayStatus', 'getMusicPlayRecord']),
+			noDataTitle () {
+				return this.nameFilter ? '没有搜索结果' : '请输入关键字搜索音乐'
+			},
+			musicUrl () {
+				return MUSICURL
+			},
+			playStatus () {
+				return this.getMusicPlayStatus;
+			},
+			playRecord () {
+				return this.getMusicPlayRecord;
+			}
+		},
+		onLoad () {
+			for ( let i in MUSICURL ) {
+				this.nowPages[i] = 1 ;
+				this.isLastPages[i] = false;
+			}
+		},
+		methods: {
+			...mapMutations(['addMusic', 'deleteMusic', 'updateMusicPlayRecord']),
+			scroll (e) {
+				this.oldOffsetY = e.contentOffset.y;
+			},
+			//设置搜索名称
+			setNameFilter (val) {
+				clearTimeout(this.nameTimer);
+				this.nameTimer = setTimeout(() => {
+					this.nameFilter = val;
+					if ( this.nameFilter ) {
+						uni.showLoading({
+							title: '搜索中',
+							mask: true
+						})
+						for ( let i in this.nowPages ) {
+							this.nowPages[i] = 1;
+							this.isLastPages[i] = false;
+						}
+						this.searchMusic()
+					} else {
+						if ( this.musicList.length == 0 ) {
+							uni.showToast({
+								title: '请输入关键字',
+								icon: 'none'
+							})
+						} else {
+							this.musicList = [];
+						}
+					}
+				}, 500)
+			},
+			//触底加载更多漫画
+			loadmore (e) {
+				if ( this.nameFilter && !this.isLastPage && this.musicList.length >= 6 ) {
+					clearTimeout(this.moreTimer);
+					this.moreTimer = setTimeout(() => {
+						for ( let i in this.nowPages ) {
+							this.nowPages[i] += 1;
+						}
+						this.searchMusic('more');
+					}, 1000)
+				}
+			},
+			//搜索在线音乐
+			searchMusic (type = 'search') {
+				getMusic({
+					title: this.nameFilter,
+					page: this.nowPages,
+					isLastPage: this.isLastPages
+				}).then((res) => {
+					uni.hideLoading();
+					this.$refs["list"].resetLoadmore();
+					let musicList = [];
+					for ( let i in res ) {
+						musicList = musicList.concat(res[i].data.list);
+						if ( res[i].data.list.length == 0 ) {
+							this.$set(this.isLastPages, res[i].data.source, true);
+						}
+					}
+					//判断是不是所有网站数据都加载完了
+					let flag = true;
+					for ( let i in this.isLastPages ) {
+						if ( !this.isLastPages[i] ) {
+							flag = false;
+							break;
+						}
+					}
+					this.isLastPage = flag;
+					
+					if ( type == 'search' ) {
+						this.musicList = musicList;
+						this.scrollTop();
+					} else {
+						this.musicList = this.musicList.concat(musicList);
+					}
+				}).catch((err) => {
+					this.$refs["list"].resetLoadmore();
+					uni.showToast({
+						title: '请求失败',
+						icon: 'none'
+					})
+				});
+			},
+			//全选文件
+			selectAll () {
+				this.checkes = [];
+				let len = this.musicList.length;
+				for ( let i = 0; i < len; i++ ) {
+						this.checkes.push(this.musicList[i].path)
+				}	
+				this.$refs.bubble.hide();
+			},
+			//取消全选
+			cancelAll () {
+				this.checkes = [];
+				this.$refs.bubble.hide();
+			},
+			//选择文件
+			check (path) {
+				let index = this.checkes.indexOf(path);
+				if ( index > -1 ) {
+					this.checkes.splice(index, 1);
+				} else {
+					this.checkes.push(path);
+				}
+			},
+			//导入选择的文件
+			leadCheck () {
+				if ( this.checkes.length <= 0 ) {
+					uni.showToast({
+						icon: 'none',
+						title: '请选择文件'
+					})
+					return;
+				}
+				let music = [];
+				for ( let i in this.checkes ) {
+					let index = indexOf(this.musicList, this.checkes[i], 'path');
+					music.push({
+						name: this.musicList[index].name,
+						singer: this.musicList[index].singer,
+						image: this.musicList[index].image,
+						path: this.musicList[index].path,
+						lyric: this.musicList[index].lyric,
+						source: this.musicList[index].source
+					});
+				}
+				this.leadMusic(music).then((res) => {
+					uni.showToast({
+						title: res.title,
+						icon: 'none'
+					})
+					this.checkes= [];
+				});
+			},
+			//导入文件
+			leadMusic (arr) {
+				return new Promise((resolve, reject) => {
+					let err = 0;
+					let len = arr.length;
+					let music = [];
+					for ( let i = 0; i < len; i++ ) {
+						//根据文件路径判断文件有没有被导入过
+						if ( this.isLead(arr[i].path) == -1 ) {
+							music.push(arr[i]);
+						} else {
+							err++;
+						}
+					}
+					this.addMusic(music);
+					if ( err == 0 ) {
+						resolve({
+							title: '添加成功',
+							code: 200
+						});
+					} else {
+						if ( arr.length > 1 ) {
+							resolve({
+								title: '成功导入' + (arr.length - err) + '首歌曲，' + '有' + err + '首歌曲导入失败',
+								code: 205
+							});
+						} else {
+							resolve({
+								title: '已经添加过这首歌了',
+								code: 300
+							});
+						}
+					}
+				})
+			},
+			playMusic (path) {
+				let flag = this.isLead(path);
+				//如果这首歌已经导入了直接播放
+				if ( flag > -1 ) {
+					this.changeMusic(path);
+				} else {
+					let index = indexOf(this.musicList, path, 'path');
+					let music = [];
+					music.push({
+						name: this.musicList[index].name,
+						singer: this.musicList[index].singer,
+						image: this.musicList[index].image,
+						path: this.musicList[index].path,
+						lyric: this.musicList[index].lyric,
+						source: this.musicList[index].source
+					});
+					this.leadMusic(music).then((res) => {
+						if ( res.code == 200 ) {
+							this.changeMusic(path);
+						}
+					})
+				}
+			},
+			//展示操作列表
+			showAction (path) {
+				let actions = [];
+				//已经导入的文件操作列表
+				actions = [{
+					title: this.isLead(path) > -1 ? '取消导入' : '导入',
+					value: this.isLead(path) > -1 ? 'pop' : 'push',
+				}]
+				getApp().globalData.actionSheet(actions).then((val) => {
+					let index = indexOf(this.musicList, path, 'path');
+					//用户选择导入操作
+					if ( val == 'push' ) {
+						let music = [];
+						music.push({
+							name: this.musicList[index].name,
+							singer: this.musicList[index].singer,
+							image: this.musicList[index].image,
+							path: this.musicList[index].path,
+							lyric: this.musicList[index].lyric,
+							source: this.musicList[index].source
+						});
+						this.leadMusic(music).then((res) => {
+							uni.showToast({
+								title: res.title,
+								icon: 'none'
+							})
+						})
+					}
+					//选择取消导入
+					if ( val == 'pop' ) {
+						let name = this.musicList[index].name;
+						getApp().globalData.message('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
+							if ( res == 'confirm' ) {
+								this.deleteMusic(path);
+							}
+						});
+					}
+				})
+				
+			},
+			changeMusic (path) {
+				if ( this.playRecord != path ) {
+					this.updateMusicPlayRecord(path);
+				}
+				getApp().globalData.routePush('/pages/music/player', 'fade-in');
+			},
+			//返回顶部
+			scrollTop () {
+				dom.scrollToElement(this.$refs.listTop, {animated: false});
+				this.oldOffsetY = 0;
+			},
+			//根据文件路径判断当前文件是否已经导入,返回下标
+			isLead (path) {
+				return indexOf(this.playList, path, 'path');
+			}
+		},
+		onBackPress(event) {
+			//气泡菜单打开时,先关闭气泡菜单
+			if ( this.$refs.bubble.isShow ) {
+				this.$refs.bubble.hide();
+				return true;
+			}
+			clearTimeout(this.moreTimer);
+			return false;
+		},
+		components: {
+			CIcon,
+			CSearch,
+			Bubble,
+			BubbleItem,
+			CImage,
+			ListScroll,
+			NoData
+		}
+	}
+</script>
+
+<style scoped>
+	.nav-right {
+		flex-direction: row;
+		flex: 1;
+		justify-content: flex-end;
+		align-items: center;
+	}
+	.nav-text {
+		font-size: 30rpx;
+		margin-right: 22.5rpx;
+		text-overflow: ellipsis;
+		lines: 1;
+	}
+	.music-list {
+		flex-direction: row;
+		border-bottom-width: 1px;
+		border-bottom-style: solid;
+		padding: 20rpx;
+		height: 115rpx;
+		position: relative;
+	}
+	.music-list-icon {
+		justify-content: center;
+		align-items: center;
+		width: 80rpx;
+		position: relative;
+	}
+	.music-image {
+		width: 80rpx;
+		height: 80rpx;
+	}
+	.music-list-right {
+		flex: 1;
+		justify-content: space-between;
+		margin-left: 20rpx;
+	}
+	.music-list-right-back {
+		flex-direction: row;
+		align-items: center;
+	}
+	.music-lr-line {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.music-list-title {
+		flex: 1;
+		font-size: 30rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.music-list-source {
+		font-size: 24rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.music-lt-right {
+		width: 70rpx;
+	}
+	.music-list-text {
+		flex: 1;
+		font-size: 24rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.music-loading {
+		align-items: center;
+		padding: 20rpx 0;
+	}
+	.music-loading-text {
+		font-size: 24rpx;
+	}
+	.btn-box {
+		padding: 15rpx 30rpx;
+		border-top-width: 1px;
+		border-top-style: solid;
+	}
+	.btn {
+		height: 75rpx;
+		justify-content: center;
+		align-items: center;
+		background-color: #007AFF;
+	}
+	.btn-text {
+		font-size: 27rpx;
+		color: #F1F1F1;
+	}
+	.fixed {
+		position: fixed;
+		bottom: 20px;
+		right: 20px;
+		width: 90rpx;
+		align-items: center;
+		justify-content: flex-end;
+	}
+</style>

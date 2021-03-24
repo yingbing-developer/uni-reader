@@ -32,13 +32,47 @@
 					</view>
 				</view>
 			</cell>
+			<cell>
+				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
+					<text class="list-title" :style="{'color': skinColor.titleColor}">漫画来源</text>
+					<view class="list-bottom">
+						<view class="check-line" v-for="(item, index) in comicSource">
+							<text class="lr-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
+							<c-switch
+							:itemColor='skinColor.itemColor'
+							:gapColor="skinColor.gapColor"
+							:bgColor="skinColor.bgColor"
+							:value="item.isOpen"
+							@input="changeComicSources($event, index)"></c-switch>
+						</view>
+					</view>
+				</view>
+			</cell>
+			<cell>
+				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
+					<text class="list-title" :style="{'color': skinColor.titleColor}">音乐来源</text>
+					<view class="list-bottom">
+						<view class="check-line" v-for="(item, index) in musicSource">
+							<text class="lr-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
+							<c-switch
+							:itemColor='skinColor.itemColor'
+							:gapColor="skinColor.gapColor"
+							:bgColor="skinColor.bgColor"
+							:value="item.isOpen"
+							@input="changeMusicSources($event, index)"></c-switch>
+						</view>
+					</view>
+				</view>
+			</cell>
 		</list>
 	</view>
 </template>
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
+	import { COMICURL, MUSICURL } from '@/common/js/config.js'
 	import { mapGetters, mapMutations } from 'vuex'
+	import CSwitch from '@/components/c-switch/c-switch.nvue'
 	export default {
 		mixins:[skinMixin],
 		data () {
@@ -65,14 +99,57 @@
 				},{
 					title: '点击',
 					value: 'click'
-				}]
+				}],
+				comicSource: [],
+				musicSource: []
+			}
+		},
+		onLoad () {
+			for ( let i in COMICURL ) {
+				let index = this.getComicSourcesController.indexOf(i);
+				this.comicSource.push({
+					isOpen: index > -1 ? false : true,
+					title: COMICURL[i].title,
+					value: i
+				})
+			}
+			for ( let i in MUSICURL ) {
+				let index = this.getMusicSourcesController.indexOf(i);
+				this.musicSource.push({
+					isOpen: index > -1 ? false : true,
+					title: MUSICURL[i].title,
+					value: i
+				})
 			}
 		},
 		computed: {
-			...mapGetters(['bookReadMode'])
+			...mapGetters(['bookReadMode', 'getComicSourcesController', 'getMusicSourcesController'])
 		},
 		methods: {
-			...mapMutations(['changeBookPageMode', 'changeBookReadPageType'])
+			...mapMutations(['changeBookPageMode', 'changeBookReadPageType', 'setComicSourcesController', 'setMusicSourcesController']),
+			changeComicSources (bool, index) {
+				this.$set(this.comicSource[index], 'isOpen', bool);
+				let arr = [];
+				for ( let i in this.comicSource ) {
+					if ( !this.comicSource[i].isOpen ) {
+						arr.push(this.comicSource[i].value)
+					}
+				}
+				this.setComicSourcesController(arr);
+			},
+			changeMusicSources (bool, index) {
+				this.$set(this.musicSource[index], 'isOpen', bool);
+				let arr = [];
+				for ( let i in this.musicSource ) {
+					if ( !this.musicSource[i].isOpen ) {
+						arr.push(this.musicSource[i].value)
+					}
+				}
+				this.setMusicSourcesController(arr);
+			}
+		},
+		components: {
+			CSwitch
 		}
 	}
 </script>
@@ -82,13 +159,9 @@
 		padding: 30rpx 30rpx;
 		border-bottom-width: 1px;
 		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
 	}
 	.list2 {
 		flex-direction: column;
-		align-items: flex-start;
-		justify-content: flex-start;
 	}
 	.list-title {
 		font-size: 32rpx;
@@ -105,5 +178,14 @@
 	.list-bottom {
 		margin-top: 30rpx;
 		flex-wrap: wrap;
+	}
+	.check-line {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding: 5rpx 0;
+	}
+	.switch {
+		transform: scale(0.7);
 	}
 </style>

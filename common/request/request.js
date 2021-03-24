@@ -1,3 +1,6 @@
+import { TIMEOUT } from '../js/config.js'
+
+
 //request封装
 function request (type = 'GET', url, data, options = {header: {}}) {
 	var params = data;
@@ -8,6 +11,8 @@ function request (type = 'GET', url, data, options = {header: {}}) {
 			data: data,
 			method: type || 'GET',
 			header: options.header,
+			timeout: TIMEOUT,
+			sslVerify: false,
 			success: ((res) => {
 				resolve(res)
 			}),

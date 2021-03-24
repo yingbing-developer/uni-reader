@@ -1,8 +1,25 @@
 <html>
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="referrer" content="never" />
+		<title></title>
+		<style type="text/css">
+			.mask {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+			}
+		</style>
+	</head>
 	<body>
 		<div id="content"></div>
+		<div class="mask"></div>
 		<script type="text/javascript" src="./js/uni.webview.1.5.1.js"></script>
 		<script type="text/javascript">
+		window.onload = function () {
+			
 			//获取url参数
 			function getQueryVariable (variable) {
 			       var query = window.location.search.substring(1);
@@ -13,43 +30,147 @@
 			       }
 			       return(false);
 			}
+			document.getElementsByClassName('mask')[0].style.backgroundColor = decodeURIComponent(getQueryVariable('color'));
+			//获取iframe对象
+			function getIframeDom () {
+			    return document.getElementById('myIframe').contentWindow;
+			}
 			//获取mangabz漫画内容
 			function getMangabzContent () {
-				var child = document.getElementById('myIframe').contentWindow;
-				var lazy = child.document.getElementsByClassName('lazy');
-				var images = new Array(lazy.length);
-				for ( var i = 0; i < lazy.length; i++ ) {
+				var child = getIframeDom();
+				var doms = child.document.getElementsByClassName('lazy');
+				var images = new Array(doms.length);
+				for ( var i = 0; i < doms.length; i++ ) {
 					images[i] = {
-						path: lazy[i].getAttribute('data-src'),
-						imageWidth: lazy[0].naturalWidth,
-						imageHeight: lazy[0].naturalHeight,
+						path: doms[i].getAttribute('data-src')
+					}
+				};
+				return images;
+			}
+			//获取18comic漫画内容
+			function get18comicContent () {
+				var child = getIframeDom();
+				var div = child.document.getElementsByClassName('row thumb-overlay-albums')[0];
+				var doms = div.getElementsByClassName('lazy_img');
+				var images = new Array(doms.length);
+				for ( var i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].getAttribute('data-original')
+					}
+				};
+				return images;
+			}
+			//获取6漫画内容
+			function getSixmh6Content () {
+				var child = getIframeDom();
+				var doms = child.document.getElementsByClassName('chapter-img-box');
+				var images = new Array(doms.length);
+				for ( var i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].getElementsByClassName('lazy')[0].getAttribute('data-original') || doms[i].getElementsByClassName('lazy')[0].src
+					}
+				};
+				return images;
+			}
+			//获取dmzj漫画内容
+			function getDmzjContent () {
+				var child = getIframeDom();
+				var div = child.document.getElementById('commicBox');
+				var doms = div.getElementsByClassName('comic_img');
+				var images = new Array(doms.length);
+				for ( var i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].getAttribute('data-original').replace('dmzj', 'dmzj1') || doms[i].src.replace('dmzj', 'dmzj1')
 					}
 				};
 				return images;
 			}
 			
-			window.onload = function () {
+			function loadIframe () {
 				window.setTimeout( function () {
-					//创建一个iframe元素加载漫画内容
-					var iframe = document.createElement("iframe");
-					iframe.src = getQueryVariable('url');
-					iframe.id = 'myIframe';
-					iframe.style.width = '100%';
-					iframe.style.height = '100%';
-					iframe.style.opacity = '0';
-					//等待iframe加载完毕
-					iframe.onload = function(){
-						var data = [];
-						if ( getQueryVariable('source') == 'mangabz' ) {
-							data = getMangabzContent();
-						}
-						uni.postMessage({
-						    data: data
-						});
-					};
-					document.getElementById("content").appendChild(iframe);
+					var data = [];
+					var source = getQueryVariable('source');
+					if ( source == 'mangabz' ) {
+						data = getMangabzContent();
+					}
+					if ( source == '18comic' ) {
+						data = get18comicContent();
+					}
+					if ( source == 'sixmh6' ) {
+						data = getSixmh6Content();
+					}
+					if ( source == 'dmzj' ) {
+						data = getDmzjContent();
+					}
+					uni.postMessage({
+					    data: data
+					})
 				}, 1000)
 			}
+			
+			window.setTimeout( function () {
+				//创建一个iframe元素加载漫画内容
+				var iframe = document.createElement("iframe");
+				var timer = null;
+				iframe.src = decodeURIComponent(getQueryVariable('url'));
+				iframe.id = 'myIframe';
+				iframe.style.display = 'none';
+				iframe.sandbox = 'allow-scripts allow-same-origin';
+				
+				//等待iframe加载完毕
+				iframe.onload = function () {
+					if ( timer ) {
+						window.clearTimeout(timer);
+					}
+					loadIframe();
+				}
+				//如果25秒后iframe还没触发onload事件，直接去获取漫画图片
+				timer = window.setTimeout( function () {
+					iframe.onload = null;
+					loadIframe();
+				}, 25000)
+				document.getElementById("content").appendChild(iframe);
+				window.setTimeout( function () {
+					var child = document.getElementById('myIframe').contentWindow;
+					//重构iframe的confirm alert方法，屏蔽三方网站上的弹窗行为
+					child.window.alert = function () { return false; }
+					child.window.confirm = function () { return false; }
+					child.window.onbeforeunload = function () { return false; }
+				}, 5)
+			}, 1000)
+		}
+			// function loadIframe (){
+			// 	console.log(123);
+			// 	window.setTimeout( function () {
+			// 		var data = [];
+			// 		var source = getQueryVariable('source');
+			// 		if ( source == 'mangabz' ) {
+			// 			data = getMangabzContent();
+			// 		}
+			// 		if ( source == '40manhua' ) {
+			// 			data = get40manhuaContent();
+			// 		}
+			// 		if ( source == '18comic' ) {
+			// 			data = get18comicContent();
+			// 		}
+			// 		if ( source == 'sixmh6' ) {
+			// 			data = getSixmh6Content();
+			// 		}
+			// 		if ( source == 'dmzj' ) {
+			// 			data = getDmzjContent();
+			// 		}
+			// 		uni.postMessage({
+			// 		    data: data
+			// 		})
+			// 	}, 1000);
+			// };
+			// window.onload = function () {
+			// 	console.log(getQueryVariable('source'));
+			// 	window.setTimeout( function () {
+			// 		//创建一个iframe元素加载漫画内容
+			// 		document.getElementById("content").innerHTML = '<iframe id="myIframe" onload="javascript:loadIframe()" src=' + decodeURIComponent(getQueryVariable('url')) + '></iframe>';
+			// 	}, 1000)
+			// }
 		</script>
 	</body>
 </html>

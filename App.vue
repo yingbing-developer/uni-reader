@@ -41,13 +41,9 @@
 			//确认对话框
 			message: function (title = '提示', message = '提示信息') {
 				return new Promise((resolve, reject) => {
-					getApp().globalData.routePush('/pages/base/confirm/index', 'none').then((res) => {
+					getApp().globalData.routePush(`/pages/base/confirm/index?title=${title}&message=${encodeURIComponent(message)}`, 'none').then((res) => {
 						if ( res == 'complete' ) {
 							setTimeout(() => {
-								uni.$emit('message-info', {
-									title: title,
-									message: message
-								});
 								uni.$on('message-btn', (data) => {
 									resolve(data.flag)
 									getApp().globalData.routeBack();
@@ -61,12 +57,9 @@
 			//选择对话框
 			actionSheet: function (list) {
 				return new Promise((resolve, reject) => {
-					getApp().globalData.routePush('/pages/base/actionSheet/index', 'none').then((res) => {
+					getApp().globalData.routePush(`/pages/base/actionSheet/index?list=${encodeURIComponent(JSON.stringify(list))}`, 'none').then((res) => {
 						if ( res == 'complete' ) {
 							setTimeout(() => {
-								uni.$emit('actionSheet-info', {
-									list: list
-								});
 								uni.$on('actionSheet-btn', (data) => {
 									resolve(data.flag)
 									getApp().globalData.routeBack();
@@ -96,5 +89,8 @@
 	/*每个页面公共css */
 	.actived:active {
 		background-color: #EEEEEE;
+	}
+	.actived-dark:active {
+		background-color: #3F3F3F;
 	}
 </style>

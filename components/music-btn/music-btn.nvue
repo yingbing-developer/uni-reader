@@ -3,17 +3,23 @@
 <script>
 	import { mapGetters, mapMutations } from 'vuex';
 	import { indexOf, randomSoleNumber } from '@/common/js/util.js'
+	import { getPlayUrl, getLyric } from '@/common/online/getMusic.js'
+	import { skinMixin } from '@/common/mixin/index.js'
 	let audio = null;
 	let musicBox = null;
 	let musicLine = null;
+	//点击延迟
+	const delay = 200;
 	//控件高度 （高度和宽度一样）
 	const height = uni.upx2px(90);;
 	//控制栏宽度
-	const width = uni.upx2px(530);
+	const width = uni.upx2px(615);
 	//控制栏图标size
 	const iconSize = uni.upx2px(55);
+	const fontSize = uni.upx2px(40);
 	const iconGap = uni.upx2px(30);
 	export default {
+		mixins: [skinMixin],
 		data () {
 			return {
 				windowWidth: 0,
@@ -26,11 +32,13 @@
 				//控件移动的Y轴距离
 				pageY: 0,
 				//随机播放顺序
-				randomIndex: []
+				randomIndex: [],
+				//点击次数
+				clickNum: 0
 			}
 		},
 		computed: {
-			...mapGetters(['playList', 'getMusicPlayStatus', 'getMusicPlayMode', 'getMusicPlayRecord']),
+			...mapGetters(['playList', 'getMusicPlayStatus', 'getMusicPlayMode', 'getMusicPlayRecord', 'getMusicLyricShow']),
 			//播放状态
 			playStatus () {
 				return this.getMusicPlayStatus;
@@ -46,6 +54,10 @@
 			//歌曲列表
 			musicList () {
 				return this.playList;
+			},
+			//是否显示歌词
+			lyricShow () {
+				return this.getMusicLyricShow;
 			}
 		},
 		beforeCreate () {
@@ -75,21 +87,13 @@
 					}
 				})
 			})
-			uni.$on('app-hide', (data) => {
-			    if ( audio ) {
-			    	this.pause();
-			    }
-			})
 			//改变播放状态
 			uni.$on('change-status', (data) => {
-				this.changeMusicPlayStatus(data.status);
-			    if ( audio ) {
-			    	if ( data.status ) {
-			    		audio.play();
-			    	} else {
-			    		audio.pause();
-			    	}
-				}
+				this.changePlayStatus()
+			})
+			//改变播放状态
+			uni.$on('change-music', (data) => {
+				this.changeMusic(data.value);
 			})
 			//改变音乐播放位置
 			uni.$on('update-time', (data) => {
@@ -103,44 +107,52 @@
 			})
 		},
 		methods: {
-			...mapMutations(['changeMusicPlayStatus', 'changeMusicPlayMode', 'updateMusicPlayRecord', 'changeMusicPlayTime', 'changeMusicPlayDuration']),
+			...mapMutations(['changeMusicPlayStatus', 'changeMusicPlayMode', 'updateMusicPlayRecord', 'changeMusicPlayTime', 'changeMusicPlayDuration', 'setMusicLyric', 'setMusicLyricShow']),
 			init () {
 				musicLine = new plus.nativeObj.View('line',{
-					top:'70%',left:'0',height: height + 'px', width: '0'
+					top:'90%',left:'0',height: height + 'px', width: '0'
 				})
 				musicLine.show();
 				this.drawContorlLine();
 				musicBox = new plus.nativeObj.View('box',{
-					top:'70%',left:'0', width: height + 'px', height: height + 'px'
+					top:'90%',left:'0', width: height + 'px', height: height + 'px'
 				},[{
 					tag:'img', id:'icon', src: '/static/music/music-icon.png', position:{top:'0', left: '0', width:'100%',height: '100%'}
 				}]);
 				musicBox.show();
-				
 				//用触摸来模拟点击事件
 				musicBox.addEventListener("touchstart", (e) => {
-					clearInterval(this.interval);
 					this.clickTime = 0;
-					this.interval = setInterval(() => {
-						this.clickTime += 10;
-						if ( this.clickTime >= 500 ) {
-							clearInterval(this.interval);
-						}
-					}, 10)
+					this.clickNum += 1;
+					clearTimeout(this.startTimer);
+					this.startTimer = setTimeout(() => {
+						this.clickTime = delay;
+					}, delay)
 				})
 				musicBox.addEventListener("touchend", (e) => {
-					clearInterval(this.interval);
-					if ( this.clickTime <= 300 ) {
+					clearTimeout(this.startTimer);
+					clearTimeout(this.endTimer);
+					if ( this.clickTime >= delay ) {
+						this.clickNum = 0;
+						return;
+					}
+					//单击事件, 延后200ms执行判断此次是否是双击事件
+					this.endTimer = setTimeout(() => {
+						this.clickNum = 0;
 						if ( this.lineWidth == 0 ) {
 							this.open();
 						} else {
 							this.hide();
 						}
+					}, delay)
+					if ( this.clickNum >= 2 ) {
+						this.clickNum = 0;
+						clearTimeout(this.endTimer);
+						getApp().globalData.routePush('/pages/music/player', 'fade-in');
 					}
-					this.clickTime = 0;
 				})
 				musicBox.addEventListener("touchmove", (e) => {
-					if ( this.clickTime <= 300 ) {
+					if ( this.clickTime < delay ) {
 						return;
 					}
 					this.pageX = e.pageX - (height / 2);
@@ -206,6 +218,11 @@
 					clearInterval(this.timer);
 				}
 			},
+			changeLineBgColor () {
+				musicLine.draw([{
+					tag:'rect', id:'line', color: this.skinColor.bgColor, rectStyles: {radius: height + 'px', borderWidth: '1px', borderColor: this.skinColor.menuTitleColor}, position:{top:'0px',left:'0px',width:'100%',height:'100%'}
+				}])
+			},
 			changeStatusIcon () {
 				let playImg = this.playStatus ? '/static/music/pause.png' : '/static/music/play.png';
 				musicLine.draw([{
@@ -236,7 +253,7 @@
 			drawContorlLine () {
 				let loopImage = '/static/music/' + this.playMode  + '.png';
 				musicLine.draw([{
-					tag:'rect', id:'line', color: '#FFF', rectStyles: {radius: height + 'px', borderWidth: '1px', borderColor: '#999'}, position:{top:'0px',left:'0px',width:'100%',height:'100%'}
+					tag:'rect', id:'line', color: this.skinColor.bgColor, rectStyles: {radius: height + 'px', borderWidth: '1px', borderColor: this.skinColor.menuTitleColor}, position:{top:'0px',left:'0px',width:'100%',height:'100%'}
 				},{
 					tag:'img', id:'prev', src: '/static/music/prev.png', position:{top:'auto', left: height + iconGap + 'px', width: iconSize + 'px',height: iconSize + 'px'}
 				},{
@@ -246,7 +263,9 @@
 				},{
 					tag:'img', id:'loop', src: loopImage, position:{top:'auto', left: height + (4 * iconGap) + (3 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'}
 				},{
-					tag:'img', id:'listRight', src: '/static/music/music-list.png', position:{top:'auto', left: height + (5 * iconGap) + (4 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+					tag:'font', id:'lyricShow', text: '词', textStyles: {size: fontSize + 'px', color: '#1296DB', verticalAlign: 'middle', weight: 'bold'}, position:{top:'auto', left: height + (5 * iconGap) + (4 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+				},{
+					tag:'img', id:'listRight', src: '/static/music/music-list.png', position:{top:'auto', left: height + (6 * iconGap) + (5 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'}
 				},{
 					tag:'img', id:'listLeft', src: '/static/music/music-list.png', position:{top:'auto', left: iconGap + 'px', width: iconSize + 'px',height: iconSize + 'px'}
 				}])
@@ -276,10 +295,15 @@
 					left: height + (4 * iconGap) + (3 * iconSize),
 					right: height + (4 * iconGap) + (4 * iconSize)
 				}
-				//音乐列表右
+				//歌词显示控制
 				let icon5 = {
 					left: height + (5 * iconGap) + (4 * iconSize),
 					right: height + (5 * iconGap) + (5 * iconSize)
+				}
+				//音乐列表右
+				let icon7 = {
+					left: height + (6 * iconGap) + (5 * iconSize),
+					right: height + (6 * iconGap) + (6 * iconSize)
 				}//音乐列表左
 				let icon6 = {
 					left: iconGap,
@@ -296,19 +320,21 @@
 						} else if ( e.clientX >= icon4.left && e.clientX <= icon4.right ) {
 							this.changeMode();
 						} else if ( e.clientX >= icon5.left && e.clientX <= icon5.right ) {
-							this.goMusicList();
+							this.changeLyricShow()
+						} else if ( e.clientX >= icon7.left && e.clientX <= icon7.right ) {
+							this.goPlayList();
 						} else if ( e.clientX >= icon6.left && e.clientX <= icon6.right ) {
-							this.goMusicList();
+							this.goPlayList();
 						}
 					}
 				});
 			},
-			goMusicList () {
+			goPlayList () {
 				let size = plus.screen.getCurrentSize();
 				//如果是横屏不能打开，因为横屏可能会打不开，不知道是不是官方的bug
 				if ( size.width > size.height ) {
 					uni.showToast({
-						title: '横屏状态下不能打开播放列表',
+						title: '横屏状态下不能打开播放页面',
 						icon: 'none'
 					})
 					return;
@@ -316,15 +342,19 @@
 				const pages = getCurrentPages();
 				const page = pages[pages.length - 1];
 				const lastPage = pages.length > 1 ? pages[pages.length - 2] : false;
-				if ( page.$page.path == '/pages/music/index' ) {
+				const url = '/pages/music/index';
+				if ( page.$page.path == url ) {
 					return
 				}
 				if ( lastPage ) {
-					if ( lastPage.$page.path == '/pages/music/index' ) {
+					if ( lastPage.$page.path == url ) {
 						return;
 					}
 				}
-				getApp().globalData.routePush('/pages/music/index', 'none');
+				getApp().globalData.routePush(url, 'fade-in');
+			},
+			changeLyricShow () {
+				this.setMusicLyricShow(!this.lyricShow)
 			},
 			//更换音乐
 			upMusicSrc () {
@@ -333,51 +363,98 @@
 				this.changeMusicPlayStatus(false);
 				clearTimeout(this.musicTimer);
 				this.musicTimer = setTimeout(() => {
-					this.initMusic();
-					setTimeout(() => {
-						if ( audio.src ) {
-							audio.play();
-							this.changeMusicPlayStatus(true);
-						}
-					}, 100)
+					this.initMusic().then(() => {
+						setTimeout(() => {
+							if ( audio.src ) {
+								audio.play();
+								this.changeMusicPlayStatus(true);
+							}
+						}, 100)
+					});
 				}, 300)
 			},
 			//初始化音乐实例
 			initMusic () {
-				audio = uni.createInnerAudioContext();
-				audio.src = this.playRecord ? 'file://' + this.playRecord : '';
-				audio.onCanplay(() => {
-					this.changeMusicPlayDuration(audio.duration || 0);
-				})
-				audio.onPlay(() => {
-					let index = indexOf(this.playList, this.playRecord, 'path');
-					uni.showToast({
-						title: "当前播放的是: " + this.playList[index].name,
-						icon: 'none'
+				return Promise.resolve()
+				    .then(() => {
+						return new Promise( async (resolve, reject) => {
+							audio = uni.createInnerAudioContext();
+							if ( !this.playRecord ) {
+								this.updateMusicPlayRecord(this.playList[0].path);
+								return;
+							}
+							let nowIndex = indexOf(this.playList, this.playRecord, 'path');
+							let src = '';
+							let lyric = '';
+							if ( this.playList[nowIndex].source == 'local' ) {
+								src = this.playRecord ? 'file://' + this.playRecord : '';
+							} else {
+								src = await this._getPlayUrl(this.playList[nowIndex]);
+							}
+							if ( this.playList[nowIndex].lyric && src ) {
+								lyric = await this.getPlayLyric(this.playList[nowIndex]);
+							}
+							this.setMusicLyric(lyric);
+							if ( src ) {
+								audio.src = src
+								audio.volume = 1;
+								audio.onCanplay(() => {
+									this.changeMusicPlayDuration(audio.duration || 0);
+								})
+								audio.onPlay(() => {
+									this.changeMusicPlayStatus(true);
+								});
+								audio.onPause(() => {
+									this.changeMusicPlayStatus(false);
+								});
+								audio.onError(() => {
+									this.changeMusicPlayStatus(false);
+									uni.showToast({
+										title: "播放错误!",
+										icon: 'none'
+									})
+								});
+								audio.onEnded(() => {
+									this.changeMusic(1);
+								});
+								audio.onTimeUpdate(() => {
+									if ( audio ) {
+										this.changeMusicPlayTime(audio.currentTime || 0);
+									}
+								})
+								resolve('')
+							}
+						})
+				    })
+				    .catch(err => {
+				        console.log('[catch]', err);
+				    })
+			},
+			//获取在线音乐播放链接
+			_getPlayUrl (data) {
+				return new Promise((resolve, reject) => {
+					getPlayUrl(data).then((res) => {
+						resolve(res.data.src);
+					}).catch((err) => {
+						resolve('')
+						uni.showToast({
+							title: '获取播放链接失败',
+							icon: 'none'
+						})
 					})
-				});
-				audio.onPause(() => {
-					uni.showToast({
-						title: "暂停播放",
-						icon: 'none'
-					})
-				});
-				audio.onError(() => {
-					this.changeMusicPlayStatus(false);
-					uni.showToast({
-						title: "播放错误!",
-						icon: 'none'
-					})
-				});
-				audio.onEnded(() => {
-					this.changeMusic(1);
-				});
-				audio.onTimeUpdate(() => {
-					if ( audio ) {
-						this.changeMusicPlayTime(audio.currentTime || 0);
-					}
 				})
 			},
+			//获取在线音乐歌词
+			getPlayLyric (data) {
+				return new Promise((resolve, reject) => {
+					getLyric(data).then((res) => {
+						resolve(res.data.lyric);
+					}).catch((err) => {
+						resolve('');
+					})
+				})
+			},
+			//改变播放状态
 			changePlayStatus () {
 				if ( !audio.paused ) {
 					this.pause();
@@ -389,10 +466,9 @@
 			play () {
 				if ( audio.src && audio.paused ) {
 					audio.play();
-					this.changeMusicPlayStatus(true);
 				} else {
 					if ( this.playList.length > 0 ) {
-						this.updateMusicPlayRecord(this.playList[0].path);
+						this.upMusicSrc();
 					} else {
 						uni.showToast({
 							icon: 'none',
@@ -405,7 +481,6 @@
 			pause () {
 				if ( !audio.paused && audio.src ) {
 					audio.pause();
-					this.changeMusicPlayStatus(false);
 				}
 			},
 			//上一曲 / 下一曲
@@ -446,15 +521,36 @@
 				}
 			},
 			btnHide () {
-				musicBox.hide();
-				musicLine.hide();
+				if ( !this.isPlayer() ) {
+					musicBox.hide();
+					musicLine.hide();
+				}
 			},
 			btnShow () {
-				musicBox.show();
-				musicLine.show();
+				if ( !this.isPlayer() ) {
+					musicBox.show();
+					musicLine.show();
+				}
+			},
+			//判断播放页面是否打开
+			isPlayer () {
+				const pages = getCurrentPages();
+				const nowPage = pages[pages.length - 1];
+				if ( nowPage.$page.path == '/pages/music/player' ) {
+					return false;
+				}
+				for ( let i in pages ) {
+					if ( pages[i].$page.path == '/pages/music/player' ) {
+						return true;
+					}
+				}
+				return false;
 			}
 		},
 		watch: {
+			skinMode () {
+				this.changeLineBgColor();
+			},
 			playStatus () {
 				this.changeStatusIcon();
 			},
@@ -470,7 +566,7 @@
 				//音乐在播放途中被删掉
 				if ( this.playRecord && indexOf(val, this.playRecord, 'path') == -1 ) {
 					if ( val.length > 0 ) {
-						this.updateMusicPlayRecord(val[0].path);
+						this.upMusicSrc();
 					} else {
 						this.updateMusicPlayRecord('');
 						this.changeMusicPlayTime(0);
@@ -485,15 +581,14 @@
 			if ( audio ) {
 				audio.destroy();
 			}
-			uni.$off('app-hide');
 			uni.$off('update-time');
 			uni.$off('change-status');
 			uni.$off('musicBtn-show');
 			uni.$off('musicBtn-hide');
+			uni.$off('change-music');
 		}
 	}
 </script>
 
 <style>
-
 </style>

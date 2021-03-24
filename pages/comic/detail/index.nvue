@@ -14,7 +14,7 @@
 		</view>
 		<view class="btns">
 			<view class="old-btn btn" @tap="readComic(readed.path)">
-				<text class="btn-text" :style="{'color': skinColor.bgColor}">上次读到 {{readed ? readed.name : cNum}} 第{{pNum + 1}}p</text>
+				<text class="btn-text" :style="{'color': skinColor.bgColor}">上次读到 {{readed ? readed.name : cNum}} 第{{pNum + 1}}P</text>
 			</view>
 			<view class="new-btn btn" @tap="startRead">
 				<text class="btn-text new-btn-text">开始阅读</text>

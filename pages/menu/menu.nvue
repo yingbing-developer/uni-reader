@@ -14,7 +14,7 @@
 				<c-image class="bg" src="@/static/menuBack.png" mode="aspectFill"></c-image>
 			</view>
 			<!-- 列表切换 -->
-			<view class="list actived" :style="{'background-color': current == index ? skinColor.menuActiveBgColor : ''}" @tap="changeCurrent(index)" v-for="(item, index) in navs" :key="index">
+			<view class="list" :class="skinColor.activedName" :style="{'background-color': current == index ? skinColor.menuActiveBgColor : ''}" @tap="changeCurrent(index)" v-for="(item, index) in navs" :key="index">
 				<view class="icon">
 					<c-icon :name="item.icon" :size="item.size" :color="current == index ? skinColor.menuActiveColor : skinColor.menuIconColor"></c-icon>
 				</view>
@@ -22,14 +22,14 @@
 			</view>
 			<view class="hr" :style="{'background-color': skinColor.gapColor}"></view>
 			<!-- 夜间模式切换 -->
-			<view class="list actived" @tap="changeMode">
+			<view class="list" :class="skinColor.activedName" @tap="changeMode">
 				<view class="icon">
 					<c-icon :name="modeIcon" size="37.5" :color="skinColor.menuIconColor"></c-icon>
 				</view>
 				<text class="title" :style="{color: skinColor.menuTitleColor}">{{modeName}}</text>
 			</view>
 			<!-- 功能页面 -->
-			<view class="list actived" v-for="(item, index) in options" :key="index" @tap="clickOptions(item)">
+			<view class="list" :class="skinColor.activedName" v-for="(item, index) in options" :key="index" @tap="clickOptions(item)">
 				<view class="icon">
 					<c-icon :name="item.icon" :size="item.size" :color="skinColor.menuIconColor"></c-icon>
 				</view>

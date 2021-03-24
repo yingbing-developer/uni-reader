@@ -8,7 +8,7 @@
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
 				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @longpress="preview(item.path)">
 					<!-- <c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="widthFix"></c-image> -->
-					<c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix"></c-image>
+					<c-image :enable-mask="false" enable-hidden :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix"></c-image>
 				</view>
 			</cell>
 			
@@ -37,6 +37,7 @@
 	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
 	import { indexOf, cnnumtonum } from '@/common/js/util.js'
+	import { TIMEOUT } from '@/common/js/config.js'
 	import ComicSetting from '../setting/index.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import GapBar from '@/components/gap-bar/gap-bar.nvue'
@@ -126,6 +127,8 @@
 				this.comicSync = [];
 				this.nextShow = false;
 				this.prevShow = false;
+				this.direction = 'up';
+				this.nowIndex = 0;
 				clearTimeout(this.timer);
 				this.timer = setTimeout(() => {
 					if ( this.comicInfo.source == 'local' ) {
@@ -165,23 +168,26 @@
 						// 	})
 						// 	this.comicSync = arr;
 							
-							
-							setTimeout(() => {
-								this.scrollTo();
-							}, 50)
-							uni.hideLoading();
+							this.$nextTick(() => {
+								setTimeout(() => {
+									this.scrollTo();
+									uni.hideLoading();
+								}, 50)
+							})
 						// }, 1)
 					} else {
 						//读取在线漫画内容
 						this.getOnlineComicContent().then((res) => {
 							this.comicSync = res;
-							setTimeout(() => {
-								this.scrollTo();
-							}, 50)
-							uni.hideLoading();
+							this.$nextTick(() => {
+								setTimeout(() => {
+									this.scrollTo();
+									uni.hideLoading();
+								}, 50)
+							})
 						}).catch((err) => {
 							uni.showToast({
-								title: '解析失败',
+								title: err,
 								icon: 'none'
 							})
 						});
@@ -190,20 +196,33 @@
 			},
 			//获取在线漫画内容
 			getOnlineComicContent () {
-				return new Promise((resolve, reject) => {
+				let p1 = new Promise((resolve, reject) => {
 					getApp().globalData.routePush(
 					`/pages/comic/getComicContent/index?url=${this.chapters[this.chapter].path}&source=${this.comicInfo.source}`,
 					'none'
 					).then(() => {
 						uni.$on('comicContent', (res) => {
-							resolve(res.data)
+							clearTimeout(this.timeout);
 							getApp().globalData.routeBack();
 							uni.$off('comicContent');
+							resolve(res.data)
 						})
 					}).catch((err) => {
-						reject(err)
+						clearTimeout(this.timeout);
+						getApp().globalData.routeBack(2);
+						uni.$off('comicContent');
+						reject('解析失败');
 					});
 				})
+				let p2 = new Promise((resolve, reject) => {
+					clearTimeout(this.timeout);
+					this.timeout = setTimeout(() => {
+						getApp().globalData.routeBack(2);
+						uni.$off('comicContent');
+						reject('请求超时');
+					}, TIMEOUT)
+				})
+				return Promise.race([p1, p2]);
 			},
 			//预览图片
 			preview (path) {
@@ -364,7 +383,6 @@
 				}
 				let chapter = parseInt(this.chapter) + value;
 				this.upChapter(chapter);
-				this.getComicSync();
 			},
 			//更新章节
 			upChapter (chapter) {
@@ -429,6 +447,7 @@
 		onUnload () {
 			//页面卸载更新阅读记录
 			this.upReadStatus();
+			clearTimeout(this.timeout);
 		},
 		onResize () {
 			//重新计算屏幕宽度和图片高度

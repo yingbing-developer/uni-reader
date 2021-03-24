@@ -39,11 +39,10 @@
 			}
 		},
 		beforeCreate () {
-			//获取对话选择信息
-			uni.$on('actionSheet-info', (data) => {
-			    this.list = data.list;
-			})
 			uni.$emit('musicBtn-hide');
+		},
+		onLoad (data) {
+			this.list = JSON.parse(decodeURIComponent(data.list))
 		},
 		onReady () {
 			this.show();

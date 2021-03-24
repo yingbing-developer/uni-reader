@@ -18,7 +18,7 @@
 			<view class="tab" @tap="changeTab(index)" v-for="(item, index) in tabs" :key="index">
 				<text class="tab-title" :style="{'color': skinColor.iconColor}">{{item.title}}</text>
 			</view>
-			<view class="tab-line" :style="{'background-color': skinColor.iconColor, transform: `translateX(${currentTab * 375}rpx)`}"></view>
+			<view class="tab-line" :style="{'background-color': skinColor.bgColor, transform: `translateX(${currentTab * 375}rpx)`}"></view>
 		</view>
 		<list-scroll :column-count="3" :column-width="230" :line-height="285" @scroll="scroll" :list="list" :scrollable="scrollable">
 			<no-data slot="fixed" v-if="list.length <= 0" :title="noDataTitle"></no-data>
@@ -66,6 +66,7 @@
 		<c-menu v-model="currentTab" :translate="menuLate" :opacity="menuOpac" ref="leftMenu"></c-menu>
 		
 		<music-btn></music-btn>
+		<music-lyric></music-lyric>
 	</view>
 </template>
 
@@ -77,6 +78,7 @@
 	import NoData from '@/components/no-data/no-data.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import MusicBtn from '@/components/music-btn/music-btn.nvue'
+	import MusicLyric from '@/components/music-lyric/music-lyric.nvue'
 	import { skinMixin, menuTouchMixin } from '@/common/mixin/index.js'
 	import { indexOf } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
@@ -235,7 +237,8 @@
 			CSearch,
 			ListScroll,
 			CImage,
-			MusicBtn
+			MusicBtn,
+			MusicLyric
 		}
 	}
 </script>

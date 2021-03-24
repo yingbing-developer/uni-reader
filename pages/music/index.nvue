@@ -1,7 +1,7 @@
 <template>
 	<view class="music">
 		<view class="mask" ref="mask" @tap="hide"></view>
-		<view class="popup" ref="popup" :style="{'background-color': skinColor.bgColor}">
+		<view class="popup" ref="popup" @touchmove.stop.prevent="" :style="{'background-color': skinColor.bgColor }">
 			<view class="top">
 				<view class="mode" @tap="changeMode">
 					<c-icon name="loop" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'loop'"></c-icon>
@@ -9,16 +9,21 @@
 					<c-icon name="random" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'random'"></c-icon>
 					<text class="modeName" :style="{color: skinColor.menuIconColor}">{{modeName}}</text>
 				</view>
-				<view class="clear" @tap="clear" v-if="listSync.length > 0">
-					<c-icon name="waste-fill" size="42" :color="skinColor.menuIconColor"></c-icon>
+				<view class="top-right">
+					<view class="tr-icon" @tap="routePush('/pages/music/online')">
+						<c-icon name="network" size="42" :color="skinColor.menuIconColor"></c-icon>
+					</view>
+					<view class="tr-icon" @tap="clear" v-if="playList.length > 0">
+						<c-icon name="waste-fill" size="42" :color="skinColor.menuIconColor"></c-icon>
+					</view>
 				</view>
 			</view>
-			<list-scroll :list="listSync" :lineHeight="100" ref="musicList">
+			<list-scroll :list="listSync" :lineHeight="80" ref="musicList">
 				<template v-slot="{item}">
-					<view class="list actived" @tap="playMusic(item.path)">
+					<view class="list" :class="skinColor.activedName" @tap="goPlayer(item.path)">
 						<text class="list-name" :style="{color: playRecord == item.path ? '#d43c33' : skinColor.menuTitleColor}">{{item.name}}</text>
 						<view class="list-right">
-							<view class="list-icon">
+							<view class="list-icon" @tap.stop="playMusic(item.path)">
 								<c-icon name="pause" size="37" color="#d43c33" v-if="playStatus && playRecord == item.path"></c-icon>
 								<c-icon name="play" size="35" color="#d43c33" v-else></c-icon>
 							</view>
@@ -28,16 +33,11 @@
 						</view>	
 					</view>
 				</template>
-				<no-data slot="fixed" title="没有导入的歌曲哦!" v-if="playList.length <= 0"></no-data>
 			</list-scroll>
-			<view class="progress-line" v-if="musicDuration">
-				<text class="progress-num" :style="{color: skinColor.titleColor}">{{playTime | minutesFormat}}</text>
-				<c-progress class="progress" :value="musicProgress" @input="updateTime" itemShow></c-progress>
-				<text class="progress-num" :style="{color: skinColor.titleColor}">{{musicDuration | minutesFormat}}</text>
-			</view>
+			<no-data position="absolute" title="没有导入的歌曲哦!" v-if="listSync.length <= 0"></no-data>
 			<view class="add" @touchmove.stop.prevent="">
 				<view class="add-btn" :style="{'border-color': skinColor.menuTitleColor}" @tap="routePush('/pages/music/search')">
-					<text class="add-text" :style="{color: skinColor.menuTitleColor}">添加歌曲</text>
+					<text class="add-text" :style="{color: skinColor.menuTitleColor}">添加本地歌曲</text>
 				</view>
 			</view>
 			<view class="close" @tap="hide" :style="{'background-color': skinColor.navColor}">
@@ -62,20 +62,20 @@
 			return {
 				anima: {
 					opac: 0.4,
-					duration: 300
-				}
+					duration: 400
+				},
+				height: 900
 			}
 		},
 		onReady() {
-			this.show()
+			this.show();
 		},
 		computed: {
-			...mapGetters(['playList', 'getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayRecord', 'getMusicPlayTime', 'getMusicPlayDuration']),
+			...mapGetters(['playList', 'getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayRecord']),
 			listSync () {
-				let arr = this.playList.filter((item) => {
+				return this.playList.filter((item) => {
 					return item;
-				})
-				return arr;
+				});
 			},
 			playStatus () {
 				return this.getMusicPlayStatus;
@@ -85,24 +85,6 @@
 			},
 			playRecord () {
 				return this.getMusicPlayRecord;
-			},
-			//已播放时长
-			playTime () {
-				return this.getMusicPlayTime;
-			},
-			//音乐时长
-			musicDuration () {
-				return this.getMusicPlayDuration;
-			},
-			musicProgress () {
-				return (this.playTime / this.musicDuration) * 100
-			}
-		},
-		filters: {
-			minutesFormat (value) {
-				let minutes = Math.floor(value / 60) >= 10 ? Math.floor(value / 60) : '0' + Math.floor(value / 60);
-				let seconds = Math.ceil(value - (minutes * 60)) >= 10 ? Math.ceil(value - (minutes * 60)) : '0' + Math.ceil(value - (minutes * 60));
-				return minutes + ':' + seconds;
 			}
 		},
 		methods: {
@@ -119,18 +101,26 @@
 				})
 				animation.transition(this.$refs.popup, {
 				    styles: {
-						transform: 'translateY(0)'
+						transform: 'translateY(0)',
+						opacity: 1
 				    },
 				    duration: this.anima.duration, //ms
 				    timingFunction: 'ease',
 				    needLayout:false,
 				    delay: 0 //ms
+				}, () => {
+					setTimeout(() => {
+						let index = indexOf(this.playList, this.playRecord, 'path');
+						if ( index > -1) {
+							this.$refs.musicList.scrollTo(index);
+						}
+					}, 200)
 				})
 			},
 			hide () {
 				animation.transition(this.$refs.mask, {
 				    styles: {
-						opacity: 0
+						opacity: '0'
 				    },
 				    duration: this.anima.duration, //ms
 				    timingFunction: 'ease',
@@ -139,7 +129,8 @@
 				})
 				animation.transition(this.$refs.popup, {
 				    styles: {
-						transform: 'translateY(' + Math.abs(1000) + 'rpx)'
+						transform: 'translateY(' + Math.abs(this.height) + 'rpx)',
+						opacity: 0
 				    },
 				    duration: this.anima.duration, //ms
 				    timingFunction: 'ease',
@@ -180,6 +171,12 @@
 				        this.changeMusicPlayMode('loop');
 						break;
 				}
+			},
+			goPlayer (path) {
+				if ( this.playRecord != path ) {
+					this.updateMusicPlayRecord(path);
+				}
+				getApp().globalData.routePush('/pages/music/player', 'fade-in');
 			},
 			playMusic (path) {
 				if ( this.playRecord == path ) {
@@ -231,16 +228,21 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		height: 1000rpx;
-		transform: translateY(1000rpx);
-		border-top-left-radius: 50rpx;
-		border-top-right-radius: 50rpx;
+		height: 900rpx;
+		transform: translateY(900rpx);
+		opacity: 0;
 	}
 	.top {
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
 		padding: 40rpx 30rpx;
+	}
+	.top-right {
+		flex-direction: row;
+	}
+	.tr-icon {
+		margin-left: 20rpx;
 	}
 	.mode {
 		flex-direction: row;
@@ -254,7 +256,7 @@
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
-		height: 100rpx;
+		height: 80rpx;
 		padding: 0 30rpx;
 	}
 	.list-right {
@@ -270,21 +272,9 @@
 		lines: 1;
 		text-overflow: ellipsis;
 	}
-	.progress-line {
-		padding: 20rpx 30rpx;
-		flex-direction: row;
-		align-items: center;
-	}
-	.progress {
-		flex: 1;
-	}
-	.progress-num {
-		width: 100rpx;
-		font-size: 28rpx;
-		text-align: center;
-	}
 	.add {
 		align-items: center;
+		padding: 30rpx 0;
 	}
 	.add-btn {
 		width: 220rpx;
@@ -294,17 +284,16 @@
 		align-items: center;
 		border-width: 1px;
 		border-style: solid;
-		margin: 30rpx 0 60rpx 0;
 	}
 	.add-text {
 		font-size: 28rpx;
 	}
 	.close {
-		height: 100rpx;
+		height: 85rpx;
 		align-items: center;
 		justify-content: center;
 	}
 	.close-text {
-		font-size: 35rpx;
+		font-size: 25rpx;
 	}
 </style>

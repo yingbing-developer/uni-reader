@@ -1,7 +1,7 @@
 <template>
-	<view class="c-image" @appear="appear" @disappear="disappear" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : ''}">
-		<image @load="getImageInfo" ref="image" :class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : ''}"></image>
-		<view class="img-mask" :style="{opacity: skinColor.imgMask}" v-if="enableMask"></view>
+	<view class="c-image" @appear="appear" @disappear="disappear" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}">
+		<image referrerPolicy="origin" @load="getImageInfo" @error="error" ref="image" :class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}"></image>
+		<view class="img-mask" :style="{opacity: skinColor.imgMask, borderRadius: borderRadius + 'rpx'}" v-if="enableMask"></view>
 	</view>
 </template>
 
@@ -13,22 +13,27 @@
 	export default {
 		mixins: [skinMixin],
 		props: {
+			//图片链接
 			src: {
 				type: String,
 				default: ''
 			},
+			//裁剪模式
 			mode: {
 				type: String,
 				default: ''
 			},
+			//懒加载
 			lazyLoad: {
 				type: Boolean,
 				default: false
 			},
+			//是否打开超出屏幕隐藏
 			enableHidden: {
 				type: Boolean,
 				default: false
 			},
+			//是否打开夜间模式遮罩层
 			enableMask: {
 				type: Boolean,
 				default: true
@@ -37,9 +42,20 @@
 				type: String,
 				default: 'cover'
 			},
+			//屏幕宽度用于计算高度
 			windowWidth: {
 				type: Number,
 				default: 0
+			},
+			//圆角大小
+			borderRadius: {
+				type: Number,
+				default: 0
+			},
+			//图片加载失败展示的默认图片
+			defaultSrc: {
+				type: String,
+				default: ''
 			}
 		},
 		computed: {
@@ -51,9 +67,9 @@
 			return {
 				url: '',
 				hidden: false,
-				test: true,
 				width: 0,
-				height: 0
+				height: 0,
+				isError: false
 			}
 		},
 		created() {
@@ -64,6 +80,12 @@
 		watch: {
 			src (newVal) {
 				this.url = newVal.replace('@', '');
+			},
+			isError (newVal) {
+				if ( newVal && this.defaultSrc ) {
+					this.url = this.defaultSrc.replace('@', '');
+					this.isError = false;
+				}
 			}
 		},
 		methods: {
@@ -77,7 +99,8 @@
 					this.hidden = true;
 				}
 			},
-			getImageInfo () {
+			getImageInfo (e) {
+				this.$emit('load', e);
 				if ( !this.width && !this.height && this.mode == 'widthFix' ) {
 					this.timer = setTimeout(() => {
 						dom.getComponentRect(this.$refs.image, (res) => {
@@ -86,6 +109,10 @@
 						});
 					}, 100)
 				}
+			},
+			error (e) {
+				this.isError = true;
+				this.$emit('error', e)
 			}
 		},
 		beforeDestroy() {

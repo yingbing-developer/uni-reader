@@ -16,16 +16,16 @@
 			<view slot="listTop" ref="listTop"></view>
 			<template v-slot="{item}">
 				<view @tap="readComic(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor}">
-					<view class="comic-list-icon" @tap.stop="check(item.path)">
+					<view class="comic-list-icon">
 						<c-image class="comic-image" :src="item.image" mode="aspectFill"></c-image>
 					</view>
 					<view class="comic-list-right">
 						<view class="comic-lr-line comic-title-line">
 							<text class="comic-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-							<text class="comic-list-source" :style="{'color': skinColor.menuTitleColor}">{{item.source}}</text>
+							<text class="comic-list-source" :style="{'color': skinColor.menuTitleColor}">{{comicUrl[item.source].title}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">{{item.author}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">作者：{{item.author}}</text>
 						</view>
 						<view class="comic-lr-line">
 							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
@@ -68,33 +68,42 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
 	import { indexOf } from '@/common/js/util.js'
+	import { COMICURL } from '@/common/js/config.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
 		data () {
 			return {
-				types: ['百合', '热血', '少女'],
 				//漫画列表
 				comicList: [],
 				//名称过滤
 				nameFilter: '',
 				//当前页数
-				nowPage: 1,
+				nowPages: {},
 				//是否已经加载完了所有数据
-				isLastPage: false,
+				isLastPages: {},
 				//滚动距离
-				oldOffsetY: 0
+				oldOffsetY: 0,
+				isLastPage: false
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'comicPathHistory']),
+			...mapGetters(['bookList', 'getComicSourcesController']),
 			noDataTitle () {
 				return this.nameFilter ? '没有搜索结果' : '请输入漫画名称'
+			},
+			comicUrl () {
+				return COMICURL
 			}
 		},
 		onLoad () {
-			
+			for ( let i in COMICURL ) {
+				if ( this.getComicSourcesController.indexOf(i) == -1 ) {
+					this.nowPages[i] = 1 ;
+					this.isLastPages[i] = false;
+				}
+			}
 		},
 		methods: {
 			...mapMutations(['addBooks', 'deleteBook']),
@@ -103,56 +112,87 @@
 			},
 			//设置搜索名称
 			setNameFilter (val) {
-				this.nameFilter = val;
-				if ( this.nameFilter ) {
-					uni.showLoading({
-						title: '搜索中',
-						mask: true
-					})
-					this.nowPage = 1;
-					this.isLastPage = false;
-					this.searchComic()
-				} else {
-					if ( this.comicList.length == 0 ) {
-						uni.showToast({
-							title: '请输入漫画名称',
-							icon: 'none'
+				clearTimeout(this.nameTimer);
+				this.nameTimer = setTimeout(() => {
+					this.nameFilter = val;
+					if ( this.nameFilter ) {
+						uni.showLoading({
+							title: '搜索中',
+							mask: true
 						})
+						for ( let i in this.nowPages ) {
+							this.nowPages[i] = 1;
+							this.isLastPages[i] = false;
+						}
+						this.searchComic()
 					} else {
-						this.comicList = [];
+						if ( this.comicList.length == 0 ) {
+							uni.showToast({
+								title: '请输入漫画名称',
+								icon: 'none'
+							})
+						} else {
+							this.comicList = [];
+						}
 					}
-				}
+				}, 500)
 			},
 			//触底加载更多漫画
 			loadmore (e) {
 				if ( this.nameFilter && !this.isLastPage && this.comicList.length >= 6 ) {
-					clearTimeout(this.timer);
-					this.timer = setTimeout(() => {
-						this.nowPage += 1;
-						this.searchComic();
+					clearTimeout(this.moreTimer);
+					this.moreTimer = setTimeout(() => {
+						for ( let i in this.nowPages ) {
+							this.nowPages[i] += 1;
+						}
+						this.searchComic('more');
 					}, 1000)
 				}
 			},
 			//搜索网络漫画
-			searchComic () {
+			searchComic (type = 'search') {
 				getComic({
 					title: this.nameFilter,
-					page: this.nowPage
+					page: this.nowPages,
+					isLastPage: this.isLastPages
 				}).then((res) => {
 					uni.hideLoading();
 					this.$refs["list"].resetLoadmore();
-					if ( res[0].code == 200 ) {
-						if ( this.nowPage > 1 ) {
-							this.comicList = this.comicList.concat(res[0].data);
-						} else {
-							this.comicList = res[0].data;
-							this.scrollTop();
+					let comicList = [];
+					for ( let i in res ) {
+						if ( res[i].data.source == '18comic' ) {
+							if ( res[i].data.list.length < 80 ) {
+								this.$set(this.isLastPages, res[i].data.source, true);
+							}
 						}
-						if ( res[0].data.length == 0 ) {
-							this.isLastPage = true;
+						comicList = comicList.concat(res[i].data.list);
+						if ( res[i].data.list.length == 0 ) {
+							this.$set(this.isLastPages, res[i].data.source, true);
 						}
 					}
+					comicList.sort((a, b) => {
+						return b.name.indexOf(this.nameFilter) - a.name.indexOf(this.nameFilter)
+					})
+					//判断是不是所有网站数据都加载完了
+					let flag = true;
+					for ( let i in this.isLastPages ) {
+						if ( !this.isLastPages[i] ) {
+							flag = false;
+							break;
+						}
+					}
+					this.isLastPage = flag;
+					
+					if ( type == 'search' ) {
+						this.comicList = comicList;
+						this.scrollTop();
+					} else {
+						this.comicList = this.comicList.concat(comicList);
+					}
 				}).catch((err) => {
+					for ( let i in err ) {
+						this.nowPages[err[i].data.source] = this.nowPages[err[i].data.source] > 1 ? this.nowPages[err[i].data.source] - 1 : 1;
+					}
 					this.$refs["list"].resetLoadmore();
 					uni.showToast({
 						title: '请求失败',
@@ -271,6 +311,7 @@
 			//返回顶部
 			scrollTop () {
 				dom.scrollToElement(this.$refs.listTop, {animated: false});
+				this.oldOffsetY = 0;
 			},
 			//根据文件路径判断当前文件是否已经导入,返回下标
 			isLead (path) {
@@ -283,7 +324,7 @@
 				this.$refs.bubble.hide();
 				return true;
 			}
-			clearTimeout(this.timer);
+			clearTimeout(this.moreTimer);
 			return false;
 		},
 		components: {

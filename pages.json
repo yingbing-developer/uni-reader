@@ -1,23 +1,16 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
-			"path": "pages/index/index",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/index/index"
 		},
 		//小说添加页
 		{
-			"path": "pages/book/search/index",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/book/search/index"
 		},
 		//小说阅读页
 		{
 			"path": "pages/book/read/index",
 			"style": {
-				"disableScroll": "true",
 				"app-plus": {
 				    "subNVues":[{
 				        "id": "catalog", // 唯一标识
@@ -45,30 +38,20 @@
 		},
 		//本地漫画添加页
 		{
-			"path": "pages/comic/search/index",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/comic/search/index"
 		},
 		//在线漫画添加页
 		{
-			"path": "pages/comic/online/index",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/comic/online/index"
 		},
 		//漫画详情页
 		{
-			"path": "pages/comic/detail/index",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/comic/detail/index"
 		},
 		//在线漫画内容获取页
 		{
 			"path": "pages/comic/getComicContent/index",
 			"style": {
-				"disableScroll": true, // 不嵌套 scroller
 				"backgroundColor": "transparent",
 				"app-plus": {
 					"bounce":"none"
@@ -77,58 +60,55 @@
 		},
 		//漫画阅读页
 		{
-			"path": "pages/comic/read/index",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/comic/read/index"
 		},
 		//设置页
 		{
-			"path": "pages/setting/index",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/setting/index"
 		},
 		//关于软件
 		{
-			"path": "pages/about/index",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/about/index"
 		},
-		//音乐列表
+		//音乐播放页面
+		{
+			"path": "pages/music/player",
+			"style": {
+				"backgroundColor": "transparent"
+			} 
+		},
+		//音乐播放列表
 		{
 			"path": "pages/music/index",
 			"style": {
-				"backgroundColor": "transparent",
-				"disableScroll": true
-			}
+				"backgroundColor": "transparent"
+			} 
 		},
 		//添加音乐
 		{
-			"path": "pages/music/search",
-			"style": {
-				"disableScroll": true // 不嵌套 scroller
-			}
+			"path": "pages/music/search"
+		},
+		//添加在线音乐
+		{
+			"path": "pages/music/online"
 		},
 		//确认弹窗
 		{
 			"path": "pages/base/confirm/index",
 			"style": {
-				"backgroundColor": "transparent",
-				"disableScroll": true // 不嵌套 scroller
-			}
+				"backgroundColor": "transparent"
+			} 
 		},
 		//选择对话框
 		{
 			"path": "pages/base/actionSheet/index",
 			"style": {
-				"backgroundColor": "transparent",
-				"disableScroll": true // 不嵌套 scroller
-			}
+				"backgroundColor": "transparent"
+			} 
 		}
 	],
 	"globalStyle": {
+		"disableScroll": true, // 不嵌套 scroller
 		"navigationStyle": "custom",
 		"navigationBarTextStyle": "white",
 		"navigationBarBackgroundColor": "transparent",

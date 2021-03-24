@@ -8,6 +8,7 @@
 	import { COMICURL } from '@/common/js/config.js'
 	import { skinMixin } from '@/common/mixin/index.js'
 	let bgBox = null;
+	let wv = null;
 	export default {
 		mixins: [skinMixin],
 		data () {
@@ -17,24 +18,73 @@
 				src: '',
 				webviewStyles: {
 				    progress: false
-				}
+				},
+				source: '',
+				tags: ['mhhanman']
 			}
 		},
 		onLoad (data) {
-			this.src = `${this.url}?url=${COMICURL[data.source] + data.url}&source=${data.source}`;
+			if ( data.source == 'dmzj' ) {
+				this.src = `${this.url}?url=${encodeURIComponent(data.url)}&source=${data.source}&color=${encodeURIComponent(this.skinColor.bgColor)}`;
+			} else {
+				this.src = `${this.url}?url=${encodeURIComponent(COMICURL[data.source].href + data.url)}&source=${data.source}&color=${encodeURIComponent(this.skinColor.bgColor)}`;
+			}
+			// this.src = COMICURL[data.source].href + data.url;
+			// this.source = data.source;
 		},
 		onReady () {
-			//遮挡层，将web-view组件挡住避免背景色不同引起的闪屏
-			bgBox = new plus.nativeObj.View('bg',{
-				top:'0',left:'0', width: '100%', height: '100%', backgroundColor: this.skinColor.bgColor
-			});
-			bgBox.show();
-			this.webShow = true;
-			// let currentWebview = this.$scope.$getAppWebview() //此对象相当于html5plus里的plus.webview.currentWebview()。在uni-app里vue页面直接使用plus.webview.currentWebview()无效，非v3编译模式使用this.$mp.page.$getAppWebview()
-			// setTimeout(function() {
-			// 	let wv = currentWebview.children()[0]
-			// 	wv.hide();
-			// }, 100);
+			setTimeout(() => {
+				this.webShow = true;
+				this.$nextTick(() => {
+					setTimeout(() => {
+						let currentWebview = this.$scope.$getAppWebview();
+						wv = currentWebview.children()[0];
+						wv.overrideUrlLoading({mode:"reject",match:'.*'}, (e)=>{
+							console.log(e.url,'overrideUrlLoading');
+						});
+					}, 50)
+				})
+			}, 50)
+			// setTimeout(() => {
+			// 	this.webShow = true;
+			// 	let currentWebview = this.$scope.$getAppWebview() //此对象相当于html5plus里的plus.webview.currentWebview()。在uni-app里vue页面直接使用plus.webview.currentWebview()无效，非v3编译模式使用this.$mp.page.$getAppWebview()
+			// 	setTimeout(() => {
+			// 		let wv = currentWebview.children()[0];
+			// 		let globalJS = `
+			// 			var script = document.createElement("script");
+			// 			script.type = "text/javascript";
+			// 			script.src = 'https://js.cdn.aliyun.dcloud.net.cn/dev/uni-app/uni.webview.1.5.2.js';
+			// 			script.onload = function () {
+			// 				window.setTimeout(function () {
+			// 					var data = getContent();
+			// 					uni.postMessage({
+			// 					    data: data
+			// 					});
+			// 				}, 1000)
+			// 			}
+			// 			document.getElementsByTagName('head')[0].appendChild(script);
+			// 		`;
+			// 		let mangabz = `
+			// 			function getContent () {
+			// 				var doms = document.getElementsByClassName('lazy');
+			// 				var images = new Array(doms.length);
+			// 				for ( var i = 0; i < doms.length; i++ ) {
+			// 					images[i] = {
+			// 						path: doms[i].getAttribute('data-src')
+			// 					}
+			// 				};
+			// 				return images;
+			// 			}
+			// 		`;
+			// 		let actionJs = {
+			// 			'mangabz': mangabz,
+			// 			'40manhua': fourtymanhua,
+			// 			'cocomanhua': cocomanhua,
+			// 			'18comic': eighteencomic
+			// 		}
+			// 		wv.evalJS(actionJs[this.source] + globalJS);
+			// 	}, 2000);
+			// }, 50)
 		},
 		methods: {
 			//获取得到的漫画内容
@@ -44,8 +94,18 @@
 				})
 			}
 		},
+		onUnload () {
+			if ( wv ) {
+				wv.back();
+				wv.hide();
+			}
+		},
 		onBackPress (event) {
 			//判断是否是手动返回，如果是需要返回两层
+			if ( wv ) {
+				wv.back();
+				wv.hide();
+			}
 			if ( event.from == 'backbutton' ) {
 				let size = plus.screen.getCurrentSize();
 				//横屏
@@ -53,13 +113,9 @@
 					//退出前锁定为竖屏
 					plus.screen.lockOrientation('portrait-primary');
 				}
-				//退出前将遮挡层关闭掉
-				bgBox.close();
 				getApp().globalData.routeBack(2);
 				return true
 			}
-			//退出前将遮挡层关闭掉
-			bgBox.close();
 			return false
 		},
 	}

@@ -1,0 +1,62 @@
+<template><view></view></template>
+
+<script>
+	import { mapGetters } from 'vuex';
+	import lyricMixin from '@/common/mixin/lyric.js'
+	import { skinMixin } from '@/common/mixin/index.js'
+	let musicLyric = null;
+	const height = uni.upx2px(65);
+	const fontSize = uni.upx2px(35);
+	export default {
+		mixins: [skinMixin, lyricMixin],
+		computed: {
+			lyricLine () {
+				return [{
+					tag:'font', id:'lyricBorder', text: this.lyricNowTitle, textStyles: {size: fontSize + 'px', color: this.skinColor.titleColor, verticalAlign: 'middle', weight: 'bold'}
+				},{
+					tag:'font', id:'lyric', text: this.lyricNowTitle, textStyles: {size: fontSize + 'px', color: '#007AFF', verticalAlign: 'middle'}
+				}]
+			}
+		},
+		mounted () {
+			this.init();
+		},
+		methods: {
+			init () {
+				musicLyric = new plus.nativeObj.View('line',{
+					bottom:'0',left:'5%',height: height + 'px', width: '90%'
+				}, this.lyricLine);
+				musicLyric.interceptTouchEvent(false);
+				if ( this.lyricShow ) {
+					musicLyric.show();
+				}
+			}
+		},
+		watch: {
+			lyricNowTitle () {
+				if ( musicLyric ) {
+					musicLyric.draw(this.lyricLine)
+				}
+			},
+			lyricShow (val) {
+				if ( val ) {
+					this.init();
+				} else {
+					musicLyric.close();
+					musicLyric = null;
+				}
+			},
+			skinMode () {
+				if ( musicLyric ) {
+					musicLyric.draw(this.lyricLine)
+				}
+			}
+		},
+		beforeDestroy() {
+			musicLyric.close();
+		}
+	}
+</script>
+
+<style>
+</style>

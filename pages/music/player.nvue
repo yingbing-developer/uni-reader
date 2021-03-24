@@ -1,0 +1,460 @@
+<template>
+	<view class="player" :style="{'background-color': skinColor.menuBgColor}" @touchmove.stop.prevent="">
+		<c-image class="background" defaultSrc="@/static/music/music-bg.jpg" :enableMask="false" :src="playInfo ? playInfo.image : '@/static/music/music-bg.jpg'" mode="aspectFill"></c-image>
+		<view class="bg-mask"></view>
+		<view class="wrapper">
+			<gap-bar></gap-bar>
+			<view class="top" ref="top">
+				<view class="back" @tap="hide">
+					<music-icon class="back-icon" name="back" size="40" :color="skinColor.iconColor"></music-icon>
+				</view>
+				<view class="title">
+					<text class="subtitle music-name" :style="{color: skinColor.iconColor}">{{playInfo ? playInfo.name : '暂无歌曲'}}</text>
+					<text class="subtitle singer-name" :style="{color: skinColor.iconColor}">{{playInfo ? playInfo.singer : '暂无歌曲'}}</text>
+				</view>
+			</view>
+			<swiper class="swiper" :indicator-dots="true" :indicator-active-color="skinColor.iconColor" :duration="500">
+				<swiper-item>
+					<view class="swiper-item">
+						<view class="cd-wrapper">
+							<view class="cd" ref="cd">
+								<c-image :style="{transform: 'rotateZ(' + this.cdRotate + 'deg)'}" class="cd-img" borderRadius="500" defaultSrc="@/static/music/music-bg.jpg" :src="playInfo ? playInfo.image : '@/static/music/music-bg.jpg'" mode="aspectFill"></c-image>
+							</view>
+						</view>
+						<view class="lyric-lines" ref="lyricLines">
+							<text class="lyric-line-text" :style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{lyricNowTitle}}</text>
+						</view>
+					</view>
+				</swiper-item>
+				<swiper-item>
+					<view class="swiper-item" ref="lyric">
+						<scroll-view v-if="playLyric.length > 0" :scroll-into-view="'lyric-line-' + (lyricNowIndex - 6 <= 0 ? 0 : lyricNowIndex - 6)" scroll-y="true" scroll-with-animation class="lyric-list">
+							<text
+							v-for="(item, index) in playLyric"
+							class="lyric-line-text"
+							:id="'lyric-line-' + index"
+							:style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{item.title}}</text>
+						</scroll-view>
+						<view class="no-lyric" v-else>
+							<text class="lyric-line-text" :style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{playInfo ? playInfo.name : '暂无歌曲'}}</text>
+						</view>
+					</view>
+				</swiper-item>
+			</swiper>
+			<view class="control" ref="control">
+				<view class="progress-line">
+					<text class="progress-num" :style="{color: skinColor.titleColor}">{{playTime | minutesFormat}}</text>
+					<c-progress class="progress" :disable="musicDuration == 0" :height="9" :itemSize="30" activeColor="#d43c33" :value="musicProgress" @input="updateTime" itemShow></c-progress>
+					<text class="progress-num" :style="{color: skinColor.titleColor}">{{musicDuration | minutesFormat}}</text>
+				</view>
+				<view class="control-line">
+					<view class="control-box" @tap="changeMode">
+						<music-icon name="sequence" size="50" :color="skinColor.iconColor" v-if="playMode == 'loop'"></music-icon>
+						<music-icon name="loop" size="50" :color="skinColor.iconColor" v-if="playMode == 'once'"></music-icon>
+						<music-icon name="random" size="50" :color="skinColor.iconColor" v-if="playMode == 'random'"></music-icon>
+					</view>
+					<view class="control-box" @tap="changeMusic(-1)">
+						<music-icon name="prev" size="55" :color="skinColor.iconColor"></music-icon>
+					</view>
+					<view class="control-box" @tap="playPause">
+						<music-icon name="play" size="70" :color="skinColor.iconColor" v-if="!playStatus"></music-icon>
+						<music-icon name="pause" size="70" :color="skinColor.iconColor" v-if="playStatus"></music-icon>
+					</view>
+					<view class="control-box" @tap="changeMusic(1)">
+						<music-icon name="next" size="55" :color="skinColor.iconColor"></music-icon>
+					</view>
+					<view class="control-box" @tap="setMusicLyricShow(!lyricShow)">
+						<view class="lyric-box" :style="{'border-color': lyricShow ? '#d43c33' : skinColor.iconColor}">
+							<text class="lyric-text" :style="{color: lyricShow ? '#d43c33' : skinColor.iconColor}">词</text>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import GapBar from '@/components/gap-bar/gap-bar.nvue'
+	import MusicIcon from '@/components/music-icon/music-icon.nvue'
+	import CImage from '@/components/c-image/c-image.nvue'
+	import CProgress from '@/components/progress/progress.nvue'
+	import { mapGetters, mapMutations } from 'vuex';
+	import { skinMixin } from '@/common/mixin/index.js';
+	import lyricMixin from '@/common/mixin/lyric.js';
+	const animation = weex.requireModule('animation');
+	export default {
+		mixins: [skinMixin, lyricMixin],
+		data () {
+			return {
+				duration: 400,
+				delay: 200,
+				cdRotate: 0,
+				cdStart: 0
+			}
+		},
+		computed: {
+			...mapGetters(['getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayDuration']),
+			//播放状态
+			playStatus () {
+				return this.getMusicPlayStatus;
+			},
+			//播放模式
+			playMode () {
+				return this.getMusicPlayMode;
+			},
+			//音乐时长
+			musicDuration () {
+				return this.getMusicPlayDuration;
+			},
+			//播放进度
+			musicProgress () {
+				return (this.playTime / this.musicDuration) * 100
+			}
+		},
+		onLoad () {
+			uni.$emit('musicBtn-hide');
+		},
+		onReady() {
+			this.show();
+		},
+		onUnload () {
+			uni.$emit('musicBtn-show');
+		},
+		filters: {
+			minutesFormat (value) {
+				let minutes = Math.floor(value / 60 % 60) >= 10 ? Math.floor(value / 60 % 60) : '0' + Math.floor(value / 60 % 60);
+				let seconds = Math.floor(value % 60) >= 10 ? Math.floor(value % 60) : '0' + Math.floor(value % 60);
+				return minutes + ':' + seconds;
+			}
+		},
+		methods: {
+			...mapMutations(['changeMusicPlayMode', 'changeMusicPlayStatus', 'updateMusicPlayRecord', 'setMusicLyricShow']),
+			//更新时间
+			updateTime (percent) {
+				uni.$emit('update-time', {
+					time: (percent / 100) * this.musicDuration
+				})
+			},
+			//改变播放模式
+			changeMode () {
+				switch (this.playMode) {
+				    case 'loop':
+				        this.changeMusicPlayMode('once');
+				        break;
+				    case 'once':
+				        this.changeMusicPlayMode('random');
+				        break;
+				    default:
+				        this.changeMusicPlayMode('loop');
+						break;
+				}
+			},
+			// 上一曲/下一曲
+			changeMusic (value) {
+				uni.$emit('change-music', {
+					value: value
+				})
+			},
+			//播放和暂停
+			playPause () {
+				uni.$emit('change-status', {
+					status: !this.playStatus
+				})
+			},
+			show () {
+				animation.transition(this.$refs.top, {
+				    styles: {
+						transform: 'translateY(0)',
+						opacity: 1
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: this.delay //ms
+				})
+				animation.transition(this.$refs.control, {
+				    styles: {
+						transform: 'translateY(0)',
+						opacity: 1
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: this.delay //ms
+				})
+				animation.transition(this.$refs.lyricLines, {
+				    styles: {
+						opacity: 1
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: this.delay //ms
+				})
+				animation.transition(this.$refs.cd, {
+				    styles: {
+						transform: 'translate(0, 0) scale(1.1)',
+						opacity: 1
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, () => {
+					animation.transition(this.$refs.cd, {
+					    styles: {
+							transform: 'scale(1)'
+					    },
+					    duration: this.duration / 2, //ms
+					    timingFunction: 'ease',
+					    needLayout:false,
+					    delay: 0 //ms
+					}, () => {
+						if ( this.playStatus ) {
+							this.startRotate();
+						}
+					})
+				})
+			},
+			hide () {
+				this.stopRotate();
+				animation.transition(this.$refs.top, {
+				    styles: {
+						transform: 'translateY(-70rpx)',
+						opacity: 0
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.control, {
+				    styles: {
+						transform: 'translateY(300rpx)',
+						opacity: 0
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.lyric, {
+				    styles: {
+						opacity: 0
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.lyricLines, {
+				    styles: {
+						opacity: 0
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.cd, {
+				    styles: {
+						transform: 'translate(-260rpx, 350rpx) scale(0)',
+						opacity: 0
+				    },
+				    duration: this.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, () => {
+					getApp().globalData.routeBack();
+				})
+			},
+			//旋转cd封面
+			startRotate () {
+				this.cdStart = 2;
+				this.cdRotate += 0.2;
+				if ( this.cdRotate > 360 ) {
+					this.cdRotate = 0;
+				}
+				if ( this.cdTimer ) {
+					clearTimeout(this.cdTimer);
+				}
+				this.cdTimer = setTimeout(() => {
+					if ( this.cdStart == 1 ) {
+						clearTimeout(this.cdTimer);
+						return false;
+					}
+					this.startRotate();
+				}, 20)
+			},
+			//停止旋转cd封面
+			stopRotate () {
+				this.cdStart = 1;
+			}
+		},
+		watch: {
+			playStatus (val) {
+				if ( val ) {
+					this.startRotate()
+				} else {
+					this.stopRotate()
+				}
+				
+			}
+		},
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide();
+				return true;
+			}
+			return false
+		},
+		components: {
+			GapBar,
+			MusicIcon,
+			CImage,
+			CProgress
+		}
+	}
+</script>
+
+<style scoped>
+	.background {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		opacity: 0.1;
+	}
+	.bg-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-image: linear-gradient(to bottom right, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
+	}
+	.wrapper {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.top {
+		flex-direction: row;
+		height: 70rpx;
+		position: relative;
+		transform: translateY(-70rpx);
+		opacity: 0;
+	}
+	.back {
+		width: 80rpx;
+		align-items: center;
+	}
+	.back-icon {
+		transform: rotateZ(-90deg);
+	}
+	.title {
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		flex: 1;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 100rpx;
+	}
+	.subtitle {
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.music-name {
+		font-size: 30rpx;
+	}
+	.singer-name {
+		font-size: 22rpx;
+	}
+	.swiper {
+		flex: 1;
+	}
+	.swiper-item {
+		flex: 1;
+	}
+	.cd-wrapper {
+		padding: 40rpx;
+		align-items: center;
+		position: relative;
+		flex: 1;
+	}
+	.lyric-lines {
+		margin: 30rpx 0 100rpx 0;
+		opacity: 0;
+	}
+	.cd {
+		margin-top: 60rpx;
+		width: 500rpx;
+		height: 500rpx;
+		border-radius: 500rpx;
+		border-width: 20rpx;
+		border-style: solid;
+		border-color: rgba(0,0,0,0.3);
+		opacity: 0;
+		transform: translate(-260rpx, 350rpx) scale(0);
+	}
+	.cd-img {
+		flex: 1;
+	}
+	.control {
+		padding: 20rpx 40rpx;
+		height: 260rpx;
+		transform: translateY(300rpx);
+		opacity: 0;
+	}
+	.progress-line {
+		padding: 20rpx 20rpx;
+		flex-direction: row;
+		align-items: center;
+	}
+	.progress {
+		flex: 1;
+	}
+	.progress-num {
+		width: 100rpx;
+		font-size: 24rpx;
+		text-align: center;
+	}
+	.control-line {
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 30rpx 40rpx 60rpx 40rpx;
+		align-items: center;
+	}
+	.lyric-box {
+		width: 55rpx;
+		height: 55rpx;
+		border-width: 4.2rpx;
+		border-radius: 55rpx;
+		align-items: center;
+		justify-content: center;
+	}
+	.lyric-text {
+		font-size: 30rpx;
+	}
+	.lyric-list {
+		margin: 60rpx 0 120rpx 0;
+	}
+	.lyric-line-text {
+		text-align: center;
+		font-size: 30rpx;
+		margin: 10rpx 0;
+	}
+	.no-lyric {
+		flex: 1;
+		align-items: center;
+		justify-content: center;
+	}
+</style>

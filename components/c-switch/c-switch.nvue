@@ -1,0 +1,98 @@
+<template>
+	<view class="c-switch" :style="{'background-color': bgColor, 'border-color': gapColor}">
+		<view class="switch-item" :style="{'background-color': itemColor, transform: `translateX(${valueSync ? 0 : '75rpx'})`}"></view>
+		<view class="text-box" @tap="change(true)"><text class="text" :style="{'color': valueSync ? checkedColor : uncheckedColor}">{{trueText}}</text></view>
+		<view class="text-box" @tap="change(false)"><text class="text" :style="{'color': !valueSync ? checkedColor : uncheckedColor}">{{falseText}}</text></view>
+	</view>
+</template>
+
+<script>
+	const dom = weex.requireModule('dom');
+	export default {
+		props: {
+			value: {
+				type: Boolean,
+				default: false
+			},
+			trueText: {
+				type: String,
+				default: '开'
+			},
+			falseText: {
+				type: String,
+				default: '关'
+			},
+			itemColor: {
+				type: String,
+				default: '#1989FA'
+			},
+			bgColor: {
+				type: String,
+				default: '#FAFAFA'
+			},
+			checkedColor: {
+				type: String,
+				default: '#FAFAFA'
+			},
+			uncheckedColor: {
+				type: String,
+				default: '#424249'
+			},
+			gapColor: {
+				type: String,
+				default: '#eeeeee'
+			}
+		},
+		data () {
+			return {
+				valueSync: false
+			}
+		},
+		created () {
+			this.valueSync = this.value;
+		},
+		methods: {
+			change (bool) {
+				if ( this.valueSync != bool ) {
+					this.valueSync = bool;
+					this.$emit('input', bool);
+				}
+			}
+		},
+		watch: {
+			value (newVal) {
+				this.valueSync = newVal;
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.c-switch {
+		position: relative;
+		width: 170rpx;
+		height: 55rpx;
+		border-radius: 55rpx;
+		border-width: 1px;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+	.text-box {
+		width: 85rpx;
+		height: 55rpx;
+		justify-content: center;
+		align-items: center;
+	}
+	.text {
+		font-size: 25rpx;
+	}
+	.switch-item {
+		position: absolute;
+		left: 0;
+		top: 0;
+		transition: transform 0.3s;
+		width: 95rpx;
+		height: 53rpx;
+		border-radius: 55rpx;
+	}
+</style>

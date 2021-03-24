@@ -5,9 +5,9 @@
 			<view class="title"><text class="title-text" :style="{color: skinColor.titleColor}">{{title}}</text></view>
 			<view class="message" :style="{'borderBottomColor': skinColor.gapColor}"><text class="msg-text" :style="{color: skinColor.textColor}">{{message}}</text></view>
 			<view class="btns">
-				<view class="btn actived" @tap="hide('cancel')"><text class="btn-text" :style="{color: skinColor.menuTitleColor}">取消</text></view>
+				<view class="btn" :class="skinColor.activedName" @tap="hide('cancel')"><text class="btn-text" :style="{color: skinColor.menuTitleColor, 'border-bottom-left-radius': '30rpx'}">取消</text></view>
 				<view class="line-gap" :style="{'background-color': skinColor.gapColor}"></view>
-				<view class="btn actived" @tap="hide('confirm')"><text class="btn-text" :style="{color: skinColor.menuTitleColor}">确认</text></view>
+				<view class="btn" :class="skinColor.activedName" @tap="hide('confirm')"><text class="btn-text" :style="{color: skinColor.menuTitleColor, 'border-bottom-right-radius': '30rpx'}">确认</text></view>
 			</view>
 		</view>
 	</view>
@@ -30,12 +30,11 @@
 			}
 		},
 		beforeCreate () {
-			//获取提示信息
-			uni.$on('message-info', (data) => {
-			    this.title = data.title;
-				this.message = data.message;
-			})
 			uni.$emit('musicBtn-hide');
+		},
+		onLoad (data) {
+			this.title = data.title;
+			this.message = decodeURIComponent(data.message);
 		},
 		onReady() {
 			const pages = getCurrentPages();

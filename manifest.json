@@ -2,12 +2,12 @@
     "name" : "好用阅读器",
     "appid" : "__UNI__8A96B42",
     "description" : "",
-    "versionName" : "2.8.2",
-    "versionCode" : 282,
+    "versionName" : "2.9.3",
+    "versionCode" : 293,
     "transformPx" : false,
 	"networkTimeout" : {
-		"request" : 15000,
-		"downloadFile" : 15000
+		"request" : 50000,
+		"downloadFile" : 50000
 	},
     /* 5+App特有相关 */
     "app-plus" : {

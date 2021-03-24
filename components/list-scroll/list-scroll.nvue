@@ -5,7 +5,7 @@
 				<slot name="listTop"></slot>
 			</cell>
 			<cell v-for="(lists, i) in listSync" @appear="appear(i)" @disappear="disappear(i)">
-				<view class="box" :style="listStyleObj" ref="listItem">
+				<view class="box" :style="listStyleObj(i)" ref="listItem">
 					<view :style="itemStyleObj(index)" v-for="(child, index) in lists" :key="index" ref="item">
 						<block v-if="isShows.indexOf(i) > -1 || isShows.indexOf(i + 1) > -1 || isShows.indexOf(i - 1) > -1">
 							<slot :item="child"></slot>
@@ -72,10 +72,19 @@
 		},
 		computed: {
 			listStyleObj () {
-				return {
-					paddingLeft: this.columnGap + 'px',
-					paddingRight: this.columnGap + 'px',
-					paddingBottom: this.columnGap + 'px'
+				return function (index) {
+					if ( index < this.listSync.length - 1 ) {
+						return {
+							paddingLeft: this.columnGap + 'px',
+							paddingRight: this.columnGap + 'px'
+						}
+					} else {
+						return {
+							paddingLeft: this.columnGap + 'px',
+							paddingRight: this.columnGap + 'px',
+							paddingBottom: this.columnGap + 'px'
+						}
+					}
 				}
 			},
 			itemStyleObj () {
@@ -101,7 +110,7 @@
 		mounted () {
 			setTimeout(() => {
 				this.getListSync();
-			}, 100)
+			}, 300)
 		},
 		data() {
 			return {

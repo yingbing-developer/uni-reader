@@ -1,5 +1,5 @@
 <template>
-	<view class="no-data">
+	<view class="no-data" :style="{position: position}">
 		<image class="no-img" src="@/static/no-data.png" mode="aspectFit"></image>
 		<text class="no-title">{{title}}</text>
 	</view>
@@ -11,6 +11,10 @@
 			title: {
 				type: String,
 				default: '你还没有导入书籍'
+			},
+			position: {
+				type: String,
+				default: 'fixed'
 			}
 		}
 	}
@@ -18,7 +22,6 @@
 
 <style scoped>
 	.no-data {
-		position: fixed;
 		top: 0;
 		left: 0;
 		right: 0;

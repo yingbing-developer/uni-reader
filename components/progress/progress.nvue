@@ -8,8 +8,8 @@
 		<view :style="{'width': (itemSize / 2) + 'rpx'}"></view>
 		
 		<!-- 进度条 -->
-		<view id="progress" class="progress" :style="{'background-color': color}" ref="progress" @touchstart.stop="lineTouchstart">
-			<view class="active" :style="{'background-color': activeColor, width: activeWidth + 'px'}"></view>
+		<view id="progress" class="progress" :style="{'background-color': color, height: height + 'rpx'}" ref="progress" @touchstart.stop="lineTouchstart">
+			<view class="active" :style="{'background-color': activeColor, width: activeWidth + 'px', height: height + 'rpx'}"></view>
 		</view>
 		
 		<!-- nvue中overflow只有hidden属性，所以超出部分会隐藏，为了显示完成的滑块，在进度条2边加上间隔，宽度为滑块宽度的一半 -->
@@ -35,6 +35,10 @@
 	// #endif
 	export default {
 		props: {
+			disable: {
+				type: Boolean,
+				default: false
+			},
 			value: {
 				type: Number,
 				default: 0
@@ -42,6 +46,10 @@
 			itemSize: {
 				type: Number,
 				default: 40
+			},
+			height: {
+				type: Number,
+				default: 13
 			},
 			color: {
 				type: String,
@@ -101,6 +109,9 @@
 		methods: {
 			//手指触摸到滑块
 			itemTouchstart (e) {
+				if ( this.disable ) {
+					return;
+				}
 				if ( e.touches.length > 1 ) {
 					return;
 				}
@@ -108,6 +119,9 @@
 			},
 			//滑块触摸开始
 			touchstart (e) {
+				if ( this.disable ) {
+					return;
+				}
 				//手指是否触摸到滑块
 				if ( !this.startTouch ) {
 					return;
@@ -124,6 +138,9 @@
 			},
 			//滑块触摸移动
 			touchmove (e) {
+				if ( this.disable ) {
+					return;
+				}
 				//手指是否触摸到滑块
 				if ( !this.startTouch ) {
 					return;
@@ -136,6 +153,9 @@
 			},
 			//滑块触摸结束
 			touchend (e) {
+				if ( this.disable ) {
+					return;
+				}
 				//手指是否触摸到滑块
 				if ( !this.startTouch ) {
 					return;
@@ -145,6 +165,9 @@
 			},
 			//点击进度条本身触发
 			lineTouchstart (e) {
+				if ( this.disable ) {
+					return;
+				}
 				if ( e.touches.length > 1 ) {
 					return;
 				}
@@ -154,6 +177,9 @@
 				this.setPercent();
 			},
 			setPercent () {
+				if ( this.disable ) {
+					return;
+				}
 				if ( this.percent < 0 ) {
 					this.percent = 0
 				}
@@ -189,10 +215,6 @@
 	}
 	.progress {
 		flex: 1;
-		height: 13rpx;
-	}
-	.active {
-		height: 13rpx;
 	}
 	.item {
 		position: absolute;

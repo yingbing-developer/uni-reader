@@ -14,6 +14,9 @@ const PLAYLIST = 'UNI_READER_MUSIC_PLAY_LIST'
 const PLAYSTATUS = 'UNI_READER_MUSIC_PLAY_STATUS'
 const PLAYMODE = 'UNI_READER_MUSIC_PLAY_MODE'
 const PLAYRECORD = 'UNI_READER_MUSIC_PLAY_RECORD'
+const COMICSOURCES = 'UNI_READER_ONLINE_COMIC_SOURCES'
+const MUSICSOURCES = 'UNI_READER_ONLINE_MUSIC_SOURCES'
+const MUSICLYRICSHOW = 'UNI_READER_ONLINE_MUSIC_LYRIC_SHOW'
 const store = new Vuex.Store({
     state: {
 		skin: uni.getStorageSync(SKIN) || 'default', //皮肤
@@ -28,8 +31,12 @@ const store = new Vuex.Store({
 		musicPlayStatus: uni.getStorageSync(PLAYSTATUS) || false, //音乐播放状态
 		musicPlayTime: 0,//当前音乐播放位置
 		musicPlayDuration: 0,//当前音乐总时长
+		musicLyric: [],//当前音乐歌词
 		musicPlayMode: uni.getStorageSync(PLAYMODE) || 'loop', //音乐播放模式 loop => 循环播放 once => 单曲循环 random => 乱序播放
-		musicPlayRecord: uni.getStorageSync(PLAYRECORD) || '' //音乐播放记录
+		musicPlayRecord: uni.getStorageSync(PLAYRECORD) || '', //音乐播放记录
+		musicLyricShow: uni.getStorageSync(MUSICLYRICSHOW) || false, //控制歌词显示
+		musicSourcesController: uni.getStorageSync(MUSICSOURCES) || [], //在线音乐来源控制,放进来的表示关闭获取此来源的音乐
+		comicSourcesController: uni.getStorageSync(COMICSOURCES) || [] //在线漫画来源控制,放进来的表示关闭获取此来源的漫画
 	},
 	getters: {
 		//当前皮肤模式
@@ -56,7 +63,8 @@ const store = new Vuex.Store({
 					readBackColor: '#BFAD8A',
 					readTextColor: '#2E2B23',
 					activeBgColor: '#2397EE',
-					activeColor: '#FAFAFA'
+					activeColor: '#FAFAFA',
+					activedName: 'actived'
 				}
 			}
 			// 夜间模式
@@ -78,7 +86,8 @@ const store = new Vuex.Store({
 					readBackColor: '#393E41',
 					readTextColor: '#95A3A6',
 					activeBgColor: '#3F3F3F',
-					activeColor: '#777777'
+					activeColor: '#777777',
+					activedName: 'actived-dark'
 				}
 			}
 		},
@@ -115,11 +124,23 @@ const store = new Vuex.Store({
 		getMusicPlayDuration (state) {
 			return state.musicPlayDuration
 		},
+		getMusicLyric (state) {
+			return state.musicLyric
+		},
 		getMusicPlayMode (state) {
 			return state.musicPlayMode
 		},
 		getMusicPlayRecord (state) {
 			return state.musicPlayRecord
+		},
+		getMusicSourcesController (state) {
+			return state.musicSourcesController
+		},
+		getMusicLyricShow (state) {
+			return state.musicLyricShow
+		},
+		getComicSourcesController (state) {
+			return state.comicSourcesController
 		}
 	},
     mutations: {
@@ -270,7 +291,11 @@ const store = new Vuex.Store({
 			for ( let i in music ) {
 				state.musicPlayList.push({
 					name: removeSuffix(music[i].name),
-					path: music[i].path
+					image: music[i].image ? music[i].image : '/static/music/music-bg.jpg',
+					singer: music[i].singer || '未知歌手' ,
+					path: music[i].path,
+					lyric: music[i].lyric || false,
+					source: music[i].source ? music[i].source : 'local'
 				})
 			}
 			uni.setStorageSync(PLAYLIST, state.musicPlayList);
@@ -292,6 +317,7 @@ const store = new Vuex.Store({
 			state.musicPlayTime = 0;
 			state.musicPlayDuration = 0;
 		},
+		//更新音乐播放记录
 		updateMusicPlayRecord (state, record) {
 			state.musicPlayRecord = record;
 			uni.setStorageSync(PLAYRECORD, state.musicPlayRecord);
@@ -308,14 +334,34 @@ const store = new Vuex.Store({
 		changeMusicPlayDuration (state, duration) {
 			state.musicPlayDuration = duration;
 		},
+		//设置音乐歌词
+		setMusicLyric (state, lyric) {
+			state.musicLyric = lyric;
+		},
 		//改变音乐播放模式
 		changeMusicPlayMode (state, mode) {
 			state.musicPlayMode = mode;
 			uni.setStorageSync(PLAYMODE, state.musicPlayMode);
 		},
+		//更新本地音乐上次访问文件夹位置
 		updateMusicPath (state, path) {
 			state.musicPath = path;
 			uni.setStorageSync(MUSICPATH, state.musicPath);
+		},
+		//设置在线音乐来源
+		setMusicSourcesController (state, sources) {
+			state.musicSourcesController = sources;
+			uni.setStorageSync(MUSICSOURCES, state.musicSourcesController);
+		},
+		//改变音乐播放模式
+		setMusicLyricShow (state, bool) {
+			state.musicLyricShow = bool;
+			uni.setStorageSync(MUSICLYRICSHOW, state.musicLyricShow);
+		},
+		//设置在线漫画来源
+		setComicSourcesController (state, sources) {
+			state.comicSourcesController = sources;
+			uni.setStorageSync(COMICSOURCES, state.comicSourcesController);
 		}
 	},
     actions: {}
