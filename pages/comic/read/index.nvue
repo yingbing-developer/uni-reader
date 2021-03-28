@@ -8,7 +8,8 @@
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
 				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @longpress="preview(item.path)">
 					<!-- <c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="widthFix"></c-image> -->
-					<c-image :enable-mask="false" enable-hidden :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix"></c-image>
+					<c-image :enable-mask="false" enable-hidden :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix" v-if="imageType"></c-image>
+					<comic-image :windowWidth="windowWidth" :src="item.path" v-if="!imageType"></comic-image>
 				</view>
 			</cell>
 			
@@ -29,7 +30,7 @@
 			<text class="chapter-text">前没有了，点击前往上一话</text>
 		</view>
 		
-		<comic-setting ref="comicSetting" :chapters="chapters" :path="comicInfo.path" :comicSync="comicSync" :actNum="nowIndex"></comic-setting>
+		<comic-setting ref="comicSetting" @changeType="imageType = !imageType" :chapters="chapters" :path="comicInfo.path" :comicSync="comicSync" :actNum="nowIndex"></comic-setting>
 	</view>
 </template>
 
@@ -40,6 +41,7 @@
 	import { TIMEOUT } from '@/common/js/config.js'
 	import ComicSetting from '../setting/index.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
+	import ComicImage from '@/components/comic-image/comic-image.nvue'
 	import GapBar from '@/components/gap-bar/gap-bar.nvue'
 	const dom = weex.requireModule('dom');
 	const GetComicContent = plus.android.importClass('com.itstudy.io.GetComicContent');
@@ -94,7 +96,8 @@
 				windowWidth: 0,
 				direction: 'up',
 				nextShow: false,
-				prevShow: false
+				prevShow: false,
+				imageType: true
 			}
 		},
 		beforeCreate () {
@@ -475,6 +478,7 @@
 		components: {
 			ComicSetting,
 			CImage,
+			ComicImage,
 			GapBar
 		}
 	}

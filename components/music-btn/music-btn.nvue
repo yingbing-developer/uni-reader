@@ -566,7 +566,7 @@
 				//音乐在播放途中被删掉
 				if ( this.playRecord && indexOf(val, this.playRecord, 'path') == -1 ) {
 					if ( val.length > 0 ) {
-						this.upMusicSrc();
+						this.updateMusicPlayRecord(this.playList[0].path);
 					} else {
 						this.updateMusicPlayRecord('');
 						this.changeMusicPlayTime(0);

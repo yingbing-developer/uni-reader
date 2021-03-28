@@ -1,0 +1,97 @@
+<template>
+	<view class="comic-image" @appear="appear" @disappear="disappear" :style="{height: imageHeight + 'px'}">
+		<block v-if="!hidden">
+			<image ref="image" lazy-load :style="{height: imageHeight + 'px', opacity: '0'}" @load="getImageInfo" :src="src" mode="widthFix" v-if="!height"></image>
+			<view class="box" v-if="height" :style="{height: imageHeight + 'px'}">
+				<div class="img-box"
+				v-for="(item, index) in 10"
+				:key="index"
+				:style="{height: (imageHeight / 10) + 'px'}"
+				@appear="boxAppear(10 - index)" @disappear="boxDisappear(10 - index)">
+					<image
+					v-if="!boxHidden[10 - index]"
+					lazy-load
+					class="image"
+					:src="src"
+					mode="widthFix"
+					:style="{bottom: -(index * (imageHeight / 10)) + 'px'}"
+					></image>
+				</div>
+			</view>
+		</block>
+	</view>
+	
+</template>
+
+<script>
+	const dom = weex.requireModule('dom');
+	export default {
+		props: {
+			//图片链接
+			src: {
+				type: String,
+				default: ''
+			},
+			//屏幕宽度用于计算高度
+			windowWidth: {
+				type: Number,
+				default: 0
+			}
+		},
+		computed: {
+			imageHeight () {
+				return (this.windowWidth / this.width * this.height) > 0 ? this.windowWidth / this.width * this.height : 400
+			}
+		},
+		data () {
+			return {
+				width: 0,
+				height: 0,
+				hidden: true,
+				boxHidden: [true, true, true, true, true, true, true, true, true, true]
+			}
+		},
+		created() {
+			// for ( let i = 0; i < 10; i++ ) {
+			// 	this.boxHidden.push(true);
+			// }
+			// console.log();
+		},
+		methods: {
+			getImageInfo () {
+				if ( this.width && this.height ) {
+					return;
+				}
+				setTimeout(() => {
+					dom.getComponentRect(this.$refs.image, (res) => {
+						this.width = res.size.width;
+						this.height = res.size.height;
+					});
+				}, 100)
+			},
+			appear () {
+				this.hidden = false;
+			},
+			disappear () {
+				this.hidden = true;
+			},
+			boxAppear (index) {
+				this.$set(this.boxHidden, index, false);
+			},
+			boxDisappear (index) {
+				this.$set(this.boxHidden, index, true);
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.img-box {
+		position: relative;
+	}
+	.image {
+		position: absolute;
+		left: 0;
+		right: 0;
+	}
+</style>
