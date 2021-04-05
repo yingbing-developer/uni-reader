@@ -14,6 +14,8 @@
 				</view>
 			</view>
 			<swiper class="swiper" :indicator-dots="true" :indicator-active-color="skinColor.iconColor" :duration="500">
+				
+				<!-- cd封面 -->
 				<swiper-item>
 					<view class="swiper-item">
 						<view class="cd-wrapper">
@@ -26,6 +28,8 @@
 						</view>
 					</view>
 				</swiper-item>
+				
+				<!-- 歌词 -->
 				<swiper-item>
 					<view class="swiper-item" ref="lyric">
 						<scroll-view v-if="playLyric.length > 0" :scroll-into-view="'lyric-line-' + (lyricNowIndex - 6 <= 0 ? 0 : lyricNowIndex - 6)" scroll-y="true" scroll-with-animation class="lyric-list">
@@ -445,7 +449,8 @@
 		font-size: 30rpx;
 	}
 	.lyric-list {
-		margin: 60rpx 0 120rpx 0;
+		margin: 60rpx 0 90rpx 0;
+		flex: 1;
 	}
 	.lyric-line-text {
 		text-align: center;

@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		<web-view @message="handlePostMessage" :src="src" :webview-styles="webviewStyles" v-if="webShow"></web-view>
+		<web-view @message="handlePostMessage" :src="src" :webview-styles="webviewStyles"></web-view>
 	</view>
 </template>
 
@@ -13,7 +13,6 @@
 		mixins: [skinMixin],
 		data () {
 			return {
-				webShow: false,
 				url: '/hybrid/html/comic.html',
 				src: '',
 				webviewStyles: {
@@ -34,16 +33,11 @@
 		},
 		onReady () {
 			setTimeout(() => {
-				this.webShow = true;
-				this.$nextTick(() => {
-					setTimeout(() => {
-						let currentWebview = this.$scope.$getAppWebview();
-						wv = currentWebview.children()[0];
-						wv.overrideUrlLoading({mode:"reject",match:'.*'}, (e)=>{
-							console.log(e.url,'overrideUrlLoading');
-						});
-					}, 50)
-				})
+				let currentWebview = this.$scope.$getAppWebview();
+				wv = currentWebview.children()[0];
+				wv.overrideUrlLoading({mode:"reject",match:'.*'}, (e)=>{
+					console.log(e.url,'overrideUrlLoading');
+				});
 			}, 50)
 			// setTimeout(() => {
 			// 	this.webShow = true;
@@ -77,10 +71,7 @@
 			// 			}
 			// 		`;
 			// 		let actionJs = {
-			// 			'mangabz': mangabz,
-			// 			'40manhua': fourtymanhua,
-			// 			'cocomanhua': cocomanhua,
-			// 			'18comic': eighteencomic
+			// 			'mangabz': mangabz
 			// 		}
 			// 		wv.evalJS(actionJs[this.source] + globalJS);
 			// 	}, 2000);
