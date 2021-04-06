@@ -17,15 +17,16 @@
 			<template v-slot="{item}">
 				<view @tap="playMusic(item.path)" @longpress="showAction(item.path)" class="music-list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
 					<view class="music-list-icon" @tap.stop="check(item.path)">
-						<c-image class="music-image" borderRadius="80" src="/static/music/music-type.png" mode="scaleToFill"></c-image>
+						<c-image lazyLoad class="music-image" borderRadius="80" defaultSrc="@/static/music/music-bg.jpg" :src="item.image" mode="scaleToFill"></c-image>
 					</view>
 					<view class="music-list-right">
 						<view class="music-lr-line music-title-line">
 							<text class="music-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-							<text v-if="isLead(item.path) > -1" class="music-list-source" :style="{'color': skinColor.menuTitleColor}">已导入</text>
+							<text class="music-list-source" :style="{'color': skinColor.titleColor}">{{musicUrl[item.source].title}}</text>
 						</view>
 						<view class="music-lr-line">
 							<text class="music-list-text" :style="{'color': skinColor.menuTitleColor}">{{item.singer}}</text>
+							<text v-if="isLead(item.path) > -1" class="music-list-source" :style="{'color': skinColor.menuTitleColor}">已导入</text>
 						</view>
 					</view>
 				</view>
@@ -171,11 +172,19 @@
 					this.$refs["list"].resetLoadmore();
 					let musicList = [];
 					for ( let i in res ) {
-						musicList = musicList.concat(res[i].data.list);
-						if ( res[i].data.list.length == 0 ) {
-							this.$set(this.isLastPages, res[i].data.source, true);
+						if ( res[i].code == 200 ) {
+							musicList = musicList.concat(res[i].data.list);
+							if ( res[i].data.list.length == 0 ) {
+								this.$set(this.isLastPages, res[i].data.source, true);
+							}
+						} else {
+							//请求失败
+							this.nowPages[res[i].data.source] = this.nowPages[res[i].data.source] > 1 ? this.nowPages[res[i].data.source] - 1 : 1;
 						}
 					}
+					musicList.sort((a, b) => {
+						return b.name.indexOf(this.nameFilter) - a.name.indexOf(this.nameFilter)
+					})
 					//判断是不是所有网站数据都加载完了
 					let flag = true;
 					for ( let i in this.isLastPages ) {
@@ -192,13 +201,7 @@
 					} else {
 						this.musicList = this.musicList.concat(musicList);
 					}
-				}).catch((err) => {
-					this.$refs["list"].resetLoadmore();
-					uni.showToast({
-						title: '请求失败',
-						icon: 'none'
-					})
-				});
+				})
 			},
 			//全选文件
 			selectAll () {

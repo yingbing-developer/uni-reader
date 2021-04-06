@@ -3,6 +3,38 @@ import { MUSICURL, ERR_OK, ERR_FALSE, commonParams } from '@/common/js/config.js
 import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
 
 const tag1 = 'qqmusic';
+const tag2 = '163music';
+
+//转义html特殊字符
+const htmlDecodeByRegExp = function (str){ 
+	let s = "";
+	if( str.length == 0 ) return "";
+	s = str.replace(/&#58;/g,":");
+	s = s.replace(/&#32;/g," ");
+	s = s.replace(/&#33;/g,"!");
+	s = s.replace(/&#34;/g,'"');
+	s = s.replace(/&#35;/g,"#");
+	s = s.replace(/&#36;/g,"$");
+	s = s.replace(/&#37;/g,"%");
+	s = s.replace(/&#38;/g,"&");
+	s = s.replace(/&#39;/g,"'");
+	s = s.replace(/&#40;/g,"(");
+	s = s.replace(/&#41;/g,")");
+	s = s.replace(/&#42;/g,"*");
+	s = s.replace(/&#43;/g,"+");
+	s = s.replace(/&#44;/g,",");
+	s = s.replace(/&#45;/g,"-");
+	s = s.replace(/&#46;/g,".");
+	s = s.replace(/&#47;/g,"/");
+	s = s.replace(/&#13;/g,"\n");
+	return s; 
+}
+
+//将时间转化为秒数
+const time2seconds = function (time){
+	let seconds = parseInt(time.split(':')[0]) * 60 + parseInt(time.split(':')[1].split('.')[0]) + parseInt(time.split(':')[1].split('.')[1]) / 1000;
+	return seconds; 
+}
 
 
 //获取音乐列表
@@ -13,6 +45,9 @@ export function getMusic (data) {
 	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
 		newArr.push(getQqmusic(data));
 	}
+	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] ) {
+		newArr.push(getwangyimusic(data));
+	}
 	return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
 }
 
@@ -21,12 +56,18 @@ export function getPlayUrl (data) {
 	if ( data.source == tag1 ) {
 		return getQqmusicPlayUrl(data);
 	}
+	if ( data.source == tag2 ) {
+		return getwangyiPlayUrl(data);
+	}
 }
 
 //获取音乐歌词
 export function getLyric (data) {
 	if ( data.source == tag1 ) {
 		return getQqmusicLyric(data);
+	}
+	if ( data.source == tag2 ) {
+		return getwangyiLyric(data);
 	}
 }
 
@@ -110,19 +151,19 @@ function getQqmusicPlayUrl(data) {
 				host: 'u.y.qq.com',
 			}
 		}).then((res) => {
+			let playUrl = '';
 			if ( res.data.code == 0 ) {
-				let playUrl = '';
 				if ( res.data.req_0.data.midurlinfo['0'].purl ) {
 					playUrl = res.data.req_0.data.midurlinfo['0'].purl ? res.data.req_0.data.sip[1] + res.data.req_0.data.midurlinfo['0'].purl : '';
 				}
-				resolve({
-					code: ERR_OK,
-					data: {
-						src: playUrl,
-						source: tag1
-					}
-				})
 			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					src: playUrl,
+					source: tag1
+				}
+			})
 			
 		}).catch((err) => {
 			reject({
@@ -150,14 +191,14 @@ function getQqmusicLyric (data) {
 				host: 'c.y.qq.com',
 			}
 		}).then((res) => {
+			let lyrics = [];
 			if ( res.data.code == 0 ) {
 				let arr = htmlDecodeByRegExp(res.data.lyric).split('&#10;');
-				let lyrics = [];
 				for ( let i in arr ) {
 					if ( i >= 5 ) {
-						let time = arr[i].match(/\[(\S*)\]/)[0];
+						let time = arr[i].match(/\[(\S*)\]/) ? arr[i].match(/\[(\S*)\]/)[0] : '';
 						let title = arr[i].split(']')[1];
-						if ( title ) {
+						if ( title && time ) {
 							lyrics.push({
 								time: time2seconds(time.substring(1, time.length-1)),
 								title: title
@@ -165,15 +206,14 @@ function getQqmusicLyric (data) {
 						}
 					}
 				}
-				resolve({
-					code: ERR_OK,
-					data: {
-						lyric: lyrics,
-						source: tag1
-					}
-				})
 			}
-			
+			resolve({
+				code: ERR_OK,
+				data: {
+					lyric: lyrics,
+					source: tag1
+				}
+			})
 		}).catch((err) => {
 			reject({
 				code: ERR_FALSE,
@@ -186,33 +226,120 @@ function getQqmusicLyric (data) {
 	})
 }
 
-//转义html特殊字符
-const htmlDecodeByRegExp = function (str){ 
-	let s = "";
-	if( str.length == 0 ) return "";
-	s = str.replace(/&#58;/g,":");
-	s = s.replace(/&#32;/g," ");
-	s = s.replace(/&#33;/g,"!");
-	s = s.replace(/&#34;/g,'"');
-	s = s.replace(/&#35;/g,"#");
-	s = s.replace(/&#36;/g,"$");
-	s = s.replace(/&#37;/g,"%");
-	s = s.replace(/&#38;/g,"&");
-	s = s.replace(/&#39;/g,"'");
-	s = s.replace(/&#40;/g,"(");
-	s = s.replace(/&#41;/g,")");
-	s = s.replace(/&#42;/g,"*");
-	s = s.replace(/&#43;/g,"+");
-	s = s.replace(/&#44;/g,",");
-	s = s.replace(/&#45;/g,"-");
-	s = s.replace(/&#46;/g,".");
-	s = s.replace(/&#47;/g,"/");
-	s = s.replace(/&#13;/g,"\n");
-	return s; 
+
+//获取网易云网站的音乐列表
+function getwangyimusic (data) {
+	let dataSync = {
+		keywords: data.title,
+		limit: 20,
+		offset: (data.page[tag2] - 1) * 20
+	}
+	return new Promise((resolve, reject) => {
+		http.get(MUSICURL[tag2].href + '/cloudsearch', dataSync).then((res) => {
+			let songs = res.data.result.songs;
+			let music = [];
+			if ( res.data.code == 200 ) {
+				for ( let i in songs ) {
+					let singer = '';
+					for ( let j in songs[i].ar ) {
+						singer += songs[i].ar[j].name + (j < songs[i].ar.length ? ' ' : '')
+					}
+					music.push({
+						path: songs[i].id,
+						lyric: songs[i].id,
+						name: songs[i].name,
+						image: songs[i].al.picUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
+						singer: singer || '未知歌手',
+						source: tag2
+					})
+				}
+			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					list: music,
+					source: tag2
+				}
+			})
+			
+		}).catch((err) => {
+			resolve({
+				code: ERR_FALSE,
+				data: {
+					list: [],
+					source: tag2
+				}
+			})
+		})
+	})
 }
 
-//将时间转化为秒数
-const time2seconds = function (time){
-	let seconds = parseInt(time.split(':')[0]) * 60 + parseInt(time.split(':')[1].split('.')[0]) + parseInt(time.split(':')[1].split('.')[1]) / 1000;
-	return seconds; 
+//获取q网易云音乐播放链接
+function getwangyiPlayUrl(data) {
+	const dataSync = {
+		id: data.path
+	}
+	return new Promise((resolve, reject) => {
+		http.get(MUSICURL[tag2].href + '/song/url', dataSync).then((res) => {
+			let playUrl = ''
+			if ( res.data.code == 200 ) {
+				playUrl = res.data.data[0].url || '';
+			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					src: playUrl,
+					source: tag2
+				}
+			})
+		}).catch((err) => {
+			reject({
+				code: ERR_FALSE,
+				data: {
+					src: '',
+					source: tag2
+				}
+			})
+		})
+	})
+}
+
+//获取网易云音乐歌词
+function getwangyiLyric (data) {
+	const dataSync = {
+		id: data.path
+	}
+	return new Promise((resolve, reject) => {
+		http.get(MUSICURL[tag2].href + '/lyric', dataSync).then((res) => {
+			let lyrics = [];
+			if ( res.data.code == 200 ) {
+				let arr = res.data.lrc.lyric.split('\n');
+				for ( let i in arr ) {
+					let time = arr[i].match(/\[(\S*)\]/) ? arr[i].match(/\[(\S*)\]/)[0] : '';
+					let title = arr[i].split(']')[1];
+					if ( title && time ) {
+						lyrics.push({
+							time: time2seconds(time.substring(1, time.length-1)),
+							title: title
+						})
+					}
+				}
+			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					lyric: lyrics,
+					source: tag2
+				}
+			})
+		}).catch((err) => {
+			reject({
+				code: ERR_FALSE,
+				data: {
+					lyric: [],
+					source: tag2
+				}
+			})
+		})
+	})
 }

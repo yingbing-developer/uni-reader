@@ -22,6 +22,10 @@ export const MUSICURL = {
 	'qqmusic': {
 		title: 'QQ音乐',
 		href: 'https://c.y.qq.com'
+	},
+	'163music': {
+		title: '网易云音乐',
+		href: 'https://autumnfish.cn'
 	}
 };
 

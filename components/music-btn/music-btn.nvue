@@ -391,10 +391,10 @@
 							} else {
 								src = await this._getPlayUrl(this.playList[nowIndex]);
 							}
-							if ( this.playList[nowIndex].lyric && src ) {
-								lyric = await this.getPlayLyric(this.playList[nowIndex]);
+							if ( !src ) {
+								this.changeMusic(1);
+								return;
 							}
-							this.setMusicLyric(lyric);
 							if ( src ) {
 								audio.src = src
 								audio.volume = 1;
@@ -424,6 +424,10 @@
 								})
 								resolve('')
 							}
+							if ( this.playList[nowIndex].lyric && src ) {
+								lyric = await this.getPlayLyric(this.playList[nowIndex]);
+							}
+							this.setMusicLyric(lyric);
 						})
 				    })
 				    .catch(err => {
