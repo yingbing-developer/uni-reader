@@ -6,7 +6,7 @@ export const COMICURL = {
 	},
 	'18comic': {
 		title: '禁漫天堂',
-		href: 'https://18comic1.one'
+		href: 'https://18comic.art'
 	},
 	'sixmh6': {
 		title: '6漫画',

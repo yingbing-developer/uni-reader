@@ -70,7 +70,7 @@
 		},
 		created() {
 			this.init();
-			this.initMusic();
+			// this.initMusic();
 			this.getRandomIndex();
 			uni.getSystemInfo({
 				success: (res) => {
@@ -358,8 +358,10 @@
 			},
 			//更换音乐
 			upMusicSrc () {
-				audio.destroy();
-				audio = null;
+				if ( audio ) {
+					audio.destroy();
+					audio = null;
+				}
 				this.changeMusicPlayStatus(false);
 				clearTimeout(this.musicTimer);
 				this.musicTimer = setTimeout(() => {
@@ -392,7 +394,11 @@
 								src = await this._getPlayUrl(this.playList[nowIndex]);
 							}
 							if ( !src ) {
-								this.changeMusic(1);
+								getApp().globalData.message('操作提示', '获取播放链接失败，是否播放下一首？').then((res) => {
+									if ( res == 'confirm' ) {
+										this.changeMusic(1);
+									}
+								});
 								return;
 							}
 							if ( src ) {
@@ -440,11 +446,7 @@
 					getPlayUrl(data).then((res) => {
 						resolve(res.data.src);
 					}).catch((err) => {
-						resolve('')
-						uni.showToast({
-							title: '获取播放链接失败',
-							icon: 'none'
-						})
+						resolve('');
 					})
 				})
 			},
@@ -460,25 +462,29 @@
 			},
 			//改变播放状态
 			changePlayStatus () {
-				if ( !audio.paused ) {
-					this.pause();
-				} else {
-					this.play();
+				if ( audio ) {
+					if ( !audio.paused ) {
+						this.pause();
+						return false;
+					}
 				}
+				this.play();
 			},
 			//播放
 			play () {
-				if ( audio.src && audio.paused ) {
-					audio.play();
-				} else {
-					if ( this.playList.length > 0 ) {
-						this.upMusicSrc();
-					} else {
-						uni.showToast({
-							icon: 'none',
-							title: '播放列表为空!'
-						})
+				if ( audio ) {
+					if ( audio.src && audio.paused ) {
+						audio.play();
+						return false;
 					}
+				}
+				if ( this.playList.length > 0 ) {
+					this.upMusicSrc();
+				} else {
+					uni.showToast({
+						icon: 'none',
+						title: '播放列表为空!'
+					})
 				}
 			},
 			//暂停
@@ -525,10 +531,8 @@
 				}
 			},
 			btnHide () {
-				if ( !this.isPlayer() ) {
-					musicBox.hide();
-					musicLine.hide();
-				}
+				musicBox.hide();
+				musicLine.hide();
 			},
 			btnShow () {
 				if ( !this.isPlayer() ) {
@@ -541,7 +545,7 @@
 				const pages = getCurrentPages();
 				const nowPage = pages[pages.length - 1];
 				if ( nowPage.$page.path == '/pages/music/player' ) {
-					return false;
+					return true;
 				}
 				for ( let i in pages ) {
 					if ( pages[i].$page.path == '/pages/music/player' ) {

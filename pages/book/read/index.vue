@@ -27,7 +27,10 @@
 					@ready="ready"></page>
 				</swiper-item>
 			</swiper>
-			<real-page v-if="realPages.indexOf(bookReadMode.pageMode) > -1" :current="page" ref="realPage" @change="realPageChange" :type="bookReadMode.pageMode == 'RealPage' ? 'real' : 'cover'" :isClick="bookReadMode.pageType == 'click'" style="height: 100vh">
+			<real-page v-if="realPages.indexOf(bookReadMode.pageMode) > -1"
+			:current="page" ref="realPage" @change="realPageChange"
+			:type="bookReadMode.pageMode == 'RealPage' ? 'real' : 'cover'"
+			:isClick="bookReadMode.pageType == 'click'" style="height: 100vh">
 				<real-page-item
 				:boxColor="skinColor.readBackColor"
 				:bgColor="skinColor.readBackColor"

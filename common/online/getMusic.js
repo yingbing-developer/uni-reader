@@ -101,7 +101,7 @@ function getQqmusic (data) {
 				let songs = res.data.data.song.list;
 				let music = [];
 				for ( let i in songs ) {
-					if ( songs[i].pay.payplay == 0 ) {
+					// if ( songs[i].pay.payplay == 0 ) {
 						let singer = '';
 						for ( let j in songs[i].singer ) {
 							singer += songs[i].singer[j].name + (j < songs[i].singer.length ? ' ' : '')
@@ -114,7 +114,7 @@ function getQqmusic (data) {
 							singer: singer,
 							source: tag1
 						})
-					}
+					// }
 				}
 				resolve({
 					code: ERR_OK,

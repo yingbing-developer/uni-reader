@@ -17,7 +17,7 @@
 			<template v-slot="{item}">
 				<view @tap="playMusic(item.path)" @longpress="showAction(item.path)" class="music-list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
 					<view class="music-list-icon" @tap.stop="check(item.path)">
-						<c-image lazyLoad class="music-image" borderRadius="80" defaultSrc="@/static/music/music-bg.jpg" :src="item.image" mode="scaleToFill"></c-image>
+						<c-image lazyLoad class="music-image" defaultSrc="@/static/music/music-bg.jpg" :src="item.image" mode="scaleToFill"></c-image>
 					</view>
 					<view class="music-list-right">
 						<view class="music-lr-line music-title-line">
@@ -174,7 +174,7 @@
 					for ( let i in res ) {
 						if ( res[i].code == 200 ) {
 							musicList = musicList.concat(res[i].data.list);
-							if ( res[i].data.list.length == 0 ) {
+							if ( res[i].data.list.length < 20 ) {
 								this.$set(this.isLastPages, res[i].data.source, true);
 							}
 						} else {
