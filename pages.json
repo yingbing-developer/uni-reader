@@ -31,6 +31,16 @@
 				            "height": "100%",
 							"background": "transparent"
 				        }
+				    },{
+				        "id": "edit", // 唯一标识
+				        "path": "pages/book/read/subNVue/edit", // 页面路径
+						"type": "popup",
+				        "style": {
+							"mask": "rgba(0,0,0,0)",
+				            "width": "750upx",
+				            "height": "100%",
+							"background": "transparent"
+				        }
 				    }],
 					"bounce":"none"
 				}

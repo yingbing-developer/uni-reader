@@ -3,7 +3,7 @@
 		<view class="mask" ref="mask" @tap="hide('cancel')"></view>
 		<view class="popup" ref="popup" :style="{transform: 'translateY(' + Math.abs(lateY) + 'px)'}">
 			<view class="item-box" :style="{'background-color': skinColor.menuBgColor}">
-				<view v-for="(item, index) in list" :key="index" @tap="hide(item.value)">
+				<view v-for="(item, index) in list" :class="skinColor.activedName" :key="index" @tap="hide(item.value)">
 					<view class="list">
 						<text class="list-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
 					</view>
@@ -11,7 +11,7 @@
 				</view>
 			</view>
 			<view :style="{height: '15rpx'}"></view>
-			<view class="list item-box" :style="{'background-color': skinColor.menuBgColor}" @tap="hide('cancel')">
+			<view class="list item-box" :class="skinColor.activedName" :style="{'background-color': skinColor.menuBgColor}" @tap="hide('cancel')">
 				<text class="list-text" :style="{'color': skinColor.menuTitleColor}">取消</text>
 			</view>
 			<view :style="{height: '15rpx'}"></view>

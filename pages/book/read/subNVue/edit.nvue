@@ -1,0 +1,195 @@
+<template>
+	<view class="toast" @touchmove.stop.prevent="">
+		<view class="mask" ref="mask" @tap="hide('cancel')"></view>
+		<view class="popup" ref="popup" :style="{'background-color': skinColor.menuBgColor}" @touchmove.stop.prevent="">
+			<text class="title" :style="{color: skinColor.menuTitleColor}">编辑内容</text>
+			<textarea :show-confirm-bar="false" cursor-spacing="5" :style="{'border-color': skinColor.gapColor, 'background-color': skinColor.readBackColor, color: skinColor.readTextColor}" class="editTextarea" v-model="content" />
+			<view class="btns">
+				<view class="btn" :class="skinColor.activedName" @tap="hide('cancel')">
+					<text class="btn-text" :style="{color: skinColor.menuTitleColor}">取消</text>
+				</view>
+				<view class="line-gap" :style="{'background-color': skinColor.gapColor}"></view>
+				<view class="btn" :class="skinColor.activedName" @tap="save">
+					<text class="btn-text" :style="{color: skinColor.menuTitleColor}">保存</text>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const animation = weex.requireModule('animation');
+	import {
+		skinMixin
+	} from '@/common/mixin/index.js'
+	export default {
+		mixins: [skinMixin],
+		data() {
+			return {
+				isShow: false,
+				path: '',
+				content: '',
+				start: 0,
+				end: 0,
+				anima: {
+					duration: 300,
+					scale: 1,
+					opac: 1
+				}
+			}
+		},
+		beforeCreate() {
+			//监听子窗体显示传参
+			uni.$on('edit-popup', (data) => {
+				this.path = data.path;
+				this.content = data.content;
+				this.start = data.start;
+				this.end = data.end;
+				setTimeout(() => {
+					this.show();
+				}, 200)
+			})
+		},
+		methods: {
+			show() {
+				animation.transition(this.$refs.mask, {
+					styles: {
+						opacity: this.anima.opac
+					},
+					duration: this.anima.duration, //ms
+					timingFunction: 'ease',
+					needLayout: false,
+					delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+					styles: {
+						transform: `scale(${this.anima.scale})`,
+						opacity: this.anima.opac
+					},
+					duration: this.anima.duration, //ms
+					timingFunction: 'ease',
+					needLayout: false,
+					delay: 0 //ms
+				})
+			},
+			hide() {
+				animation.transition(this.$refs.mask, {
+					styles: {
+						opacity: 0
+					},
+					duration: this.anima.duration, //ms
+					timingFunction: 'ease',
+					needLayout: false,
+					delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+					styles: {
+						transform: 'scale(1.2)',
+						opacity: 0
+					},
+					duration: this.anima.duration, //ms
+					timingFunction: 'ease',
+					needLayout: false,
+					delay: 0 //ms
+				}, (res) => {
+					const subNvue = uni.getSubNVueById('edit');
+					subNvue.hide();
+				})
+			},
+			save () {
+				getApp().globalData.message('操作提示', '确认保存修改的内容吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						uni.$emit('edit-confirm', {
+							content: this.content,
+							start: this.start,
+							end: this.end
+						})
+						this.hide();
+					}
+				})
+			}
+		},
+		beforeDestroy() {
+			uni.$off('edit-popup');
+		}
+	}
+</script>
+
+<style scoped>
+	.toast {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.4);
+		opacity: 0;
+	}
+
+	.popup {
+		position: fixed;
+		top: 20rpx;
+		left: 20rpx;
+		right: 20rpx;
+		bottom: 20rpx;
+		transform: scale(1.2);
+		opacity: 0;
+	}
+
+	.editTextarea {
+		flex: 1;
+		padding: 20rpx;
+		border: 1px solid;
+	}
+
+	.title {
+		align-items: center;
+		padding: 15rpx;
+		font-size: 28rpx;
+	}
+
+	.title-text {
+		font-size: 35rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+
+	.message {
+		align-items: center;
+		border-bottom-width: 1px;
+		padding: 50rpx 0 40rpx 0;
+	}
+
+	.msg-text {
+		font-size: 35rpx;
+		padding: 0 20rpx;
+	}
+
+	.btns {
+		flex-direction: row;
+	}
+
+	.line-gap {
+		width: 1px;
+	}
+
+	.btn {
+		flex: 1;
+		padding: 35rpx 0;
+		align-items: center;
+	}
+
+	.btn-text {
+		font-size: 35rpx;
+	}
+</style>

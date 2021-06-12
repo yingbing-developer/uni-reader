@@ -67,7 +67,7 @@
 			}
 		},
 		beforeCreate() {
-			uni.$on('page-popup', (data) => {  
+			uni.$on('page-popup', (data) => {
 			    this.list = data.list;
 				this.title = data.title;
 				this.path = data.path;

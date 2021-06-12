@@ -104,6 +104,11 @@
 				catalog: [],
 				//当前页书签文本
 				markTitle: '',
+				//当前页面文本位置
+				nowRecord: {
+					start: 0,
+					end: 0
+				},
 				//需要用swiper的翻页方式
 				swiperPages: ['L2RTrans', 'U2DTrans', 'none'],
 				//需要用到real-page的翻页方式
@@ -152,6 +157,16 @@
 					uni.$emit('musicBtn-hide');
 				}
 			})
+			//监听编辑窗体修改
+			uni.$on('setting-menu', (data) => {
+				if ( data.flag == 'edit' ) {
+					this.openEditNvue();
+				}
+			})
+			//监听编辑窗体修改
+			uni.$on('edit-confirm', (data) => {
+				this.saveContent(data);
+			})
 			plus.nativeUI.showWaiting("读取文本中..");
 			this.duration = readDuration;
 		},
@@ -181,7 +196,7 @@
 				readTxt = '';
 				
 				// 获取内容 调试用
-				// let file = plus.android.newObject("java.io.File", 'file://' + this.path);
+				// let file = plus.android.newObject("java.io.File", this.path);
 				// let stream = plus.android.newObject("java.io.FileInputStream", file);
 				// let reader = plus.android.newObject("java.io.InputStreamReader", stream, 'GBK');
 				// let bufferedReader = plus.android.newObject("java.io.bufferedReader", reader);
@@ -194,6 +209,8 @@
 				// 		let reader = new plus.io.FileReader();
 				// 		reader.onloadend = ( e ) => {
 				// 			plus.nativeUI.closeWaiting();
+				// 			plus.android.invoke(bufferedReader, 'close');
+				// 			plus.android.invoke(reader, 'close');
 				// 			this.bookContent = e.target.result;
 				// 			//更新文本总长度
 				// 			this.updateBookLength({
@@ -215,7 +232,7 @@
 			},
 			//获取章节目录
 			getCatalog () {
-				const reg = new RegExp(/(第?[一二两三四五六七八九十○零百千万亿0-9１２３４５６７８９０※✩★☆]{1,6}[章回卷节折篇幕集部]?[、.\s][^\n]*)[_,-]?/g);
+				const reg = new RegExp(/(第?[一二两三四五六七八九十○零百千万亿0-9１２３４５６７８９０※✩★☆]{1,6}[章回卷节折篇幕集部]?[、.-\s][^\n]*)[_,-]?/g);
 				let match = '';
 				let catalog = [];
 				while ((match = reg.exec(this.bookContent)) != null) {
@@ -326,6 +343,10 @@
 			},
 			//更新阅读记录
 			setPage (e) {
+				this.nowRecord = {
+					start: e.start,
+					end: e.end
+				}
 				if ( this.touchChange = true ) {
 					//更新阅读位置
 					this.updateBookRecord({
@@ -476,16 +497,60 @@
 			//打开设置子窗体
 			openSettingNvue () {
 				const subNvue = uni.getSubNVueById('setting');
-				
 				//向子窗体传值
 				uni.$emit('setting-popup', {  
 					path: this.path,
+					catalog: this.catalog,
 				    markTitle: this.markTitle,
-				    catalog: this.catalog
+				    start: this.catalog
 				});
 				
 				// 打开 nvue 子窗体 
 				subNvue.show();
+			},
+			//打开编辑子窗体
+			openEditNvue () {
+				const subNvue = uni.getSubNVueById('edit');
+				
+				//向子窗体传值
+				let nowIndex = indexOf(this.pages, true, 'isPageNow');
+				uni.$emit('edit-popup', {  
+					path: this.path,
+				    content: this.bookContent.substring(this.nowRecord.start, this.nowRecord.end),
+				    start: this.nowRecord.start,
+				    end: this.nowRecord.end
+				});
+				// 打开 nvue 子窗体 
+				subNvue.show();
+			},
+			//保存文本
+			saveContent (data) {
+				let content = this.bookContent.substr(0, data.start) + data.content + this.bookContent.substr(parseInt(data.end));
+				this.bookContent = content;
+				this.initPage();
+				this.saveTxt();
+			},
+			//保存文件
+			saveTxt () {
+				uni.showLoading({
+					title: '保存内容中',
+					mask: true
+				})
+				let file = plus.android.newObject("java.io.File", this.path);
+				if ( file != null && plus.android.invoke(file, 'exists') ) {
+					plus.android.invoke(file, 'createNewFile');
+					let fileOutputStream = plus.android.newObject("java.io.FileOutputStream", file);
+					let outputStreamWriter = plus.android.newObject("java.io.OutputStreamWriter", fileOutputStream, "gb2312");
+					let bufferedWriter = plus.android.newObject("java.io.BufferedWriter", outputStreamWriter);
+					plus.android.invoke(bufferedWriter, 'write', this.bookContent);
+					plus.android.invoke(bufferedWriter, 'close');
+				} else {
+					uni.showToast({
+						title: '文件不存在或者不能被操作',
+						icon: 'none'
+					})
+				}
+				uni.hideLoading();
 			}
 		},
 		watch: {
@@ -502,6 +567,8 @@
 		beforeDestroy () {
 			//注销监听原生子窗体是否显示
 			uni.$off('setting-isShow');
+			uni.$off('setting-menu')
+			uni.$off('edit-confirm');
 			uni.$emit('musicBtn-show');
 		},
 		onBackPress (event) {
@@ -592,5 +659,34 @@
 		left: 50%;
 		transform: translate(-50%, -50%);
 		border-radius: 20rpx;
+	}
+	.edit {
+		position: fixed;
+		top: 20rpx;
+		left: 20rpx;
+		right: 20rpx;
+		bottom: 20rpx;
+		box-shadow: 0 0 10rpx rgba(0,0,0,0.3);
+	}
+	.editTextarea {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		padding: 20rpx;
+		resize: none;
+		box-sizing: border-box;
+		white-space: pre-wrap;
+		word-break: break-all;
+		word-wrap: break-word;
+	}
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0,0,0,0.3);
 	}
 </style>

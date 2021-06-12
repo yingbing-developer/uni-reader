@@ -82,7 +82,7 @@ const store = new Vuex.Store({
 					menuTitleColor: '#8F8F8F',
 					menuActiveColor: '#FAFAFA',
 					menuActiveBgColor: '#3F3F3F',
-					imgMask: 0.45,
+					imgMask: 0.3,
 					readBackColor: '#393E41',
 					readTextColor: '#95A3A6',
 					activeBgColor: '#3F3F3F',

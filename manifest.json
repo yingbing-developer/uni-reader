@@ -5,18 +5,18 @@
     "versionName" : "2.9.3",
     "versionCode" : 293,
     "transformPx" : false,
-	"networkTimeout" : {
-		"request" : 50000,
-		"downloadFile" : 50000
-	},
+    "networkTimeout" : {
+        "request" : 50000,
+        "downloadFile" : 50000
+    },
     /* 5+App特有相关 */
     "app-plus" : {
         "usingComponents" : true,
         "nvueCompiler" : "uni-app",
         "compilerVersion" : 3,
-		"compatible": {  
-		    "ignoreVersion": true //true表示忽略版本检查提示框，HBuilderX1.9.0及以上版本支持  
-		},
+        "compatible" : {
+            "ignoreVersion" : true //true表示忽略版本检查提示框，HBuilderX1.9.0及以上版本支持  
+        },
         "splashscreen" : {
             "alwaysShowBeforeRender" : true,
             "waiting" : false,
@@ -29,7 +29,11 @@
         "distribute" : {
             /* android打包配置 */
             "android" : {
-                "permissions" : [ "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>" ],
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>"
+                ],
                 "permissionPhoneState" : {
                     "request" : "none",
                     "prompt" : "为保证您正常、安全地使用，需要获取设备识别码（部分手机提示为获取手机号码）使用权限，请允许。"

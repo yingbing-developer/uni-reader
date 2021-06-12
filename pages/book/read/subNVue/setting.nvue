@@ -6,7 +6,10 @@
 		<view class="read-top" ref="readTop" @touchmove.stop.prevent="">
 			<nav-bar :title="bookInfo.name" bgColor="#333333" titleColor="#EFEFEF">
 				<view class="nav-right" slot="right">
-					<view @tap="addBookmark">
+					<view class="nr-item" @tap="openEditNvue">
+						<c-icon name="edit" :size="42" color="#EFEFEF"></c-icon>
+					</view>
+					<view class="nr-item" @tap="addBookmark">
 						<c-icon name="bookmark" :size="42" color="#EFEFEF"></c-icon>
 					</view>
 				</view>
@@ -377,6 +380,10 @@
 				// 打开 nvue 子窗体 
 				subNvue.show('slide-in-right', 400);
 			},
+			//打开编辑窗口
+			openEditNvue () {
+				uni.$emit('setting-menu', {flag: 'edit'});
+			},
 			routerPush () {
 				getApp().globalData.routePush('/pages/setting/index');
 			}
@@ -427,6 +434,10 @@
 		justify-content: flex-end;
 		align-items: center;
 		flex: 1;
+	}
+	.nr-item {
+		width: 50rpx;
+		margin-left: 10rpx;
 	}
 	.read-board {
 		position: fixed;
