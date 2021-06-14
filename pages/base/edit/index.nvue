@@ -1,9 +1,9 @@
 <template>
-	<view class="toast" @touchmove.stop.prevent="">
+	<view class="toast">
 		<view class="mask" ref="mask" @tap="hide('cancel')"></view>
 		<view class="popup" ref="popup" :style="{'background-color': skinColor.menuBgColor}" @touchmove.stop.prevent="">
 			<text class="title" :style="{color: skinColor.menuTitleColor}">编辑内容</text>
-			<textarea :show-confirm-bar="false" cursor-spacing="5" :style="{'border-color': skinColor.gapColor, 'background-color': skinColor.readBackColor, color: skinColor.readTextColor}" class="editTextarea" v-model="content" />
+			<textarea :adjust-position="false" :show-confirm-bar="false" :style="{'border-color': skinColor.gapColor, 'background-color': skinColor.readBackColor, color: skinColor.readTextColor}" class="editTextarea" v-model="content" />
 			<view class="btns">
 				<view class="btn" :class="skinColor.activedName" @tap="hide('cancel')">
 					<text class="btn-text" :style="{color: skinColor.menuTitleColor}">取消</text>
@@ -14,6 +14,7 @@
 				</view>
 			</view>
 		</view>
+		<view :style="{height: keyboardHeight + 'px'}"></view>
 	</view>
 </template>
 
@@ -27,10 +28,10 @@
 		data() {
 			return {
 				isShow: false,
-				path: '',
 				content: '',
 				start: 0,
 				end: 0,
+				keyboardHeight: 0,
 				anima: {
 					duration: 300,
 					scale: 1,
@@ -38,17 +39,19 @@
 				}
 			}
 		},
-		beforeCreate() {
-			//监听子窗体显示传参
-			uni.$on('edit-popup', (data) => {
-				this.path = data.path;
-				this.content = data.content;
-				this.start = data.start;
-				this.end = data.end;
-				setTimeout(() => {
-					this.show();
-				}, 200)
+		beforeCreate () {
+			uni.onKeyboardHeightChange(res => {
+			   this.keyboardHeight = res.height;
 			})
+		},
+		onLoad (data) {
+			uni.$emit('musicBtn-hide');
+			this.content = decodeURIComponent(data.content);
+			this.start = data.start;
+			this.end = data.end;
+			setTimeout(() => {
+				this.show();
+			}, 200)
 		},
 		methods: {
 			show() {
@@ -72,7 +75,7 @@
 					delay: 0 //ms
 				})
 			},
-			hide() {
+			hide (flag) {
 				animation.transition(this.$refs.mask, {
 					styles: {
 						opacity: 0
@@ -92,38 +95,48 @@
 					needLayout: false,
 					delay: 0 //ms
 				}, (res) => {
-					const subNvue = uni.getSubNVueById('edit');
-					subNvue.hide();
+					if ( flag == 'cancel' ) {
+						uni.$emit('edit-btn', {
+							flag: 'cancel'
+						})
+					} else {
+						uni.$emit('edit-btn', {
+							flag: 'confirm',
+							content: this.content,
+							start: this.start,
+							end: this.end
+						})
+					}
 				})
 			},
 			save () {
 				getApp().globalData.message('操作提示', '确认保存修改的内容吗？').then((res) => {
 					if ( res == 'confirm' ) {
-						uni.$emit('edit-confirm', {
-							content: this.content,
-							start: this.start,
-							end: this.end
-						})
-						this.hide();
+						this.hide('confirm');
 					}
 				})
 			}
 		},
-		beforeDestroy() {
-			uni.$off('edit-popup');
+		beforeDestroy () {
+			uni.$emit('musicBtn-show');
+			uni.offKeyboardHeightChange(res => {
+				console.log(res);
+			});
+		},
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide('cancel');
+				return true;
+			}
+			return false;
 		}
 	}
 </script>
 
 <style scoped>
 	.toast {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		align-items: center;
-		justify-content: center;
+		position: relative;
+		flex: 1;
 	}
 
 	.mask {
@@ -137,11 +150,8 @@
 	}
 
 	.popup {
-		position: fixed;
-		top: 20rpx;
-		left: 20rpx;
-		right: 20rpx;
-		bottom: 20rpx;
+		margin: 60rpx 40rpx;
+		flex: 1;
 		transform: scale(1.2);
 		opacity: 0;
 	}
@@ -156,23 +166,6 @@
 		align-items: center;
 		padding: 15rpx;
 		font-size: 28rpx;
-	}
-
-	.title-text {
-		font-size: 35rpx;
-		lines: 1;
-		text-overflow: ellipsis;
-	}
-
-	.message {
-		align-items: center;
-		border-bottom-width: 1px;
-		padding: 50rpx 0 40rpx 0;
-	}
-
-	.msg-text {
-		font-size: 35rpx;
-		padding: 0 20rpx;
 	}
 
 	.btns {

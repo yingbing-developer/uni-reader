@@ -31,16 +31,6 @@
 				            "height": "100%",
 							"background": "transparent"
 				        }
-				    },{
-				        "id": "edit", // 唯一标识
-				        "path": "pages/book/read/subNVue/edit", // 页面路径
-						"type": "popup",
-				        "style": {
-							"mask": "rgba(0,0,0,0)",
-				            "width": "750upx",
-				            "height": "100%",
-							"background": "transparent"
-				        }
 				    }],
 					"bounce":"none"
 				}
@@ -112,6 +102,13 @@
 		//选择对话框
 		{
 			"path": "pages/base/actionSheet/index",
+			"style": {
+				"backgroundColor": "transparent"
+			} 
+		},
+		//文本编辑框
+		{
+			"path": "pages/base/edit/index",
 			"style": {
 				"backgroundColor": "transparent"
 			} 

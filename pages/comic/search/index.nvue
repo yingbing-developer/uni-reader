@@ -83,22 +83,12 @@
 		<!-- 气泡弹窗 -->
 		<bubble ref="bubble">
 			<block v-if="comicSync.length > 0">
-				<view @tap="selectAll" v-if="checkes.length < comicSync.length">
-					<bubble-item title="全选"></bubble-item>
-				</view>
-				<view @tap="cancelAll" v-if="checkes.length == comicSync.length">
-					<bubble-item title="取消全选"></bubble-item>
-				</view>
+				<bubble-item title="全选" @click="selectAll" v-if="checkes.length < comicSync.length"></bubble-item>
+				<bubble-item title="取消全选" @click="cancelAll" v-if="checkes.length == comicSync.length"></bubble-item>
 			</block>
-			<view @tap="deleteAction" v-if="checkes.length > 0">
-				<bubble-item title="删除漫画"></bubble-item>
-			</view>
-			<view @tap="goInternalRoot">
-				<bubble-item title="内部存储"></bubble-item>
-			</view>
-			<view @tap="goExtenalRoot(item.path)" v-for="(item, index) in SDpaths" :key="index">
-				<bubble-item :title="'SD卡-' + (index + 1)"></bubble-item>
-			</view>
+			<bubble-item title="删除漫画" @click="deleteAction" v-if="checkes.length > 0"></bubble-item>
+			<bubble-item title="内部存储" @click="goInternalRoot"></bubble-item>
+			<bubble-item :title="'SD卡-' + (index + 1)" @click="goExtenalRoot(item.path)"  v-for="(item, index) in SDpaths" :key="index"></bubble-item>
 		</bubble>
 		  
 		<view class="fixed">
@@ -169,9 +159,11 @@
 				setTimeout(() => {
 					//获取扩展存储卡
 					let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
-					let getSDPath = new GetSDPath();
-					let pathStr = getSDPath.getSDPath();
-					this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr))) || [];
+					if ( GetSDPath ) {
+						let getSDPath = new GetSDPath();
+						let pathStr = getSDPath.getSDPath();
+						this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr))) || [];
+					}
 					
 					if ( this.comicPathHistory ) {
 						this.getComicList(this.comicPathHistory);

@@ -1,5 +1,5 @@
 <template>
-	<view class="bubble-item">
+	<view class="bubble-item" :class="skinColor.activedName" @tap="onTap">
 		<text class="list-text" :style="{color: skinColor.menuTitleColor}">{{title}}</text>
 	</view>
 </template>
@@ -12,6 +12,11 @@
 			title: {
 				type: String,
 				default: ''
+			}
+		},
+		methods: {
+			onTap () {
+				this.$emit('click');
 			}
 		}
 	}

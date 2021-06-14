@@ -163,10 +163,6 @@
 					this.openEditNvue();
 				}
 			})
-			//监听编辑窗体修改
-			uni.$on('edit-confirm', (data) => {
-				this.saveContent(data);
-			})
 			plus.nativeUI.showWaiting("读取文本中..");
 			this.duration = readDuration;
 		},
@@ -510,18 +506,20 @@
 			},
 			//打开编辑子窗体
 			openEditNvue () {
-				const subNvue = uni.getSubNVueById('edit');
-				
-				//向子窗体传值
-				let nowIndex = indexOf(this.pages, true, 'isPageNow');
-				uni.$emit('edit-popup', {  
-					path: this.path,
-				    content: this.bookContent.substring(this.nowRecord.start, this.nowRecord.end),
-				    start: this.nowRecord.start,
-				    end: this.nowRecord.end
+				let content = this.bookContent.substring(this.nowRecord.start, this.nowRecord.end);
+				getApp().globalData.routePush(`/pages/base/edit/index?content=${encodeURIComponent(content)}&start=${this.nowRecord.start}&end=${this.nowRecord.end}`, 'none').then((res) => {
+					if ( res == 'complete' ) {
+						setTimeout(() => {
+							uni.$on('edit-btn', (data) => {
+								if ( data.flag == 'confirm' ) {
+									this.saveContent(data);
+								}
+								getApp().globalData.routeBack();
+								uni.$off('edit-btn');
+							})
+						}, 60)
+					}
 				});
-				// 打开 nvue 子窗体 
-				subNvue.show();
 			},
 			//保存文本
 			saveContent (data) {
@@ -568,7 +566,6 @@
 			//注销监听原生子窗体是否显示
 			uni.$off('setting-isShow');
 			uni.$off('setting-menu')
-			uni.$off('edit-confirm');
 			uni.$emit('musicBtn-show');
 		},
 		onBackPress (event) {

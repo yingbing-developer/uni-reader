@@ -45,22 +45,12 @@
 		  <!-- 气泡弹窗 -->
 		  <bubble ref="bubble">
 				<block v-if="fileLength > 0">
-					<view @tap="selectAll" v-if="checkes.length < fileLength">
-						<bubble-item title="全选"></bubble-item>
-					</view>
-					<view @tap="cancelAll" v-if="checkes.length == fileLength">
-						<bubble-item title="取消全选"></bubble-item>
-					</view>
+					<bubble-item title="全选" @click="selectAll" v-if="checkes.length < fileLength"></bubble-item>
+					<bubble-item title="取消全选" @click="cancelAll" v-if="checkes.length == fileLength"></bubble-item>
 				</block>
-				<view @tap="deleteAction" v-if="checkes.length > 0">
-					<bubble-item title="删除文件"></bubble-item>
-				</view>
-				<view @tap="goInternalRoot">
-					<bubble-item title="内部存储"></bubble-item>
-				</view>
-				<view @tap="goExtenalRoot(item.path)" v-for="(item, index) in SDpaths" :key="index">
-					<bubble-item :title="'SD卡-' + (index + 1)"></bubble-item>
-				</view>
+				<bubble-item title="删除文件" @click="deleteAction" v-if="checkes.length > 0"></bubble-item>
+				<bubble-item title="内部存储" @click="goInternalRoot"></bubble-item>
+				<bubble-item :title="'SD卡-' + (index + 1)" @click="goExtenalRoot(item.path)" v-for="(item, index) in SDpaths" :key="index"></bubble-item>
 		  </bubble>
 		  
 		<view class="fixed">
