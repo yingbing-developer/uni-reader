@@ -64,7 +64,7 @@
 		<view class="touch-box touch-prev" @tap="pageClick(0)" v-if="(bookReadMode.pageType == 'click' && swiperPages.indexOf(bookReadMode.pageMode) > -1) || bookReadMode.pageMode == 'none'">
 			上一页
 		</view>
-		<view class="touch-box touch-menu" @tap="openSettingNvue">
+		<view class="touch-box touch-menu" @tap="openSettingNvue" @longpress="openEditNvue">
 			菜单
 		</view>
 		<view class="touch-box touch-next" @tap="pageClick(pages.length - 1)" v-if="(bookReadMode.pageType == 'click' && swiperPages.indexOf(bookReadMode.pageMode) > -1) || bookReadMode.pageMode == 'none'">
@@ -76,7 +76,6 @@
 <script>
 	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
-	import { indexOf, randomID } from '@/common/js/util.js'
 	import GapBar from '@/components/nav-bar/nav-bar.nvue'
 	import Page from '@/components/page/page.vue'
 	import RealPage from '@/components/real-page/real-page.vue';
@@ -196,9 +195,9 @@
 				// let stream = plus.android.newObject("java.io.FileInputStream", file);
 				// let reader = plus.android.newObject("java.io.InputStreamReader", stream, 'GBK');
 				// let bufferedReader = plus.android.newObject("java.io.bufferedReader", reader);
-				// let lineTxt = null;
-				// lineTxt = plus.android.invoke(bufferedReader, 'readLine');
+				// let lineTxt = plus.android.invoke(bufferedReader, 'readLine');
 				// plus.android.invoke(reader, 'close');
+				// console.log(lineTxt);
 				// plus.nativeUI.closeWaiting();
 				// plus.io.resolveLocalFileSystemURL('file://' + this.path, ( entry ) => {
 				// 	entry.file( ( file ) => {
@@ -246,7 +245,7 @@
 					let len = this.record > 0 ? 3 : 2;
 					for ( let i = 0; i < len; i++ ) {
 						this.pages.push({
-							id: randomID(),
+							id: getApp().globalData.$utils.randomID(),
 							content: '',
 							supContent: '',
 							record: 0,
@@ -291,7 +290,7 @@
 			createPrev (e) {
 				let start = e.start - sliceLen > 0 ? e.start - sliceLen : 0;
 				this.pages.unshift({
-					id: randomID(),
+					id: getApp().globalData.$utils.randomID(),
 					content: this.bookContent.substring(start, e.start),
 					supContent: this.bookContent.substr(e.start, 500),
 					record: e.start,
@@ -308,7 +307,7 @@
 			//创建下一页内容
 			createNext (e) {
 				this.pages.push({
-					id: randomID(),
+					id: getApp().globalData.$utils.randomID(),
 					content: this.bookContent.substr(e.end, sliceLen),
 					supContent: this.bookContent.substr(e.end + sliceLen, 500),
 					record: e.end,
@@ -416,7 +415,7 @@
 			pageEvent (go) {
 				this.touchChange = true;
 				//将原本的当前页面改为非当前页面
-				let index = indexOf(this.pages, true, 'isPageNow');
+				let index = getApp().globalData.$utils.indexOf(this.pages, 'isPageNow', true);
 				if ( index > -1 ) {
 					this.$set(this.pages[index], 'isPageNow', false);
 				}
@@ -507,14 +506,16 @@
 			//打开编辑子窗体
 			openEditNvue () {
 				let content = this.bookContent.substring(this.nowRecord.start, this.nowRecord.end);
-				getApp().globalData.routePush(`/pages/base/edit/index?content=${encodeURIComponent(content)}&start=${this.nowRecord.start}&end=${this.nowRecord.end}`, 'none').then((res) => {
-					if ( res == 'complete' ) {
+				uni.navigateTo({
+					url: `/pages/base/edit?content=${encodeURIComponent(content)}&start=${this.nowRecord.start}&end=${this.nowRecord.end}`,
+					animationType: 'none',
+					complete: (res) => {
 						setTimeout(() => {
 							uni.$on('edit-btn', (data) => {
 								if ( data.flag == 'confirm' ) {
 									this.saveContent(data);
 								}
-								getApp().globalData.routeBack();
+								getApp().globalData.$Router.back();
 								uni.$off('edit-btn');
 							})
 						}, 60)

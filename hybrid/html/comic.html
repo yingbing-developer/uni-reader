@@ -22,13 +22,13 @@
 			
 			//获取url参数
 			function getQueryVariable (variable) {
-			       var query = window.location.search.substring(1);
-			       var vars = query.split("&");
-			       for (var i=0;i<vars.length;i++) {
-			            var pair = vars[i].split("=");
-			            if(pair[0] == variable){return pair[1];}
-			       }
-			       return(false);
+			    var query = window.location.search.substring(1);
+			    var vars = query.split("&");
+			    for (var i=0;i<vars.length;i++) {
+			         var pair = vars[i].split("=");
+			         if(pair[0] == variable){return pair[1];}
+			    }
+			    return(false);
 			}
 			document.getElementsByClassName('mask')[0].style.backgroundColor = decodeURIComponent(getQueryVariable('color'));
 			//获取iframe对象
@@ -46,6 +46,38 @@
 					}
 				};
 				return images;
+			}
+			//获取写真网漫画内容
+			function getLoliContent () {
+				var child = getIframeDom();
+				var dom = child.document.getElementsByClassName('entry-content')[0];
+				var doms = dom.getElementsByTagName('img');
+				var images = new Array(doms.length);
+				for ( var i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].src
+					}
+				};
+				return images;
+			}
+			//获取小草网漫画内容
+			function getGlassContent () {
+				// window.setTimeout( function () {
+					var child = getIframeDom();
+					var dom = child.document.getElementsByClassName('picture-content')[0];
+					var script = dom.getElementsByTagName('script');
+					var str = script[0].innerText; 
+					str = str.match(/\"(\S*)\"/)[1]; 
+					var doms = child.document.getElementsByClassName('zipai-pic');
+					var images = new Array(doms.length);
+					var origin = decodeURIComponent(getQueryVariable('origin'));
+					for ( var i = 0; i < doms.length; i++ ) {
+						images[i] = {
+							path: origin + str + '/' + (i + 1) + '.jpg'
+						}
+					};
+					return images;
+				// }, 2000)
 			}
 			//获取18comic漫画内容
 			function get18comicContent () {
@@ -92,6 +124,12 @@
 					var source = getQueryVariable('source');
 					if ( source == 'mangabz' ) {
 						data = getMangabzContent();
+					}
+					if ( source == 'loli' ) {
+						data = getLoliContent();
+					}
+					if ( source == 'glass' ) {
+						data = getGlassContent();
 					}
 					if ( source == '18comic' ) {
 						data = get18comicContent();

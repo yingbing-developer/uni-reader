@@ -259,10 +259,10 @@
 			},
 			clickOptions (item) {
 				if ( item.title == '关于' ) {
-					getApp().globalData.routePush('/pages/about/index');
+					getApp().globalData.$Router.push({path: '/pages/about/index'});
 				}
 				if ( item.title == '设置' ) {
-					getApp().globalData.routePush('/pages/setting/index');
+					getApp().globalData.$Router.push({path: '/pages/setting/index'});
 				}
 			}
 		},

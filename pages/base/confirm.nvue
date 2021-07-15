@@ -1,13 +1,21 @@
 <template>
 	<view class="toast" @touchmove.stop.prevent="">
 		<view class="mask" ref="mask" @tap="hide('cancel')"></view>
-		<view class="popup" ref="popup" :style="{'background-color': skinColor.menuBgColor}"  @touchmove.stop.prevent="">
-			<view class="title"><text class="title-text" :style="{color: skinColor.titleColor}">{{title}}</text></view>
-			<view class="message" :style="{'borderBottomColor': skinColor.gapColor}"><text class="msg-text" :style="{color: skinColor.menuTitleColor}">{{message}}</text></view>
+		<view class="popup" ref="popup" @touchmove.stop.prevent="" :style="{'background-color': skinColor.menuBgColor}">
+			<view class="title">
+				<text class="title-text" :style="{'color': skinColor.menuTitleColor}" v-if="title">{{title}}</text>
+			</view>
+			<view class="message" :style="{'border-bottom-color': skinColor.gapColor}">
+				<text class="msg-text color-title" :style="{'color': skinColor.menuTitleColor}">{{message}}</text>
+			</view>
 			<view class="btns">
-				<view class="btn btn-cancel" :class="skinColor.activedName" @tap="hide('cancel')"><text class="btn-text" :style="{color: skinColor.menuTitleColor}">取消</text></view>
+				<view class="btn btn-confirm" :class="skinColor.activedName" @tap="hide('confirm')">
+					<text class="btn-text color-red">确认</text>
+				</view>
 				<view class="line-gap" :style="{'background-color': skinColor.gapColor}"></view>
-				<view class="btn btn-confirm" :class="skinColor.activedName" @tap="hide('confirm')"><text class="btn-text" :style="{color: skinColor.menuTitleColor}">确认</text></view>
+				<view class="btn btn-cancel" :class="skinColor.activedName" @tap="hide('cancel')">
+					<text :style="{'color': skinColor.menuTitleColor}" class="btn-text code-text">取消</text>
+				</view>
 			</view>
 		</view>
 	</view>
@@ -29,10 +37,8 @@
 				}
 			}
 		},
-		beforeCreate () {
-			uni.$emit('musicBtn-hide');
-		},
 		onLoad (data) {
+			uni.$emit('musicBtn-hide');
 			this.title = data.title;
 			this.message = decodeURIComponent(data.message);
 		},
@@ -88,16 +94,15 @@
 				})
 			}
 		},
+		beforeDestroy () {
+			uni.$emit('musicBtn-show');
+		},
 		onBackPress(event) {
 			if ( event.from == 'backbutton' ) {
 				this.hide('cancel');
 				return true;
 			}
 			return false
-		},
-		beforeDestroy() {
-			uni.$off('message-info');
-			uni.$emit('musicBtn-show');
 		}
 	}
 </script>
@@ -125,6 +130,7 @@
 		width: 650rpx;
 		border-radius: 30rpx;
 		transform: scale(1.2);
+		background-color: #FFFFFF;
 		opacity: 0;
 	}
 	.title {
@@ -132,13 +138,14 @@
 		padding: 30rpx 0;
 	}
 	.title-text {
-		font-size: 35rpx;
+		font-size: 30rpx;
 		lines: 1;
 		text-overflow: ellipsis;
 	}
 	.message {
 		align-items: center;
 		border-bottom-width: 1px;
+		border-bottom-color: #EEEEEE;
 		padding: 50rpx 0 40rpx 0;
 	}
 	.msg-text {
@@ -150,19 +157,23 @@
 	}
 	.line-gap {
 		width: 1px;
+		background-color: #EEEEEE;
 	}
 	.btn {
 		flex: 1;
 		padding: 35rpx 0;
 		align-items: center;
 	}
-	.btn-text {
-		font-size: 35rpx;
+	.btn:active {
+		background-color: #eee;
 	}
-	.btn-cancel {
-		border-bottom-left-radius: 30rpx;
+	.btn-text {
+		font-size: 30rpx;
 	}
 	.btn-confirm {
+		border-bottom-left-radius: 30rpx;
+	}
+	.btn-cancel {
 		border-bottom-right-radius: 30rpx;
 	}
 </style>

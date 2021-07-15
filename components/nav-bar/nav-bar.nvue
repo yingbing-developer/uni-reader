@@ -67,7 +67,7 @@
 				})
 			},
 			back () {
-				getApp().globalData.routeBack();
+				getApp().globalData.$Router.back();
 			}
 		},
 		components: {

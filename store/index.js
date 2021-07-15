@@ -1,6 +1,11 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { indexOf, suffix, dateFormat, removeSuffix, randomString } from '@/common/js/util.js'
+import Utils from '@/common/js/util.js';
+const indexOf = Utils.indexOf;
+const suffix = Utils.suffix;
+const dateFormat = Utils.dateFormat;
+const removeSuffix = Utils.removeSuffix;
+const randomString = Utils.randomString;
 Vue.use(Vuex)
 const SKIN = 'UNI_READER_SKIN'
 const BOOKS = 'UNI_READER_BOOK_LIST'
@@ -173,7 +178,7 @@ const store = new Vuex.Store({
 		},
 		//删除指定的书籍
 		deleteBook (state, path) {
-			let flag = indexOf(state.books, path, 'path');
+			let flag = indexOf(state.books, 'path', path);
 			if ( flag > -1 ) {
 				state.books.splice(flag, 1);
 				uni.setStorageSync(BOOKS, state.books)
@@ -190,31 +195,31 @@ const store = new Vuex.Store({
 		},
 		// 更新书籍名称
 		updateBookName (state, book) {
-			let index = indexOf(state.books, book.path, 'path');
+			let index = indexOf(state.books, 'path', book.path);
 			state.books[index].name = book.name;
 			uni.setStorageSync(BOOKS, state.books);
 		},
 		// 更新书籍文本长度
 		updateBookLength (state, book) {
-			let index = indexOf(state.books, book.path, 'path');
+			let index = indexOf(state.books, 'path', book.path);
 			state.books[index].length = book.length;
 			uni.setStorageSync(BOOKS, state.books);
 		},
 		// 更新书籍阅读位置
 		updateBookRecord (state, book) {
-			let index = indexOf(state.books, book.path, 'path');
+			let index = indexOf(state.books, 'path', book.path);
 			state.books[index].record = book.record;
 			uni.setStorageSync(BOOKS, state.books);
 		},
 		// 更新书籍阅读状态
 		updateBookReadStatus (state, book) {
-			let index = indexOf(state.books, book.path, 'path');
+			let index = indexOf(state.books, 'path', book.path);
 			state.books[index].isReaded = book.isReaded;
 			uni.setStorageSync(BOOKS, state.books);
 		},
 		// 更新书籍最后阅读时间
 		updateBookReadTime (state, path) {
-			let index = indexOf(state.books, path, 'path');
+			let index = indexOf(state.books, 'path', path);
 			state.books[index].lastReadTime = new Date().getTime();
 			uni.setStorageSync(BOOKS, state.books);
 		},
@@ -302,7 +307,7 @@ const store = new Vuex.Store({
 		},
 		//删除指定歌曲
 		deleteMusic (state, path) {
-			let flag = indexOf(state.musicPlayList, path, 'path');
+			let flag = indexOf(state.musicPlayList, 'path', path);
 			if ( flag > -1 ) {
 				state.musicPlayList.splice(flag, 1);
 				uni.setStorageSync(PLAYLIST, state.musicPlayList)

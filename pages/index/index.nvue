@@ -80,7 +80,6 @@
 	import MusicBtn from '@/components/music-btn/music-btn.nvue'
 	import MusicLyric from '@/components/music-lyric/music-lyric.nvue'
 	import { skinMixin, menuTouchMixin } from '@/common/mixin/index.js'
-	import { indexOf } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const dom = weex.requireModule('dom');
 	export default {
@@ -145,7 +144,7 @@
 				this.oldOffsetY = e.contentOffset.y;
 			},
 			clear () {
-				getApp().globalData.message('操作提示', '是否清空当前所有书籍？').then((res) => {
+				getApp().globalData.$dom.confirm('操作提示', '是否清空当前所有书籍？').then((res) => {
 					if ( res == 'confirm' ) {
 						let type = this.currentTab == 0 ? 'story' : 'comic';
 						this.clearBooks(type);
@@ -154,13 +153,13 @@
 			},
 			showAction (path) {
 				this.actionPath = path;
-				getApp().globalData.actionSheet([{
+				getApp().globalData.$dom.actionSheet([{
 					title: '删除',
 					value: 'delete'
 				}]).then((res) => {
-					if ( res == 'delete' ) {
-						let name = this.bookList[indexOf(this.bookList, this.actionPath, 'path')].name;
-						getApp().globalData.message('操作提示', '是否删除  ' + name + '  ？').then((res) => {
+					if ( res.value == 'delete' ) {
+						let name = this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.actionPath)].name;
+						getApp().globalData.$dom.confirm('操作提示', '是否删除  ' + name + '  ？').then((res) => {
 							if ( res == 'confirm' ) {
 								this.deleteBook(this.actionPath);
 								this.actionPath = '';
@@ -189,7 +188,7 @@
 			},
 			//读取书籍
 			readBook (path) {
-				let index = indexOf(this.bookList, path, 'path');
+				let index = getApp().globalData.$utils.indexOf(this.bookList, 'path', path);
 				if ( this.bookList[index].source == 'local' ) {
 					let fd = plus.android.newObject("java.io.File", path);
 					if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
@@ -199,9 +198,9 @@
 					}
 				}
 				if ( this.bookList[index].type == 'story' ) {
-					getApp().globalData.routePush('/pages/book/read/index?index=' + index);
+					getApp().globalData.$Router.push({path: '/pages/book/read/index', query: {index: index}});
 				} else if ( this.bookList[index].type == 'comic' ) {
-					getApp().globalData.routePush('/pages/comic/detail/index?index=' + index);
+					getApp().globalData.$Router.push({path: '/pages/comic/detail/index', query: {index: index}});
 				} else {
 					uni.showToast({
 						title: '无法识别的书籍类型',
@@ -213,14 +212,14 @@
 			//搜索本地书籍
 			searchBook () {
 				if ( this.currentTab == 0 ) {
-					getApp().globalData.routePush('/pages/book/search/index');
+					getApp().globalData.$Router.push({path: '/pages/book/search/index'});
 				} else {
-					getApp().globalData.routePush('/pages/comic/search/index');
+					getApp().globalData.$Router.push({path: '/pages/comic/search/index'});
 				}
 			},
 			//搜索在线漫画
 			comicOnline () {
-				getApp().globalData.routePush('/pages/comic/online/index');
+				getApp().globalData.$Router.push({path: '/pages/comic/online/index'});
 			}
 		},
 		onBackPress(event) {

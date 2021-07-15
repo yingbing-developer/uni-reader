@@ -91,7 +91,7 @@ function getQqmusic (data) {
         remoteplace: 'txt.mqq.all'
     })
 	return new Promise((resolve, reject) => {
-		http.get(MUSICURL[tag1].href + '/soso/fcgi-bin/search_for_qq_cp', dataSync, {
+		http.get(MUSICURL[tag1].href + '/soso/fcgi-bin/client_search_cp', dataSync, {
 			header: {
 				referer: 'https://c.y.qq.com',
 				host: 'c.y.qq.com',

@@ -48,7 +48,6 @@
 <script>
 	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
-	import { indexOf } from '@/common/js/util.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import NavBar from '@/components/nav-bar/nav-bar.nvue'
 	import Crosswise from '@/components/crosswise/crosswise.nvue'
@@ -86,7 +85,7 @@
 		computed: {
 			...mapGetters(['bookList', 'comicOrienMode']),
 			comicInfo () {
-				return this.bookList[indexOf(this.bookList, this.path, 'path')];
+				return this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path)];
 			},
 			//章节 第几话
 			chapter () {

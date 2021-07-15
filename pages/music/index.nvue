@@ -54,7 +54,6 @@
 	import NoData from '@/components/no-data/no-data.nvue'
 	import { mapGetters, mapMutations } from 'vuex';
 	import { skinMixin } from '@/common/mixin/index.js';
-	import { indexOf } from '@/common/js/util.js';
 	const animation = weex.requireModule('animation');
 	export default {
 		mixins: [skinMixin],
@@ -110,7 +109,7 @@
 				    delay: 0 //ms
 				}, () => {
 					setTimeout(() => {
-						let index = indexOf(this.playList, this.playRecord, 'path');
+						let index = getApp().globalData.$utils.indexOf(this.playList, 'path', this.playRecord);
 						if ( index > -1) {
 							this.$refs.musicList.scrollTo(index);
 						}
@@ -137,12 +136,12 @@
 				    needLayout:false,
 				    delay: 0 //ms
 				}, () => {
-					getApp().globalData.routeBack();
+					getApp().globalData.$Router.back();
 				})
 			},
 			//清空歌曲
 			clear () {
-				getApp().globalData.message('操作提示', '确认清空歌曲列表吗？').then((res) => {
+				getApp().globalData.$dom.confirm('操作提示', '确认清空歌曲列表吗？').then((res) => {
 					if ( res == 'confirm' ) {
 						this.clearMusic();
 					}
@@ -150,8 +149,8 @@
 			},
 			//删除指定歌曲
 			deleteItem (path) {
-				let index = indexOf(this.playList, path, 'path');
-				getApp().globalData.message('操作提示', '确认删除 ' + this.playList[index].name + ' 吗？').then((res) => {
+				let index = getApp().globalData.$utils.indexOf(this.playList, 'path', path);
+				getApp().globalData.$dom.confirm('操作提示', '确认删除 ' + this.playList[index].name + ' 吗？').then((res) => {
 					if ( res == 'confirm' ) {
 						this.deleteMusic(path);
 					}
@@ -176,7 +175,10 @@
 				if ( this.playRecord != path ) {
 					this.updateMusicPlayRecord(path);
 				}
-				getApp().globalData.routePush('/pages/music/player', 'fade-in');
+				getApp().globalData.$Router.push({
+					path: '/pages/music/player',
+					animationType: 'fade-in'
+				});
 			},
 			playMusic (path) {
 				if ( this.playRecord == path ) {
@@ -194,7 +196,9 @@
 				})
 			},
 			routePush (url) {
-				getApp().globalData.routePush(url);
+				getApp().globalData.$Router.push({
+					path: url
+				});
 			}
 		},
 		onBackPress (event) {

@@ -17,10 +17,7 @@ function request (type = 'GET', url, data, options = {header: {}}) {
 				resolve(res)
 			}),
 			fail:((err)=>{
-				uni.showToast({
-					icon: 'none',
-					title: '网络错误'
-				})
+				plus.nativeUI.toast("网络错误！", {verticalAlign: 'bottom'});
 				reject(err);
 			})
 		})

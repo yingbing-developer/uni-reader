@@ -23,7 +23,6 @@
 <script>
 	import ListItem from './list-item.nvue'
 	import { skinMixin } from '@/common/mixin/index.js';
-	import { indexOf } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const dom = weex.requireModule('dom')
     export default {
@@ -39,7 +38,7 @@
 		computed: {
 			...mapGetters(['bookList']),
 			bookInfo () {
-				return this.bookList[indexOf(this.bookList, this.path, 'path')];
+				return this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path)];
 			},
 			scrollTo () {
 				let len = this.list.length;

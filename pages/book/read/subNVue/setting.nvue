@@ -120,7 +120,6 @@
 <script>
 	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
-	import { indexOf } from '@/common/js/util.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CProgress from '@/components/progress/progress.nvue'
 	import NavBar from '@/components/nav-bar/nav-bar.nvue'
@@ -142,7 +141,7 @@
 		computed: {
 			...mapGetters(['bookList', 'bookReadMode', 'bookmarks']),
 			bookInfo () {
-				return this.bookList[indexOf(this.bookList, this.path, 'path')];
+				return this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path)];
 			},
 			pageIndex () {
 				return this.bookInfo.pageIndex
@@ -385,7 +384,9 @@
 				uni.$emit('setting-menu', {flag: 'edit'});
 			},
 			routerPush () {
-				getApp().globalData.routePush('/pages/setting/index');
+				getApp().globalData.$router.push({
+					path: '/pages/setting/index'
+				});
 			}
 		},
 		beforeDestroy () {

@@ -33,7 +33,6 @@
 
 <script>
 	import { mapGetters } from 'vuex'
-	import { indexOf } from '@/common/js/util.js'
 	export default {
 		data () {
 			return {
@@ -49,7 +48,7 @@
 				return page.options.path;
 			},
 			bookIndex () {
-				return indexOf(this.bookList, this.path, 'path');
+				return getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path);
 			}
 		},
 		methods: {

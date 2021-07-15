@@ -1,10 +1,9 @@
 import { mapGetters } from 'vuex'
-import { indexOf } from '@/common/js/util.js'
 const lyricMixin = {
 	computed: {
 		...mapGetters(['playList', 'getMusicPlayRecord','getMusicPlayTime', 'getMusicLyricShow', 'getMusicLyric']),
 		playInfo () {
-			let index = indexOf(this.playList, this.playRecord, 'path');
+			let index = getApp().globalData.$utils.indexOf(this.playList, 'path', this.playRecord);
 			return this.playList[index];
 		},
 		//播放记录

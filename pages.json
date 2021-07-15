@@ -94,21 +94,21 @@
 		},
 		//确认弹窗
 		{
-			"path": "pages/base/confirm/index",
+			"path": "pages/base/confirm",
 			"style": {
 				"backgroundColor": "transparent"
 			} 
 		},
 		//选择对话框
 		{
-			"path": "pages/base/actionSheet/index",
+			"path": "pages/base/actionSheet",
 			"style": {
 				"backgroundColor": "transparent"
 			} 
 		},
 		//文本编辑框
 		{
-			"path": "pages/base/edit/index",
+			"path": "pages/base/edit",
 			"style": {
 				"backgroundColor": "transparent"
 			} 

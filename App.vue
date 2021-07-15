@@ -1,75 +1,18 @@
 <script>
+	import { Route } from '@/common/router/router.js';
+	import Router from '@/common/router';
+	import Http from '@/common/request/request.js'
+	import Dom from '@/common/dom/index.js'
+	import Utils from '@/common/js/util.js'
+	import Config from '@/common/js/config.js'
 	export default {
 		globalData: {
-			//路由防抖
-			routeDisabled: false,
-			//跳转路由
-			routePush: function (url, animationType = 'zoom-fade-out') {
-				return new Promise((resolve, reject) => {
-					//路由防抖
-					if ( getApp().globalData.routeDisabled ) {
-						return;
-					}
-					getApp().globalData.routeDisabled = true;
-					uni.navigateTo({
-						url: url,
-						animationType: animationType,
-						complete: (res) => {
-							getApp().globalData.routeDisabled = false;
-							resolve('complete')
-						}
-					})
-				})
-			},
-			//路由返回
-			routeBack: function (delta = 1) {
-				return new Promise((resolve, reject) => {
-					//路由防抖
-					if ( getApp().globalData.routeDisabled ) {
-						return;
-					}
-					getApp().globalData.routeDisabled = true;
-					uni.navigateBack({
-						delta: delta,
-						complete: (res) => {
-							getApp().globalData.routeDisabled = false;
-							resolve('complete')
-						}
-					})
-				})
-			},
-			//确认对话框
-			message: function (title = '提示', message = '提示信息') {
-				return new Promise((resolve, reject) => {
-					getApp().globalData.routePush(`/pages/base/confirm/index?title=${title}&message=${encodeURIComponent(message)}`, 'none').then((res) => {
-						if ( res == 'complete' ) {
-							setTimeout(() => {
-								uni.$on('message-btn', (data) => {
-									resolve(data.flag)
-									getApp().globalData.routeBack();
-									uni.$off('message-btn');
-								})
-							}, 60)
-						}
-					});
-				})
-			},
-			//选择对话框
-			actionSheet: function (list) {
-				return new Promise((resolve, reject) => {
-					getApp().globalData.routePush(`/pages/base/actionSheet/index?list=${encodeURIComponent(JSON.stringify(list))}`, 'none').then((res) => {
-						if ( res == 'complete' ) {
-							setTimeout(() => {
-								uni.$on('actionSheet-btn', (data) => {
-									resolve(data.flag)
-									getApp().globalData.routeBack();
-									uni.$off('actionSheet-btn');
-								})
-							}, 60)
-						}
-					});
-				})
-			}
+			$Router: Router,
+			$Route: new Route(),
+			$http: new Http(),
+			$dom: Dom,
+			$utils: Utils,
+			$config: Config
 		},  
 		onLaunch: function() {
 			console.log('App Launch')
@@ -92,5 +35,47 @@
 	}
 	.actived-dark:active {
 		background-color: #3F3F3F;
+	}
+	/*每个页面公共css */
+	.bgColor-theme {
+		background-color: #007AFF;
+	}
+	.bgColor-grey {
+		background-color: #F5F5F5;
+	}
+	.bgColor-white {
+		background-color: #FFFFFF;
+	}
+	.color-theme {
+		color: #027BFF;
+	}
+	.color-white {
+		color: #FFFFFF;
+	}
+	.color-title {
+		color: #333333;
+	}
+	.color-text {
+		color: #999999;
+	}
+	.color-text2 {
+		color: #666666;
+	}
+	.color-red {
+		color: #FF3B30;
+	}
+	.padding-gap {
+		padding-left: 30rpx;
+		padding-right: 30rpx;
+	}
+	.margin-gap {
+		margin-left: 30rpx;
+		margin-right: 30rpx;
+	}
+	.actived:active {
+		background-color: #EEEEEE;
+	}
+	.white-actived:active {
+		background-color: rgba(255,255,255,0.3);
 	}
 </style>

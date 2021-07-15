@@ -15,6 +15,14 @@ export const COMICURL = {
 	'dmzj': {
 		title: '动漫之家',
 		href: 'https://www.dmzj.com'
+	},
+	'loli': {
+		title: '写真网',
+		href: 'https://cosplayporn.cc'
+	},
+	'glass': {
+		title: '小草网',
+		href: 'https://xiaocaozipai.xyz'
 	}
 };
 //音乐网站链接

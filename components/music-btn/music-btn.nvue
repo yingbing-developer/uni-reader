@@ -2,7 +2,6 @@
 
 <script>
 	import { mapGetters, mapMutations } from 'vuex';
-	import { indexOf, randomSoleNumber } from '@/common/js/util.js'
 	import { getPlayUrl, getLyric } from '@/common/online/getMusic.js'
 	import { skinMixin } from '@/common/mixin/index.js'
 	let audio = null;
@@ -148,7 +147,10 @@
 					if ( this.clickNum >= 2 ) {
 						this.clickNum = 0;
 						clearTimeout(this.endTimer);
-						getApp().globalData.routePush('/pages/music/player', 'fade-in');
+						getApp().globalData.$Router.push({
+							path: '/pages/music/player',
+							animationType: 'fade-in'
+						});
 					}
 				})
 				musicBox.addEventListener("touchmove", (e) => {
@@ -351,7 +353,10 @@
 						return;
 					}
 				}
-				getApp().globalData.routePush(url, 'fade-in');
+				getApp().globalData.$Router.push({
+					path: url,
+					animationType: 'fade-in'
+				});
 			},
 			changeLyricShow () {
 				this.setMusicLyricShow(!this.lyricShow)
@@ -385,7 +390,7 @@
 								this.updateMusicPlayRecord(this.playList[0].path);
 								return;
 							}
-							let nowIndex = indexOf(this.playList, this.playRecord, 'path');
+							let nowIndex = getApp().globalData.$utils.indexOf(this.playList, 'path', this.playRecord);
 							let src = '';
 							let lyric = '';
 							if ( this.playList[nowIndex].source == 'local' ) {
@@ -506,7 +511,7 @@
 					this.upMusicSrc();
 					return;
 				}
-				let index = indexOf(this.playList, this.playRecord, 'path');
+				let index = getApp().globalData.$utils.indexOf(this.playList, 'path', this.playRecord);
 				switch (this.playMode) {
 					case 'once':
 						this.upMusicSrc();
@@ -527,7 +532,7 @@
 			//获取随机播放顺序
 			getRandomIndex () {
 				if ( this.playMode == 'random' ) {
-					this.randomIndex = randomSoleNumber(this.playList.length);
+					this.randomIndex = getApp().globalData.$utils.randomSoleNumber(this.playList.length);
 				}
 			},
 			btnHide () {
@@ -572,7 +577,7 @@
 			musicList (val) {
 				this.getRandomIndex();
 				//音乐在播放途中被删掉
-				if ( this.playRecord && indexOf(val, this.playRecord, 'path') == -1 ) {
+				if ( this.playRecord && getApp().globalData.$utils.indexOf(val, 'path', this.playRecord) == -1 ) {
 					if ( val.length > 0 ) {
 						this.updateMusicPlayRecord(this.playList[0].path);
 					} else {

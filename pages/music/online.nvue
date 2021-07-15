@@ -73,7 +73,6 @@
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
-	import { indexOf } from '@/common/js/util.js'
 	import { MUSICURL } from '@/common/js/config.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const dom = weex.requireModule('dom');
@@ -237,7 +236,7 @@
 				}
 				let music = [];
 				for ( let i in this.checkes ) {
-					let index = indexOf(this.musicList, this.checkes[i], 'path');
+					let index = getApp().globalData.$utils.indexOf(this.musicList, 'path', this.checkes[i]);
 					music.push({
 						name: this.musicList[index].name,
 						singer: this.musicList[index].singer,
@@ -296,7 +295,7 @@
 				if ( flag > -1 ) {
 					this.changeMusic(path);
 				} else {
-					let index = indexOf(this.musicList, path, 'path');
+					let index = getApp().globalData.$utils.indexOf(this.musicList, 'path', path);
 					let music = [];
 					music.push({
 						name: this.musicList[index].name,
@@ -321,10 +320,10 @@
 					title: this.isLead(path) > -1 ? '取消导入' : '导入',
 					value: this.isLead(path) > -1 ? 'pop' : 'push',
 				}]
-				getApp().globalData.actionSheet(actions).then((val) => {
-					let index = indexOf(this.musicList, path, 'path');
+				getApp().globalData.$dom.actionSheet(actions).then((res) => {
+					let index = getApp().globalData.$utils.indexOf(this.musicList, 'path', path);
 					//用户选择导入操作
-					if ( val == 'push' ) {
+					if ( res.value == 'push' ) {
 						let music = [];
 						music.push({
 							name: this.musicList[index].name,
@@ -342,7 +341,7 @@
 						})
 					}
 					//选择取消导入
-					if ( val == 'pop' ) {
+					if ( res.value == 'pop' ) {
 						let name = this.musicList[index].name;
 						getApp().globalData.message('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
 							if ( res == 'confirm' ) {
@@ -357,7 +356,10 @@
 				if ( this.playRecord != path ) {
 					this.updateMusicPlayRecord(path);
 				}
-				getApp().globalData.routePush('/pages/music/player', 'fade-in');
+				getApp().globalData.$Router.push({
+					path: '/pages/music/player',
+					animationType: 'fade-in'
+				});
 			},
 			//返回顶部
 			scrollTop () {
@@ -366,7 +368,7 @@
 			},
 			//根据文件路径判断当前文件是否已经导入,返回下标
 			isLead (path) {
-				return indexOf(this.playList, path, 'path');
+				return getApp().globalData.$utils.indexOf(this.playList, 'path', path);
 			}
 		},
 		onBackPress(event) {

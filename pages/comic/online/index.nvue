@@ -67,7 +67,6 @@
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
-	import { indexOf } from '@/common/js/util.js'
 	import { COMICURL } from '@/common/js/config.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const dom = weex.requireModule('dom');
@@ -208,7 +207,7 @@
 			},
 			//展示操作列表
 			showAction (path) {
-				let flag = indexOf(this.comicList, path, 'path');
+				let flag = getApp().globalData.$utils.indexOf(this.comicList, 'path', path);
 				let actions = [];
 				this.actionPath = path;
 				//已经导入的文件操作列表
@@ -224,9 +223,9 @@
 						value: 'push'
 					}]
 				}
-				getApp().globalData.actionSheet(actions).then((val) => {
+				getApp().globalData.$dom.actionSheet(actions).then((res) => {
 					//用户选择导入操作
-					if ( val == 'push' ) {
+					if ( res.value == 'push' ) {
 						//根据文件路径判断文件有没有被导入过
 						if ( this.isLead(this.actionPath) == -1 ) {
 							this.leadBook(this.actionPath);
@@ -239,9 +238,9 @@
 						}
 					}
 					//选择取消导入
-					if ( val == 'pop' ) {
-						let name = this.comicList[indexOf(this.comicList, this.actionPath, 'path')].name;
-						getApp().globalData.message('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
+					if ( res.value == 'pop' ) {
+						let name = this.comicList[getApp().globalData.$utils.indexOf(this.comicList, 'path', this.actionPath)].name;
+						getApp().globalData.$dom.confirm('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
 							if ( res == 'confirm' ) {
 								this.deleteBook(this.actionPath);
 							}
@@ -249,7 +248,7 @@
 					}
 					
 					//分享
-					if ( val == 'share' ) {
+					if ( res.value == 'share' ) {
 						this.share();
 					}
 				})
@@ -257,10 +256,15 @@
 			//阅读漫画
 			readComic (path) {
 				//查询有没有导入过该漫画
-				let bookIndex = indexOf(this.bookList, path, 'path');
+				let bookIndex = getApp().globalData.$utils.indexOf(this.bookList, 'path', path);
 				//导入过直接阅读
 				if ( bookIndex > -1 ) {
-					getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
+					getApp().globalData.$Router.push({
+						path: '/pages/comic/detail/index',
+						query: {
+							index: bookIndex
+						}
+					});
 				} else {
 					//未导入，则先导入再进行阅读
 					this.leadBook(path, true);
@@ -268,7 +272,7 @@
 			},
 			//导入书籍
 			leadBook (path, isRead = false) {
-				let flag = indexOf(this.comicList, path, 'path');
+				let flag = getApp().globalData.$utils.indexOf(this.comicList, 'path', path);
 				let books = [];
 				books.push({
 					name: this.comicList[flag].name,
@@ -281,9 +285,14 @@
 				this.addBooks(books);
 				if ( isRead ) {
 					this.$nextTick(() => {
-						let bookIndex = indexOf(this.bookList, path, 'path');
+						let bookIndex = getApp().globalData.$utils.indexOf(this.bookList, 'path', path);
 						if ( bookIndex > -1 ) {
-							getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
+							getApp().globalData.$Router.push({
+								path: '/pages/comic/detail/index',
+								query: {
+									index: bookIndex
+								}
+							});
 						} else {
 							uni.showToast({
 								title: '漫画导入失败',
@@ -304,7 +313,7 @@
 			},
 			//根据文件路径判断当前文件是否已经导入,返回下标
 			isLead (path) {
-				return indexOf(this.bookList, path, 'path');
+				return getApp().globalData.$utils.indexOf(this.bookList, 'path', path);
 			}
 		},
 		onBackPress(event) {

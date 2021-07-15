@@ -37,7 +37,6 @@
 <script>
 	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
-	import { indexOf, cnnumtonum } from '@/common/js/util.js'
 	import { TIMEOUT } from '@/common/js/config.js'
 	import ComicSetting from '../setting/index.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
@@ -167,7 +166,7 @@
 						// 		}
 						// 	}
 						// 	arr.sort((a, b) => {
-						// 		return cnnumtonum(a.name) - cnnumtonum(b.name);
+						// 		return getApp().globalData.$utils.cnnumtonum(a.name) - getApp().globalData.$utils.cnnumtonum(b.name);
 						// 	})
 						// 	this.comicSync = arr;
 							
@@ -200,19 +199,19 @@
 			//获取在线漫画内容
 			getOnlineComicContent () {
 				let p1 = new Promise((resolve, reject) => {
-					getApp().globalData.routePush(
-					`/pages/comic/getComicContent/index?url=${this.chapters[this.chapter].path}&source=${this.comicInfo.source}`,
-					'none'
-					).then(() => {
+					uni.navigateTo({
+						url: `/pages/comic/getComicContent/index?url=${this.chapters[this.chapter].path}&source=${this.comicInfo.source}`,
+						animationType: 'none'
+					}).then(() => {
 						uni.$on('comicContent', (res) => {
 							clearTimeout(this.timeout);
-							getApp().globalData.routeBack();
+							getApp().globalData.$Router.back();
 							uni.$off('comicContent');
 							resolve(res.data)
 						})
 					}).catch((err) => {
 						clearTimeout(this.timeout);
-						getApp().globalData.routeBack(2);
+						getApp().globalData.$Router.back(2);
 						uni.$off('comicContent');
 						reject('解析失败');
 					});
@@ -220,7 +219,7 @@
 				let p2 = new Promise((resolve, reject) => {
 					clearTimeout(this.timeout);
 					this.timeout = setTimeout(() => {
-						getApp().globalData.routeBack(2);
+						getApp().globalData.$Router.back(2);
 						uni.$off('comicContent');
 						reject('请求超时');
 					}, TIMEOUT)
@@ -229,7 +228,7 @@
 			},
 			//预览图片
 			preview (path) {
-				let index = indexOf(this.comicSync, path, 'path');
+				let index = getApp().globalData.$utils.indexOf(this.comicSync, 'path', path);
 				let imgs = [];
 				if ( this.comicInfo.source == 'local' ) {
 					for ( let i = 0 ; i < this.comicSync.length; i++ ) {

@@ -23,11 +23,7 @@
 			}
 		},
 		onLoad (data) {
-			if ( data.source == 'dmzj' ) {
-				this.src = `${this.url}?url=${encodeURIComponent(data.url)}&source=${data.source}&color=${encodeURIComponent(this.skinColor.bgColor)}`;
-			} else {
-				this.src = `${this.url}?url=${encodeURIComponent(COMICURL[data.source].href + data.url)}&source=${data.source}&color=${encodeURIComponent(this.skinColor.bgColor)}`;
-			}
+			this.src = `${this.url}?url=${encodeURIComponent(data.url)}&origin=${encodeURIComponent(COMICURL[data.source].href)}&source=${data.source}&color=${encodeURIComponent(this.skinColor.bgColor)}`;
 			// this.src = COMICURL[data.source].href + data.url;
 			// this.source = data.source;
 		},
@@ -104,7 +100,7 @@
 					//退出前锁定为竖屏
 					plus.screen.lockOrientation('portrait-primary');
 				}
-				getApp().globalData.routeBack(2);
+				getApp().globalData.$Router.back(2);
 				return true
 			}
 			return false

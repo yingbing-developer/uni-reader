@@ -4,6 +4,8 @@ import HTMLParser from '@/common/js/html-parse.js'
 import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
 
 const tag1 = 'mangabz';
+const tag2 = 'loli';
+const tag3 = 'glass';
 const tag4 = '18comic';
 const tag5 = 'sixmh6';
 const tag7 = 'dmzj';
@@ -27,6 +29,12 @@ export function getComic (data) {
 	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
 		newArr.push(getMangabz(data));
 	}
+	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] ) {
+		newArr.push(getLoli(data));
+	}
+	if ( sources.indexOf(tag3) == -1 && !data.isLastPage[tag3] ) {
+		newArr.push(getGlass(data));
+	}
 	if ( sources.indexOf(tag4) == -1 && !data.isLastPage[tag4] ) {
 		newArr.push(get18comic(data));
 	}
@@ -43,6 +51,12 @@ export function getComicNum (data) {
 	if ( data.source == tag1 ) {
 		return getMangabzNum(data.href);
 	}
+	if ( data.source == tag2 ) {
+		return getLoliNum(data.href);
+	}
+	if ( data.source == tag3 ) {
+		return getGlassNum(data.href);
+	}
 	if ( data.source == tag4 ) {
 		return get18comicNum(data.href);
 	}
@@ -57,6 +71,12 @@ export function getComicNum (data) {
 export function getComicDetail (data) {
 	if ( data.source == tag1 ) {
 		return getMangabzDetail(data.href);
+	}
+	if ( data.source == tag2 ) {
+		return getLoliDetail(data.href);
+	}
+	if ( data.source == tag3 ) {
+		return getGlassDetail(data.href);
 	}
 	if ( data.source == tag4 ) {
 		return get18comicDetail(data.href);
@@ -135,7 +155,7 @@ function getMangabzNum (href) {
 				for ( let i = 0; i < arr.length; i++ ) {
 					let obj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
 					nums.push({
-						path: obj.children ? obj.children[0].attrs.href : '',
+						path: obj.children ? COMICURL[tag1].href + obj.children[0].attrs.href : '',
 						name: obj.children[0].children ? obj.children[0].children[0].text.replace(/\s+/g,"") : '未知'
 					})
 				}
@@ -194,6 +214,217 @@ function getMangabzDetail (href) {
 			reject(response)
 		})
 	})
+}
+
+//获取写真网站的漫画列表
+function getLoli (data) {
+	let dataSync = {
+		s: data.title,
+		page: data.page[tag2]
+	}
+	return new Promise((resolve, reject) => {
+		http.get(COMICURL[tag2].href + '/page/' + data.page[tag2] + '/', dataSync).then((res) => {
+			let str = replaceStr(res.data);//解析html字符
+			let arr = str.match(/<li[^>]*class=([""]?)g1-collection-item\1[^>]*>*([\s\S]*?)<\/li>/ig);//正则匹配所有漫画标签内容
+			let comic = [];
+			if ( arr ) {
+				for ( let i = 0; i < arr.length; i++ ) {
+					let img = arr[i].match(/<img[^>]*class=([""]?)attachment-bimber-grid-2of3 size-bimber-grid-2of3 wp-post-image\1[^>]*>/ig);
+					let name = arr[i].match(/<h2[^>]*class=([""]?)g1-mega g1-mega-1st entry-title\1[^>]*>*([\s\S]*?)<\/h2>/ig);
+					let intro = arr[i].match(/<div[^>]*class=([""]?)entry-before-title\1[^>]*>*([\s\S]*?)<\/div>/ig);
+					let intro2 = intro[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
+					let imgObj = HTMLParser(img[0])[0];//将html字符串转化为html数组
+					let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
+					let desc = '';
+					for ( let i in intro2 ) {
+						let introObj = HTMLParser(intro2[i])[0];//将html字符串转化为html数组
+						desc += introObj.children[0].text + (i < intro2.length - 1 ? ' ' : '')
+					}
+					comic.push({
+						image: imgObj.attrs.src || '',
+						name: nameObj.children ? nameObj.children[0].children ? nameObj.children[0].children[0].text : '暂无' : '暂无',
+						author: '暂无',
+						intro: desc || '暂无介绍',
+						path: nameObj.children ? nameObj.children[0].attrs.href : '暂无',
+						source: tag2
+					})
+				}
+			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					list: comic,
+					source: tag2
+				}
+			})
+		}).catch((err) => {
+			resolve({
+				code: ERR_FALSE,
+				data: {
+					list: [],
+					source: tag2
+				}
+			})
+		})
+	})
+}
+
+//获取写真网站的漫画性情
+function getLoliDetail (href) {
+	return new Promise((resolve, reject) => {
+		http.get(href, {}, {
+			header: {
+				referer: 'https://cosplayporn.cc',
+				host: 'cosplayporn.cc',
+			}
+		}).then((res) => {
+			let str = replaceStr(res.data);//解析html字符
+			let data = {
+				name: '',
+				author : '暂无作者',
+				intro: ''
+			}
+			let name = str.match(/<h1[^>]*class=([""]?)g1-mega g1-mega-1st entry-title\1[^>]*>*([\s\S]*?)<\/h1>/ig);
+			let intro = str.match(/<div[^>]*class=([""]?)entry-before-title\1[^>]*>*([\s\S]*?)<\/div>/ig);
+			let intro2 = intro[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
+			let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
+			data.name = nameObj.children[0].text;
+			for ( let i in intro2 ) {
+				let introObj = HTMLParser(intro2[i])[0];//将html字符串转化为html数组
+				data.intro += introObj.children[0].children[0].text + (i < intro2.length - 1 ? ' ' : '')
+			}
+			let response = {
+				code: ERR_OK,
+				data: data
+			}
+			resolve(response)
+		}).catch((err) => {
+			let response = {
+				code: ERR_FALSE,
+				data: {}
+			}
+			reject(response)
+		})
+	})
+}
+
+//获取写真网站的漫画章节
+function getLoliNum (href) {
+	let abort;
+	let p1 = new Promise((resolve, reject) => {
+		let nums = [{
+			path: href,
+			name: '全本'
+		}]
+		let response = {
+			code: ERR_OK,
+			data: nums
+		}
+		resolve(response)
+	})
+	let p2 = new Promise((resolve, reject) => (abort = reject));
+	let p = Promise.race([p1, p2]);
+	p.abort = abort;
+	return p;
+}
+
+//获取小草网的漫画列表
+function getGlass (data) {
+	return new Promise((resolve, reject) => {
+		http.get(COMICURL[tag3].href + '/tag/' + data.title + '/' + data.page[tag3] + '/').then((res) => {
+			let str = replaceStr(res.data);//解析html字符
+			let arr = str.match(/<div[^>]*class=([""]?)pic-thumb\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画标签内容
+			let arr2 = str.match(/<div[^>]*class=([""]?)meta-data\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画标签内容
+			let comic = [];
+			if ( arr ) {
+				for ( let i = 0; i < arr.length; i++ ) {
+					let a = arr2[i].match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
+					let name = a[0].match(/<span[^>]*class=([""]?)title\1[^>]*>*([\s\S]*?)<\/span>/ig);
+					let intro = arr[i].match(/<div[^>]*class=([""]?)pic-num\1[^>]*>*([\s\S]*?)<\/div>/ig);
+					let imgObj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
+					let aObj = HTMLParser(a[0])[0];//将html字符串转化为html数组
+					let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
+					let introObj = HTMLParser(intro[0])[0];//将html字符串转化为html数组
+					comic.push({
+						image: imgObj.attrs['data-image'] ? COMICURL[tag3].href + imgObj.attrs['data-image'] : '',
+						name: nameObj.children ? nameObj.children[0].text : '暂无',
+						author: '暂无',
+						intro: introObj.children ? '共' + introObj.children[0].text : '暂无介绍',
+						path: aObj.attrs.href ? COMICURL[tag3].href + aObj.attrs.href : '',
+						source: tag3
+					})
+				}
+			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					list: comic,
+					source: tag3
+				}
+			})
+		}).catch((err) => {
+			resolve({
+				code: ERR_FALSE,
+				data: {
+					list: [],
+					source: tag3
+				}
+			})
+		})
+	})
+}
+
+//获取小草网的漫画详情
+function getGlassDetail (href) {
+	return new Promise((resolve, reject) => {
+		http.get(href).then((res) => {
+			let str = replaceStr(res.data);//解析html字符
+			let data = {
+				name: '',
+				author : '暂无作者',
+				intro: ''
+			}
+			let name = str.match(/<h1[^>]*class=([""]?)pic-title\1[^>]*>*([\s\S]*?)<\/h1>/ig);
+			let intro = str.match(/<a[^>]*class=([""]?)tag\1[^>]*>*([\s\S]*?)<\/a>/ig);
+			let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
+			data.name = nameObj.children[0].text;
+			for ( let i in intro ) {
+				let introObj = HTMLParser(intro[i])[0];//将html字符串转化为html数组
+				data.intro += introObj.children[0].text + (i < intro.length - 1 ? ' ' : '')
+			}
+			let response = {
+				code: ERR_OK,
+				data: data
+			}
+			resolve(response)
+		}).catch((err) => {
+			let response = {
+				code: ERR_FALSE,
+				data: {}
+			}
+			reject(response)
+		})
+	})
+}
+
+//获取小草网的漫画章节
+function getGlassNum (href) {
+	let abort;
+	let p1 = new Promise((resolve, reject) => {
+		let nums = [{
+			path: href,
+			name: '全本'
+		}]
+		let response = {
+			code: ERR_OK,
+			data: nums
+		}
+		resolve(response)
+	})
+	let p2 = new Promise((resolve, reject) => (abort = reject));
+	let p = Promise.race([p1, p2]);
+	p.abort = abort;
+	return p;
 }
 
 
@@ -268,7 +499,7 @@ function get18comicNum (href) {
 						let aObj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
 						let liObj = HTMLParser(li[0])[0];//将html字符串转化为html数组
 						nums.push({
-							path: aObj.attrs.href,
+							path: COMICURL[tag4].href + aObj.attrs.href,
 							name: liObj.children ? liObj.children[0].text : ''
 						})
 					}
@@ -277,7 +508,7 @@ function get18comicNum (href) {
 				let a = str.match(/<a[^>]*class=([""]?)col btn btn-primary dropdown-toggle reading\1[^>]*>*([\s\S]*?)<\/a>/ig);//正则匹配漫画开始阅读
 				let obj = HTMLParser(a[0])[0];//将html字符串转化为html数组
 				nums.push({
-					path: obj.attrs.href,
+					path: COMICURL[tag4].href + obj.attrs.href,
 					name: '全本'
 				})
 			}
@@ -435,7 +666,7 @@ function getSixmh6Num (href) {
 				let aObj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
 				let titleObj = HTMLParser(title[0])[0];//将html字符串转化为html数组
 				nums.push({
-					path: aObj.attrs.href || '',
+					path: aObj.attrs.href ? COMICURL[tag5].href + aObj.attrs.href : '',
 					name: titleObj.children ? titleObj.children[0].text : ''
 				})
 			}
@@ -467,7 +698,7 @@ function getSixmh6Num (href) {
 			let nums = [];
 			for ( let i in data ) {
 				nums.push({
-					path: href + data[i].chapterid + '.html',
+					path: COMICURL[tag5].href + href + data[i].chapterid + '.html',
 					name: data[i].chaptername
 				})
 			}

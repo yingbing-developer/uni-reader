@@ -42,7 +42,6 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import { mapGetters, mapMutations } from 'vuex'
-	import { indexOf, deepClone } from '@/common/js/util.js'
 	import { skinMixin } from '@/common/mixin/index.js'
 	import { getComicDetail, getComicNum } from '@/common/online/getComic.js'
 	export default {
@@ -67,7 +66,7 @@
 			//上次阅读章节
 			readed () {
 				let index = this.comicInfo.record.split('-')[0];
-				let arr = deepClone(this.catalog);
+				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				if ( this.sortType == 'reverse' ) {
 					arr.reverse();
 				}
@@ -88,6 +87,7 @@
 					source: this.comicInfo.source,
 					href: this.comicInfo.path
 				})
+				
 			}
 		},
 		methods: {
@@ -136,25 +136,32 @@
 			},
 			//开始阅读
 			startRead () {
-				let arr = deepClone(this.catalog);
+				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				let nums = this.sortType == 'reverse' ? arr.reverse() : arr;
 				this.readComic(nums[0].path);
 			},
 			//阅读漫画
 			readComic (path) {
-				let arr = deepClone(this.catalog);
+				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				let nums = this.sortType == 'reverse' ? JSON.stringify(arr.reverse()) : JSON.stringify(arr);
-				let readIndex = indexOf(arr, path, 'path');
+				let readIndex = getApp().globalData.$utils.indexOf(arr, 'path', path);
 				//更新阅读章节记录
 				let record = readIndex + '-' + (this.cNum == readIndex ? this.pNum : 0);
 				this.updateBookRecord({
 					path: this.comicInfo.path,
 					record: record
 				})
-				let index = indexOf(this.bookList, this.comicInfo.path, 'path');
+				let index = getApp().globalData.$utils.indexOf(this.bookList, 'path', this.comicInfo.path);
 				//更新阅读时间
 				this.updateBookReadTime(this.comicInfo.path);
-				getApp().globalData.routePush(`/pages/comic/read/index?index=${index}&nums=${encodeURIComponent(nums)}&readIndex=${readIndex}`);
+				getApp().globalData.$Router.push({
+					path: '/pages/comic/read/index',
+					query: {
+						index: index,
+						nums: encodeURIComponent(nums),
+						readIndex: readIndex
+					}
+				});
 			},
 			//获取本地漫画章节
 			getLocalComicCatalog () {

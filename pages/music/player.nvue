@@ -271,7 +271,7 @@
 				    needLayout:false,
 				    delay: 0 //ms
 				}, () => {
-					getApp().globalData.routeBack();
+					getApp().globalData.$Router.back();
 				})
 			},
 			//旋转cd封面

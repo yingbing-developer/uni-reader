@@ -110,7 +110,7 @@
 				})
 			},
 			save () {
-				getApp().globalData.message('操作提示', '确认保存修改的内容吗？').then((res) => {
+				getApp().globalData.$dom.confirm('操作提示', '确认保存修改的内容吗？').then((res) => {
 					if ( res == 'confirm' ) {
 						this.hide('confirm');
 					}
