@@ -2,6 +2,9 @@
 	<view class="c-image" @appear="appear" @disappear="disappear" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}">
 		<image referrerPolicy="origin" @load="getImageInfo" @error="error" ref="image" :class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}"></image>
 		<view class="img-mask" :style="{opacity: skinColor.imgMask, borderRadius: borderRadius + 'rpx'}" v-if="enableMask"></view>
+		<view class="error" v-if="isError">
+			<text class="error-text" :style="{'color': skinColor.menuTitleColor}">加载失败!</text>
+		</view>
 	</view>
 </template>
 
@@ -139,5 +142,17 @@
 		right: 0;
 		bottom: 0;
 		background-color: #000000;
+	}
+	.error {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		align-items: center;
+		justify-content: center;
+	}
+	.error-text {
+		font-size: 20rpx;
 	}
 </style>
