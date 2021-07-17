@@ -8,7 +8,7 @@
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
 				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @longpress="preview(item.path)">
 					<!-- <c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="widthFix"></c-image> -->
-					<c-image :enable-mask="false" enable-hidden :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix" v-if="imageType"></c-image>
+					<c-image error-size="40" :enable-mask="false" enable-hidden :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix" v-if="imageType"></c-image>
 					<comic-image :windowWidth="windowWidth" :src="item.path" v-if="!imageType"></comic-image>
 				</view>
 			</cell>

@@ -5,7 +5,7 @@ import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，
 
 const tag1 = 'mangabz';
 const tag2 = 'loli';
-const tag3 = 'glass';
+const tag3 = 'selfish';
 const tag4 = '18comic';
 const tag5 = 'sixmh6';
 const tag7 = 'dmzj';
@@ -33,7 +33,7 @@ export function getComic (data) {
 		newArr.push(getLoli(data));
 	}
 	if ( sources.indexOf(tag3) == -1 && !data.isLastPage[tag3] ) {
-		newArr.push(getGlass(data));
+		newArr.push(getSelfish(data));
 	}
 	if ( sources.indexOf(tag4) == -1 && !data.isLastPage[tag4] ) {
 		newArr.push(get18comic(data));
@@ -55,7 +55,7 @@ export function getComicNum (data) {
 		return getLoliNum(data.href);
 	}
 	if ( data.source == tag3 ) {
-		return getGlassNum(data.href);
+		return getSelfishNum(data.href);
 	}
 	if ( data.source == tag4 ) {
 		return get18comicNum(data.href);
@@ -76,7 +76,7 @@ export function getComicDetail (data) {
 		return getLoliDetail(data.href);
 	}
 	if ( data.source == tag3 ) {
-		return getGlassDetail(data.href);
+		return getSelfishDetail(data.href);
 	}
 	if ( data.source == tag4 ) {
 		return get18comicDetail(data.href);
@@ -329,28 +329,32 @@ function getLoliNum (href) {
 }
 
 //获取小草网的漫画列表
-function getGlass (data) {
+function getSelfish (data) {
+	const dataSync = {
+		q: data.title,
+		page: data.page[tag3]
+	}
 	return new Promise((resolve, reject) => {
-		http.get(COMICURL[tag3].href + '/tag/' + data.title + '/' + data.page[tag3] + '/').then((res) => {
+		http.get(COMICURL[tag3].href + '/search.php', dataSync).then((res) => {
 			let str = replaceStr(res.data);//解析html字符
-			let arr = str.match(/<div[^>]*class=([""]?)pic-thumb\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画标签内容
-			let arr2 = str.match(/<div[^>]*class=([""]?)meta-data\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画标签内容
+			let arr = str.match(/<div[^>]*class=([""]?)col-lg-3 col-md-3  col-xs-6 mt20\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画标签内容
 			let comic = [];
 			if ( arr ) {
 				for ( let i = 0; i < arr.length; i++ ) {
-					let a = arr2[i].match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
-					let name = a[0].match(/<span[^>]*class=([""]?)title\1[^>]*>*([\s\S]*?)<\/span>/ig);
-					let intro = arr[i].match(/<div[^>]*class=([""]?)pic-num\1[^>]*>*([\s\S]*?)<\/div>/ig);
-					let imgObj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
-					let aObj = HTMLParser(a[0])[0];//将html字符串转化为html数组
-					let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
-					let introObj = HTMLParser(intro[0])[0];//将html字符串转化为html数组
+					let aObj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
+					let obj = aObj.children[0].attrs ? aObj.children[0] : aObj.children[1];
+					let name = obj.attrs.title;
+					name = name.replace('<strong>', '');
+					name = name.replace('</strong>', '');
+					let intro = name.match(/\[(\S*)/) ? name.match(/\[(\S*)/)[1].replace(']', '') : '' ;
+					let image = obj.children[0].attrs.style || '';
+					image = image.match(/url\((\S*)\)/)[1];
 					comic.push({
-						image: imgObj.attrs['data-image'] ? COMICURL[tag3].href + imgObj.attrs['data-image'] : '',
-						name: nameObj.children ? nameObj.children[0].text : '暂无',
+						image: image,
+						name: name,
 						author: '暂无',
-						intro: introObj.children ? '共' + introObj.children[0].text : '暂无介绍',
-						path: aObj.attrs.href ? COMICURL[tag3].href + aObj.attrs.href : '',
+						intro: intro || '暂无介绍',
+						path: obj.attrs.href || '',
 						source: tag3
 					})
 				}
@@ -375,7 +379,7 @@ function getGlass (data) {
 }
 
 //获取小草网的漫画详情
-function getGlassDetail (href) {
+function getSelfishDetail (href) {
 	return new Promise((resolve, reject) => {
 		http.get(href).then((res) => {
 			let str = replaceStr(res.data);//解析html字符
@@ -384,14 +388,17 @@ function getGlassDetail (href) {
 				author : '暂无作者',
 				intro: ''
 			}
-			let name = str.match(/<h1[^>]*class=([""]?)pic-title\1[^>]*>*([\s\S]*?)<\/h1>/ig);
-			let intro = str.match(/<a[^>]*class=([""]?)tag\1[^>]*>*([\s\S]*?)<\/a>/ig);
-			let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
-			data.name = nameObj.children[0].text;
-			for ( let i in intro ) {
-				let introObj = HTMLParser(intro[i])[0];//将html字符串转化为html数组
-				data.intro += introObj.children[0].text + (i < intro.length - 1 ? ' ' : '')
-			}
+			let info = str.match(/<div[^>]*class=([""]?)articlehead\1[^>]*>*([\s\S]*?)<\/div>/ig);
+			let name = info[0].match(/<h1[^>]*>*([\s\S]*?)<\/h1>/ig)[0];
+			name = name.replace('<h1>', '');
+			name = name.replace('</h1>', '');
+			data.name = name;
+			let author = info[0].match(/<div[^>]*class=([""]?)fl\1[^>]*>*([\s\S]*?)<\/div>/ig);
+			let authorObj = HTMLParser(author[0])[0];//将html字符串转化为html数组
+			data.author = authorObj.children ? authorObj.children[1].text : '暂无作者';
+			let intro = str.match(/<div[^>]*class=([""]?)fr\1[^>]*>*([\s\S]*?)<\/div>/ig);
+			let introObj = HTMLParser(intro[0])[0];//将html字符串转化为html数组
+			data.intro = introObj.children ? introObj.children[1].text : '暂无介绍';
 			let response = {
 				code: ERR_OK,
 				data: data
@@ -408,7 +415,7 @@ function getGlassDetail (href) {
 }
 
 //获取小草网的漫画章节
-function getGlassNum (href) {
+function getSelfishNum (href) {
 	let abort;
 	let p1 = new Promise((resolve, reject) => {
 		let nums = [{

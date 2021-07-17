@@ -20,9 +20,9 @@ export const COMICURL = {
 		title: '写真网',
 		href: 'https://cosplayporn.cc'
 	},
-	'glass': {
-		title: '小草网',
-		href: 'https://xiaocaozipai.xyz'
+	'selfish': {
+		title: '私图坊',
+		href: 'http://sipaipicture5.buzz/'
 	}
 };
 //音乐网站链接

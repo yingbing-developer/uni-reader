@@ -3,7 +3,7 @@
 		<image referrerPolicy="origin" @load="getImageInfo" @error="error" ref="image" :class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}"></image>
 		<view class="img-mask" :style="{opacity: skinColor.imgMask, borderRadius: borderRadius + 'rpx'}" v-if="enableMask"></view>
 		<view class="error" v-if="isError">
-			<text class="error-text" :style="{'color': skinColor.menuTitleColor}">加载失败!</text>
+			<text class="error-text" :style="{'color': skinColor.menuTitleColor, 'font-size': errorSize + 'rpx'}">加载失败!</text>
 		</view>
 	</view>
 </template>
@@ -13,6 +13,7 @@
 	// #ifdef APP-NVUE
 	const dom = weex.requireModule('dom');
 	// #endif
+	import CIcon from '@/components/c-icon/c-icon.nvue'
 	export default {
 		mixins: [skinMixin],
 		props: {
@@ -59,6 +60,10 @@
 			defaultSrc: {
 				type: String,
 				default: ''
+			},
+			errorSize: {
+				type: String | Number,
+				default: 22
 			}
 		},
 		computed: {
@@ -120,6 +125,9 @@
 		},
 		beforeDestroy() {
 			clearTimeout(this.timer);
+		},
+		components: {
+			CIcon
 		}
 	}
 </script>
@@ -151,8 +159,5 @@
 		bottom: 0;
 		align-items: center;
 		justify-content: center;
-	}
-	.error-text {
-		font-size: 20rpx;
 	}
 </style>

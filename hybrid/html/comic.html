@@ -60,24 +60,17 @@
 				};
 				return images;
 			}
-			//获取小草网漫画内容
-			function getGlassContent () {
-				// window.setTimeout( function () {
-					var child = getIframeDom();
-					var dom = child.document.getElementsByClassName('picture-content')[0];
-					var script = dom.getElementsByTagName('script');
-					var str = script[0].innerText; 
-					str = str.match(/\"(\S*)\"/)[1]; 
-					var doms = child.document.getElementsByClassName('zipai-pic');
-					var images = new Array(doms.length);
-					var origin = decodeURIComponent(getQueryVariable('origin'));
-					for ( var i = 0; i < doms.length; i++ ) {
-						images[i] = {
-							path: origin + str + '/' + (i + 1) + '.jpg'
-						}
-					};
-					return images;
-				// }, 2000)
+			//获取私图坊网漫画内容
+			function getSelfishContent () {
+				var child = getIframeDom();
+				var doms = child.document.getElementsByClassName('aligncenter');
+				var images = new Array(doms.length);
+				for ( var i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].src
+					}
+				};
+				return images;
 			}
 			//获取18comic漫画内容
 			function get18comicContent () {
@@ -128,8 +121,8 @@
 					if ( source == 'loli' ) {
 						data = getLoliContent();
 					}
-					if ( source == 'glass' ) {
-						data = getGlassContent();
+					if ( source == 'selfish' ) {
+						data = getSelfishContent();
 					}
 					if ( source == '18comic' ) {
 						data = get18comicContent();
