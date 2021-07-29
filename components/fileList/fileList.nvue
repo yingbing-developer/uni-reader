@@ -399,16 +399,6 @@
 			getFileSystem (ff) {
 				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
 				this.$emit('updatePath', plus.android.invoke(fd, 'getPath'));
-				// let fileFilter = plus.android.newObject('java.io.FileFilter');
-				// plus.android.setAttribute(fileFilter, 'accept', '123');
-				// console.log(plus.android.getAttribute(fileFilter, 'accept'));
-				// plus.android.invoke(FileFilter, "plusSetAttribute", "accept", function (file) {
-				// 	if(!plus.android.invoke(file, 'isHidden')) {
-				// 		return true;
-				// 	} else {
-				// 		return false;
-				// 	}
-				// })
 				// let fileFilter = plus.android.implements("java.io.FileFilter", {
 				// 	"accept": function ( file ) {
 				// 		if( !plus.android.invoke(file, 'isHidden') ) {
