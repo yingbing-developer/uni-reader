@@ -60,18 +60,6 @@
 				};
 				return images;
 			}
-			//获取私图坊网漫画内容
-			function getSelfishContent () {
-				var child = getIframeDom();
-				var doms = child.document.getElementsByClassName('aligncenter');
-				var images = new Array(doms.length);
-				for ( var i = 0; i < doms.length; i++ ) {
-					images[i] = {
-						path: doms[i].src
-					}
-				};
-				return images;
-			}
 			//获取18comic漫画内容
 			function get18comicContent () {
 				var child = getIframeDom();
@@ -120,9 +108,6 @@
 					}
 					if ( source == 'loli' ) {
 						data = getLoliContent();
-					}
-					if ( source == 'selfish' ) {
-						data = getSelfishContent();
 					}
 					if ( source == '18comic' ) {
 						data = get18comicContent();

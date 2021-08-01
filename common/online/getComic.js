@@ -5,7 +5,6 @@ import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，
 
 const tag1 = 'mangabz';
 const tag2 = 'loli';
-const tag3 = 'selfish';
 const tag4 = '18comic';
 const tag5 = 'sixmh6';
 const tag7 = 'dmzj';
@@ -32,9 +31,6 @@ export function getComic (data) {
 	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] ) {
 		newArr.push(getLoli(data));
 	}
-	if ( sources.indexOf(tag3) == -1 && !data.isLastPage[tag3] ) {
-		newArr.push(getSelfish(data));
-	}
 	if ( sources.indexOf(tag4) == -1 && !data.isLastPage[tag4] ) {
 		newArr.push(get18comic(data));
 	}
@@ -54,9 +50,6 @@ export function getComicNum (data) {
 	if ( data.source == tag2 ) {
 		return getLoliNum(data.href);
 	}
-	if ( data.source == tag3 ) {
-		return getSelfishNum(data.href);
-	}
 	if ( data.source == tag4 ) {
 		return get18comicNum(data.href);
 	}
@@ -74,9 +67,6 @@ export function getComicDetail (data) {
 	}
 	if ( data.source == tag2 ) {
 		return getLoliDetail(data.href);
-	}
-	if ( data.source == tag3 ) {
-		return getSelfishDetail(data.href);
 	}
 	if ( data.source == tag4 ) {
 		return get18comicDetail(data.href);
@@ -310,112 +300,6 @@ function getLoliDetail (href) {
 
 //获取写真网站的漫画章节
 function getLoliNum (href) {
-	let abort;
-	let p1 = new Promise((resolve, reject) => {
-		let nums = [{
-			path: href,
-			name: '全本'
-		}]
-		let response = {
-			code: ERR_OK,
-			data: nums
-		}
-		resolve(response)
-	})
-	let p2 = new Promise((resolve, reject) => (abort = reject));
-	let p = Promise.race([p1, p2]);
-	p.abort = abort;
-	return p;
-}
-
-//获取小草网的漫画列表
-function getSelfish (data) {
-	const dataSync = {
-		q: data.title,
-		page: data.page[tag3]
-	}
-	return new Promise((resolve, reject) => {
-		http.get(COMICURL[tag3].href + '/search.php', dataSync).then((res) => {
-			let str = replaceStr(res.data);//解析html字符
-			let arr = str.match(/<div[^>]*class=([""]?)col-lg-3 col-md-3  col-xs-6 mt20\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画标签内容
-			let comic = [];
-			if ( arr ) {
-				for ( let i = 0; i < arr.length; i++ ) {
-					let aObj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
-					let obj = aObj.children[0].attrs ? aObj.children[0] : aObj.children[1];
-					let name = obj.attrs.title;
-					name = name.replace('<strong>', '');
-					name = name.replace('</strong>', '');
-					let intro = name.match(/\[(\S*)/) ? name.match(/\[(\S*)/)[1].replace(']', '') : '' ;
-					let image = obj.children[0].attrs.style || '';
-					image = image.match(/url\((\S*)\)/)[1];
-					comic.push({
-						image: image,
-						name: name,
-						author: '暂无',
-						intro: intro || '暂无介绍',
-						path: obj.attrs.href || '',
-						source: tag3
-					})
-				}
-			}
-			resolve({
-				code: ERR_OK,
-				data: {
-					list: comic,
-					source: tag3
-				}
-			})
-		}).catch((err) => {
-			resolve({
-				code: ERR_FALSE,
-				data: {
-					list: [],
-					source: tag3
-				}
-			})
-		})
-	})
-}
-
-//获取小草网的漫画详情
-function getSelfishDetail (href) {
-	return new Promise((resolve, reject) => {
-		http.get(href).then((res) => {
-			let str = replaceStr(res.data);//解析html字符
-			let data = {
-				name: '',
-				author : '暂无作者',
-				intro: ''
-			}
-			let info = str.match(/<div[^>]*class=([""]?)articlehead\1[^>]*>*([\s\S]*?)<\/div>/ig);
-			let name = info[0].match(/<h1[^>]*>*([\s\S]*?)<\/h1>/ig)[0];
-			name = name.replace('<h1>', '');
-			name = name.replace('</h1>', '');
-			data.name = name;
-			let author = info[0].match(/<div[^>]*class=([""]?)fl\1[^>]*>*([\s\S]*?)<\/div>/ig);
-			let authorObj = HTMLParser(author[0])[0];//将html字符串转化为html数组
-			data.author = authorObj.children ? authorObj.children[1].text : '暂无作者';
-			let intro = str.match(/<div[^>]*class=([""]?)fr\1[^>]*>*([\s\S]*?)<\/div>/ig);
-			let introObj = HTMLParser(intro[0])[0];//将html字符串转化为html数组
-			data.intro = introObj.children ? introObj.children[1].text : '暂无介绍';
-			let response = {
-				code: ERR_OK,
-				data: data
-			}
-			resolve(response)
-		}).catch((err) => {
-			let response = {
-				code: ERR_FALSE,
-				data: {}
-			}
-			reject(response)
-		})
-	})
-}
-
-//获取小草网的漫画章节
-function getSelfishNum (href) {
 	let abort;
 	let p1 = new Promise((resolve, reject) => {
 		let nums = [{

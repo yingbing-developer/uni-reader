@@ -19,10 +19,6 @@ export const COMICURL = {
 	'loli': {
 		title: '写真网',
 		href: 'https://cosplayporn.cc'
-	},
-	'selfish': {
-		title: '私图坊',
-		href: 'http://sipaipicture5.buzz/'
 	}
 };
 //音乐网站链接
