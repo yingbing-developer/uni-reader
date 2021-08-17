@@ -1,6 +1,6 @@
 <template>
-	<view class="content">
-		<web-view @message="handlePostMessage" :src="src" :webview-styles="webviewStyles"></web-view>
+	<view id="iframe-box" :prop="iframeProp" :change:prop="iframe.iframePropChange">
+		<view class="mask" :style="{'background-color': skinColor.bgColor}"></view>
 	</view>
 </template>
 
@@ -13,86 +13,33 @@
 		mixins: [skinMixin],
 		data () {
 			return {
-				url: '/hybrid/html/comic.html',
-				src: '',
-				webviewStyles: {
-				    progress: false
-				},
-				source: '',
-				tags: ['mhhanman']
+				url: '',
+				origin: '',
+				source: ''
+			}
+		},
+		computed: {
+			iframeProp () {
+				return {
+					url: this.url,
+					origin: this.origin,
+					source: this.source
+				}
 			}
 		},
 		onLoad (data) {
-			this.src = `${this.url}?url=${encodeURIComponent(data.url)}&origin=${encodeURIComponent(COMICURL[data.source].href)}&source=${data.source}&color=${encodeURIComponent(this.skinColor.bgColor)}`;
-			// this.src = COMICURL[data.source].href + data.url;
-			// this.source = data.source;
-		},
-		onReady () {
-			setTimeout(() => {
-				let currentWebview = this.$scope.$getAppWebview();
-				wv = currentWebview.children()[0];
-				wv.overrideUrlLoading({mode:"reject",match:'.*'}, (e)=>{
-					console.log(e.url,'overrideUrlLoading');
-				});
-			}, 50)
-			// setTimeout(() => {
-			// 	this.webShow = true;
-			// 	let currentWebview = this.$scope.$getAppWebview() //此对象相当于html5plus里的plus.webview.currentWebview()。在uni-app里vue页面直接使用plus.webview.currentWebview()无效，非v3编译模式使用this.$mp.page.$getAppWebview()
-			// 	setTimeout(() => {
-			// 		let wv = currentWebview.children()[0];
-			// 		let globalJS = `
-			// 			var script = document.createElement("script");
-			// 			script.type = "text/javascript";
-			// 			script.src = 'https://js.cdn.aliyun.dcloud.net.cn/dev/uni-app/uni.webview.1.5.2.js';
-			// 			script.onload = function () {
-			// 				window.setTimeout(function () {
-			// 					var data = getContent();
-			// 					uni.postMessage({
-			// 					    data: data
-			// 					});
-			// 				}, 1000)
-			// 			}
-			// 			document.getElementsByTagName('head')[0].appendChild(script);
-			// 		`;
-			// 		let mangabz = `
-			// 			function getContent () {
-			// 				var doms = document.getElementsByClassName('lazy');
-			// 				var images = new Array(doms.length);
-			// 				for ( var i = 0; i < doms.length; i++ ) {
-			// 					images[i] = {
-			// 						path: doms[i].getAttribute('data-src')
-			// 					}
-			// 				};
-			// 				return images;
-			// 			}
-			// 		`;
-			// 		let actionJs = {
-			// 			'mangabz': mangabz
-			// 		}
-			// 		wv.evalJS(actionJs[this.source] + globalJS);
-			// 	}, 2000);
-			// }, 50)
+			this.url = data.url;
+			this.origin = COMICURL[data.source].href;
+			this.source = data.source;
 		},
 		methods: {
-			//获取得到的漫画内容
-			handlePostMessage (e) {
+			finish (e) {
 				uni.$emit('comicContent', {
-					data: e.detail.data[0]
+					data: e.comics
 				})
 			}
 		},
-		onUnload () {
-			if ( wv ) {
-				wv.back();
-				wv.hide();
-			}
-		},
 		onBackPress (event) {
-			//判断是否是手动返回，如果是需要返回两层
-			if ( wv ) {
-				wv.back();
-				wv.hide();
-			}
 			if ( event.from == 'backbutton' ) {
 				let size = plus.screen.getCurrentSize();
 				//横屏
@@ -104,12 +51,170 @@
 				return true
 			}
 			return false
+		}
+	}
+</script>
+<script lang="renderjs" module="iframe" type="module">
+	let iframeDom;
+	export default {
+		mounted () {
+			this.initDom.bind(this);
+			setTimeout(() => {
+				if ( this.iframeProp.url ) {
+					this.createIframe();
+				}
+			}, 1000)
 		},
+		methods: {
+			initDom () {
+				iframeDom = iframe.init(document.getElementById('iframe-box'));
+				// 观测更新的数据在 view 层可以直接访问到
+				iframeDom.setOption(this.iframeProp);
+			},
+			createIframe () {
+				//创建一个iframe元素加载漫画内容
+				let iframe = document.createElement("iframe");
+				let timer = null;
+				iframe.src = this.iframeProp.url;
+				iframe.id = 'myIframe';
+				iframe.style.display = 'none';
+				iframe.sandbox = 'allow-scripts allow-same-origin';
+				//等待iframe加载完毕
+				iframe.onload = () => {
+					if ( timer ) {
+						window.clearTimeout(timer);
+					}
+					this.loadIframe();
+				}
+				//如果25秒后iframe还没触发onload事件，直接去获取漫画图片
+				timer = window.setTimeout(() => {
+					iframe.onload = null;
+					this.loadIframe();
+				}, 25000)
+				document.getElementById("iframe-box").appendChild(iframe);
+				window.setTimeout( function () {
+					let child = document.getElementById('myIframe').contentWindow;
+					//重构iframe的confirm alert方法，屏蔽三方网站上的弹窗行为
+					child.window.alert = function () { return false; }
+					child.window.confirm = function () { return false; }
+					child.window.onbeforeunload = function () { return false; }
+				}, 5)
+			},
+			loadIframe () {
+				window.setTimeout( () => {
+					let data = [];
+					let source = this.iframeProp.source;
+					if ( source == 'mangabz' ) {
+						data = this.getMangabzContent();
+					}
+					if ( source == 'loli' ) {
+						data = this.getLoliContent();
+					}
+					if ( source == '18comic' ) {
+						data = this.get18comicContent();
+					}
+					if ( source == 'sixmh6' ) {
+						data = this.getSixmh6Content();
+					}
+					if ( source == 'dmzj' ) {
+						data = this.getDmzjContent();
+					}
+					// #ifndef H5
+					UniViewJSBridge.publishHandler('onWxsInvokeCallMethod', {
+						cid: this._$id,
+						method: 'finish',
+						args: {'comics': data}
+					})
+					// #endif
+				}, 1000)
+			},
+			iframePropChange (newVal, oldVal) {
+				if ( newVal.url != oldVal.url ) {
+					if ( newVal.url ) {
+						this.createIframe();
+					}
+				}
+			},
+			//获取iframe对象
+			getIframeDom () {
+			    return document.getElementById('myIframe').contentWindow;
+			},
+			//获取mangabz漫画内容
+			getMangabzContent () {
+				let child = this.getIframeDom();
+				let doms = child.document.getElementsByClassName('lazy');
+				let images = new Array(doms.length);
+				for ( let i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].getAttribute('data-src')
+					}
+				};
+				return images;
+			},
+			//获取写真网漫画内容
+			getLoliContent () {
+				let child = this.getIframeDom();
+				let dom = child.document.getElementsByClassName('entry-content')[0];
+				let doms = dom.getElementsByTagName('img');
+				let images = new Array(doms.length);
+				for ( let i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].src
+					}
+				};
+				return images;
+			},
+			//获取18comic漫画内容
+			get18comicContent () {
+				let child = this.getIframeDom();
+				let div = child.document.getElementsByClassName('row thumb-overlay-albums')[0];
+				let doms = div.getElementsByClassName('lazy_img');
+				let images = new Array(doms.length);
+				for ( let i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].getAttribute('data-original')
+					}
+				};
+				return images;
+			},
+			//获取6漫画内容
+			getSixmh6Content () {
+				let child = this.getIframeDom();
+				let doms = child.document.getElementsByClassName('chapter-img-box');
+				let images = new Array(doms.length);
+				for ( let i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].getElementsByClassName('lazy')[0].getAttribute('data-original') || doms[i].getElementsByClassName('lazy')[0].src
+					}
+				};
+				return images;
+			},
+			//获取dmzj漫画内容
+			getDmzjContent () {
+				let child = this.getIframeDom();
+				let div = child.document.getElementById('commicBox');
+				let doms = div.getElementsByClassName('comic_img');
+				let images = new Array(doms.length);
+				for ( let i = 0; i < doms.length; i++ ) {
+					images[i] = {
+						path: doms[i].getAttribute('data-original').replace('dmzj', 'dmzj1') || doms[i].src.replace('dmzj', 'dmzj1')
+					}
+				};
+				return images;
+			}
+		}
 	}
 </script>
 
 <style>
 	.content {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+	.mask {
 		position: absolute;
 		top: 0;
 		left: 0;
