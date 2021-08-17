@@ -1,6 +1,7 @@
 <template>
 	<view class="search">
 		<file-list
+		title="添加小说"
 		suffix="txt"
 		accept="text/plain"
 		:pathHistory="pathHistory"
@@ -31,22 +32,12 @@
 		},
 		computed: {
 			...mapGetters(['bookList', 'bookPathHistory']),
-			listSync () {
-				let arr = this.list.filter((item) => {
-					if ( item.name.indexOf(this.nameFilter) > -1 ) {
-						return item;
-					}
-				})
-				return arr;
-			},
 			pathHistory () {
 				return this.bookPathHistory;
 			},
 			pushList () {
 				return this.bookList;
 			}
-		},
-		created () {
 		},
 		methods: {
 			...mapMutations(['addBooks', 'deleteBook', 'updateBookPath']),

@@ -1,6 +1,6 @@
 <template>
 	<view class="search" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="添加小说" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+		<nav-bar :title="title" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
 			<view class="nav-right" slot="right">
 				<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
 				<view @tap="$refs.bubble.show()">
@@ -22,7 +22,8 @@
 				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :class="skinColor.activedName" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
 					<view class="list-icon" @tap.stop="check(item.path)">
 						<c-icon name="folder" size="75" color="#FFCA28" v-if="item.type == 'folder'"></c-icon>
-						<c-icon name="txt" size="60" color="#FFCA28" v-else></c-icon>
+						<c-icon name="txt" size="60" color="#FFCA28" v-if="item.type == 'txt'"></c-icon>
+						<image class="file-icon" src="../../static/music/music-type.png" mode="aspectFit" lazy-load v-if="audioType.indexOf(item.type) > -1 "></image>
 					</view>
 					<view class="list-right">
 						<view class="lr-top">
@@ -73,11 +74,15 @@
 	export default {
 		mixins: [skinMixin],
 		props: {
+			title: {
+				type: String,
+				default: ''
+			},
 			suffix: {
 				type: String,
 				default: ''
 			},
-			//分享文件的lei'xing
+			//分享文件的类型
 			accept: {
 				type: String,
 				default: ''
@@ -127,6 +132,9 @@
 					}
 				})
 				return arr;
+			},
+			audioType () {
+				return 'flac,m4a,ogg,ape,amr,wma,wav,mp3,aac';
 			}
 		},
 		created () {
@@ -579,6 +587,10 @@
 		margin-right: 15rpx;
 		width: 75rpx;
 	}
+	.file-icon {
+		width: 75rpx;
+		height: 75rpx;
+	}
 	.list-right {
 		flex: 1;
 		justify-content: space-between;
@@ -592,14 +604,12 @@
 		font-size: 30rpx;
 		lines: 1;
 		text-overflow: ellipsis;
+		margin-right: 10rpx;
 	}
 	.lr-top {
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
-	}
-	.lt-right {
-		width: 70rpx;
 	}
 	.lr-bottom {
 		flex-direction: row;

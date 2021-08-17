@@ -1,248 +1,53 @@
 <template>
-	<view class="search" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="添加歌曲" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
-			<view class="nav-right" slot="right">
-				<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
-				<view @tap="$refs.bubble.show()">
-					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
-				</view>
-			</view>
-		</nav-bar>
-		<c-search @confirm="setNameFilter"></c-search>
-		<list-scroll @scroll="scroll" :line-height="108" :list="listSync">
-			<!-- 返回项 -->
-			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
-				<view class="list-icon">
-					<c-icon name="folder" size="75" color="#FFCA28"></c-icon>
-				</view>
-				<view class="list-right-back">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">..</text>
-				</view>
-			</view>
-			<!-- 文件列表 -->
-			<template v-slot="{item}">
-				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
-					<view class="list-icon" @tap.stop="check(item.path)">
-						<c-icon name="folder" size="75" color="#FFCA28" v-if="item.type == 'folder'"></c-icon>
-						<c-image style="width: 75rpx;height: 75rpx" borderRadius="75" src="/static/music/music-type.png" mode="scaleToFill" v-else></c-image>
-					</view>
-					<view class="list-right">
-						<view class="lr-top">
-							<text class="list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-							<text v-if="isLead(item.path) > -1 && item.type != 'folder'" class="lt-right list-text" :style="{'color': skinColor.textColor}">已导入</text>
-						</view>
-						<view class="lr-bottom">
-							<text class="list-text" :style="{'color': skinColor.textColor}">{{item.time}}</text>
-							<text class="list-text" :style="{'color': skinColor.textColor}" v-if="item.type != 'folder'">{{item.size}}</text>
-						</view>
-					</view>
-				</view>
-			</template>
-		</list-scroll>
-		  <view class="btn-box" v-if="checkes.length > 0" :style="{'border-top-color': skinColor.gapColor}">
-			  <view class="btn" @tap="leadCheck">
-				  <text class="btn-text">导入歌曲</text>
-			  </view>
-		  </view>
-		  <!-- 气泡弹窗 -->
-		  <bubble ref="bubble">
-				<block v-if="fileLength > 0">
-					<bubble-item title="全选" @click="selectAll" v-if="checkes.length < fileLength"></bubble-item>
-					<bubble-item title="取消全选" @click="cancelAll" v-if="checkes.length == fileLength"></bubble-item>
-				</block>
-				<bubble-item title="删除文件" @click="deleteAction" v-if="checkes.length > 0"></bubble-item>
-				<bubble-item title="内部存储" @click="goInternalRoot"></bubble-item>
-				<bubble-item :title="'SD卡-' + (index + 1)" @click="goExtenalRoot(item.path)" v-for="(item, index) in SDpaths" :key="index"></bubble-item>
-		  </bubble>
-		  
-		<view class="fixed">
-			<view @tap="scrollTop">
-				<fixed-button :show="Math.abs(oldOffsetY) > 300">
-					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
-				</fixed-button>
-			</view>
+	<view class="search">
+		<file-list
+		title="添加音乐"
+		suffix="flac,m4a,ogg,ape,amr,wma,wav,mp3,aac"
+		accept="audio/*"
+		:pathHistory="pathHistory"
+		:contrastList="pushList"
+		@clickFile="clickFile"
+		@updatePath="updatePath"
+		@pushFile="pushFile"
+		@popFile="popFile"
+		@checkChange="checkChange"
+		@deleteFile="deleteFile"></file-list>
+		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}" v-if="checkList.length > 0">
+			<c-button class="btn" title="导入选中歌曲" @click="pushFile(checkList)"></c-button>
 		</view>
 	</view>
 </template>
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
-	import CIcon from '@/components/c-icon/c-icon.nvue'
-	import CIamge from '@/components/c-image/c-image.nvue'
-	import CSearch from '@/components/search/search.nvue'
-	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
-	import Bubble from '@/components/bubble/bubble.nvue'
-	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
-	import { dateFormat, suffix, indexOf } from '@/common/js/util.js'
+	import CButton from '@/components/c-button/c-button.nvue'
+	import FileList from '@/components/fileList/fileList.nvue';
 	import { mapGetters, mapMutations } from 'vuex'
-	const main = plus.android.runtimeMainActivity();
-	const Intent = plus.android.importClass("android.content.Intent");
-	const Uri = plus.android.importClass("android.net.Uri");
-	const environment = plus.android.importClass("android.os.Environment");
-	const suffixs = "flac,m4a,ogg,ape,amr,wma,wav,mp3,aac";
-	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
 		data () {
 			return {
-				list: [],
-				checkes: [],
-				fileLength: 0,
-				//名称过滤
-				nameFilter: '',
-				//路由防抖
-				routeDisabled: false,
-				//滚动距离
-				oldOffsetY: 0,
-				//扩展存储卡路径
-				SDpaths: []
+				checkList: []
 			}
 		},
 		computed: {
 			...mapGetters(['playList', 'musicPathHistory', 'getMusicPlayRecord', 'getMusicPlayStatus']),
-			listSync () {
-				let arr = this.list.filter((item) => {
-					if ( item.name.indexOf(this.nameFilter) > -1 ) {
-						return item;
-					}
-				})
-				return arr;
-			},
 			playRecord () {
 				return this.getMusicPlayRecord;
 			},
 			playStatus () {
 				return this.getMusicPlayStatus;
-			}
-		},
-		created () {
-			if( environment.getExternalStorageState() !== environment.MEDIA_MOUNTED ) {
-				uni.showToast({
-					title: '没有找到SD卡',
-					icon: 'none'
-				})
-			} else {
-				//获取扩展存储卡
-				let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
-				if ( GetSDPath ) {
-					let getSDPath = new GetSDPath();
-					let pathStr = getSDPath.getSDPath();
-					this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr)));
-				}
-				
-				setTimeout(() => {
-					this.getFileSystem(plus.android.newObject("java.io.File", this.musicPathHistory));
-				}, 300)
+			},
+			pathHistory () {
+				return this.musicPathHistory;
+			},
+			pushList () {
+				return this.playList;
 			}
 		},
 		methods: {
 			...mapMutations(['addMusic', 'deleteMusic', 'clearMusic', 'updateMusicPlayRecord', 'updateMusicPath']),
-			scroll (e) {
-				this.oldOffsetY = e.contentOffset.y;
-			},
-			//全选文件
-			selectAll () {
-				this.checkes = [];
-				let len = this.list.length;
-				for ( let i = 0; i < len; i++ ) {
-					if ( this.list[i].type != 'folder' ) {
-						this.checkes.push(this.list[i].path)
-					}
-				}	
-				this.$refs.bubble.hide();
-			},
-			//取消全选
-			cancelAll () {
-				this.checkes = [];
-				this.$refs.bubble.hide();
-			},
-			//删除操作
-			deleteAction () {
-				if ( this.checkes.length <= 0 ) {
-					return;
-				}
-				getApp().globalData.message('操作提示', '确认删除选择的文件吗？').then((res) => {
-					if ( res == 'confirm' ) {
-						this.deleteFiles(this.checkes);
-					}
-				});
-				this.$refs.bubble.hide();
-			},
-			//选择文件
-			check (path) {
-				let flag = indexOf(this.list, path, 'path');
-				//如果为文件夹则不能选择
-				if ( this.list[flag].type == 'folder') {
-					return;
-				}
-				let index = this.checkes.indexOf(path);
-				if ( index > -1 ) {
-					this.checkes.splice(index, 1);
-				} else {
-					this.checkes.push(path);
-				}
-			},
-			//导入选择的文件
-			leadCheck () {
-				if ( this.checkes.length <= 0 ) {
-					uni.showToast({
-						icon: 'none',
-						title: '请选择文件'
-					})
-					return;
-				}
-				let music = [];
-				for ( let i in this.checkes ) {
-					let index = indexOf(this.list, this.checkes[i], 'path');
-					music.push({
-						name: this.list[index].name,
-						path: this.list[index].path
-					});
-				}
-				this.leadMusic(music).then((res) => {
-					uni.showToast({
-						title: res.title,
-						icon: 'none'
-					})
-					this.checkes= [];
-				});
-			},
-			//导入文件
-			leadMusic (arr) {
-				return new Promise((resolve, reject) => {
-					let err = 0;
-					let len = arr.length;
-					let music = [];
-					for ( let i = 0; i < len; i++ ) {
-						//根据文件路径判断文件有没有被导入过
-						if ( this.isLead(arr[i].path) == -1 ) {
-							music.push(arr[i]);
-						} else {
-							err++;
-						}
-					}
-					this.addMusic(music);
-					if ( err == 0 ) {
-						resolve({
-							title: '添加成功',
-							code: 200
-						});
-					} else {
-						if ( arr.length > 1 ) {
-							resolve({
-								title: '成功导入' + (arr.length - err) + '首歌曲，' + '有' + err + '首歌曲导入失败',
-								code: 205
-							});
-						} else {
-							resolve({
-								title: '已经添加过这首歌了',
-								code: 300
-							});
-						}
-					}
-				})
-			},
-			playMusic (path) {
+			clickFile (obj) {
 				let flag = this.isLead(path);
 				//如果这首歌已经导入了直接播放
 				if ( flag > -1 ) {
@@ -254,13 +59,16 @@
 						name: this.list[index].name,
 						path: this.list[index].path
 					});
-					this.leadMusic(music).then((res) => {
-						if ( res.code == 200 ) {
-							this.changeMusic(path);
+					this.addMusic(music);
+					this.$nextTick(() => {
+						index = this.isLead(obj.path);
+						if ( index > -1 ) {
+							this.changeMusic(obj.path)
+						} else {
+							plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
 						}
 					})
 				}
-				
 			},
 			changeMusic (path) {
 				if ( this.playRecord != path ) {
@@ -268,283 +76,88 @@
 				}
 				getApp().globalData.routePush('/pages/music/player', 'fade-in');
 			},
-			//过滤名称
-			setNameFilter (val) {
-				this.nameFilter = val;
-			},
-			//展示操作列表
-			showAction (path) {
-				let flag = indexOf(this.list, path, 'path');
-				//文件夹不能触发操作列表
-				if ( this.list[flag].type == 'folder' ) {
-					return;
-				}
-				let actions = [];
-				//已经导入的文件操作列表
-				if ( this.isLead(path) > -1 ) {
-					actions = [{
-						title: '取消导入',
-						value: 'pop'
-					},{
-						title: '删除',
-						value: 'delete'
-					},{
-						title: '分享',
-						value: 'share'
-					}]
-				} else {
-					//未导入的文件的操作列表
-					actions = [{
-						title: '导入',
-						value: 'push'
-					},{
-						title: '删除',
-						value: 'delete'
-					},{
-						title: '分享',
-						value: 'share'
-					}]
-				}
-				getApp().globalData.actionSheet(actions).then((val) => {
-					let index = indexOf(this.list, path, 'path');
-					//用户选择导入操作
-					if ( val == 'push' ) {
-						let music = [];
-						music.push({
-							name: this.list[index].name,
-							path: this.list[index].path
-						});
-						this.leadMusic(music).then((res) => {
-							uni.showToast({
-								title: res.title,
-								icon: 'none'
-							})
-						})
-					}
-					//选择取消导入
-					if ( val == 'pop' ) {
-						let name = this.list[index].name;
-						getApp().globalData.message('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
-							if ( res == 'confirm' ) {
-								this.deleteMusic(path);
-							}
-						});
-					}
-					//用户选择删除操作
-					if ( val == 'delete' ) {
-						let name = this.list[index].name;
-						getApp().globalData.message('操作提示', '确认要删除  ' + name + '  吗？').then((res) => {
-							if ( res == 'confirm' ) {
-								this.deleteFiles([path]);
-							}
-						});
-					}
-					
-					if ( val == 'share' ) {
-						this.share(path);
-					}
-				})
-				
-			},
-			//删除多个文件
-			deleteFiles (list) {
-				plus.nativeUI.showWaiting("删除中..")
-				let suc = 0;
+			//导入文件
+			pushFile (arr) {
+				let list = [];
 				let err = 0;
-				let clearList = (path) => {
-					//如果被删除的文件已经被导入
-					let flag = this.isLead(path);
-					if ( flag > -1 ) {
-						this.deleteMusic(path);
-					}
-					//删除当前页面显示的数据
-					let index = indexOf(this.list, path, 'path');
-					this.list.splice(index, 1);
-					//文件数量减1
-					this.fileLength--;
-				}
-				let len = list.length;
+				let len = arr.length;
 				for ( let i = 0; i < len; i++ ) {
-					let fd = plus.android.newObject("java.io.File", list[i]);
-					if (fd != null && plus.android.invoke(fd, 'exists')){
-						let isDeleted = plus.android.invoke(fd, 'delete');
-						//删除成功
-						if ( isDeleted ) {
-							suc++
-							clearList(list[i]);
-						} else {
-							//删除失败
-							err++
-						}
-						
+					//根据文件路径判断文件有没有被导入过
+					if ( this.isLead(arr[i].path) == -1 ) {
+						list.push({
+							name: arr[i].name,
+							path: arr[i].path
+						});
 					} else {
-						//文件不存在
-						err++
-						clearList(list[i]);
+						err++;
 					}
 				}
-				this.checkes = [];
-				plus.nativeUI.closeWaiting();
-				if ( err ) {
+				this.addMusic(list);
+				if ( err == 0 ) {
 					uni.showToast({
-						icon: 'none',
-						title: '成功删除' + suc + '个文件, 删除失败' + err + '个文件'
+						title: '添加成功'
 					})
 				} else {
 					uni.showToast({
-						icon: 'none',
-						title: '删除成功'
+						title: '成功导入' + (arr.length - err) + '个文件，' + '有' + err + '个文件导入失败',
+						icon: 'none'
+					})
+				}
+				this.checkList = [];
+			},
+			popFile (arr) {
+				let err = 0;
+				let len = arr.length;
+				for ( let i = 0; i < len; i++ ) {
+					//根据文件路径判断文件有没有被导入过
+					if ( this.isLead(arr[i].path) > -1 ) {
+						this.deleteMusic(arr[i].path);
+					} else {
+						err++;
+					}
+				}
+				if ( err == 0 ) {
+					uni.showToast({
+						title: '导出成功'
+					})
+				} else {
+					uni.showToast({
+						title: '成功导出' + (arr.length - err) + '个文件，' + '有' + err + '个文件导出失败',
+						icon: 'none'
 					})
 				}
 			},
-			//返回上级目录
-			backParent () {
-				let fd = plus.android.newObject("java.io.File", this.musicPathHistory);
-				if ( fd != null && plus.android.invoke(fd, 'exists') ) {
-					let parent = plus.android.invoke(fd, 'getParent');
-					if ( parent ) {
-						this.getFileSystem(plus.android.newObject("java.io.File", parent));
-					} else {
-						uni.showToast({
-							icon: 'none',
-							title: '没有上级文件夹了'
-						})
+			//删除文件时触发此事件，用于清除已导入的文件
+			deleteFile (arr) {
+				for ( let i in arr ) {
+					let index = this.isLead(arr[i]);
+					if ( index > -1 ) {
+						this.deleteMusic(arr[i]);
 					}
-				} else {
-					this.getFileSystem();
 				}
 			},
-			//点击文件夹访问
-			clickFolder (path) {
-				let index = indexOf(this.list, path, 'path');
-				//如果是文件夹则访问文件列表
-				if ( this.list[index].type == 'folder' ) {
-					this.getFileSystem(plus.android.newObject("java.io.File", path));
-				} else {
-					this.playMusic(path)
-				}
+			checkChange (arr) {
+				this.checkList = arr;
 			},
-			//前往内部存储根目录
-			goInternalRoot () {
-				this.getFileSystem();
-				this.$refs.bubble.hide();
-			},
-			//前往扩展卡根目录
-			goExtenalRoot (path) {
-				this.getFileSystem(plus.android.newObject("java.io.File", path));
-				this.$refs.bubble.hide();
-			},
-			//根据文件对象获取文件列表
-			getFileSystem (ff) {
-				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
-				this.updateMusicPath(plus.android.invoke(fd, 'getPath'));
-				
-				//获取文件列表 正式用
-				let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-				let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
-				let getFile = new GetFileList();
-				let getDirectory = new GetDirectoryList();
-				let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), suffixs);
-				let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
-				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-				
-				//获取文件列表 调试用
-				// let list = plus.android.invoke(fd, "listFiles");
-				// let len = list ? list.length : 0;
-				// let file = [];
-				// let folder = [];
-				// for(let i=0; i<len; i++){
-				//     // 过滤隐藏文件  
-				//     if ( !plus.android.invoke(list[i],"isHidden") ){
-				// 		let name = plus.android.invoke(list[i], 'getName');
-				// 		if ( plus.android.invoke(list[i],"isDirectory") ){
-				// 			folder.push({
-				// 				name: name,
-				// 				type: 'folder',
-				// 				size: '0B',
-				// 				time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 				createTime: plus.android.invoke(list[i],"lastModified"),
-				// 				path: plus.android.invoke(list[i],"getPath")
-				// 			})
-				// 		    // 文件夹
-				// 		} else{
-				// 			//是否是音频文件
-				// 		    if ( suffixs.split(',').indexOf(suffix(name)) > -1 ) {
-				// 		    	file.push({
-				// 					name: name,
-				// 					type: suffix(name),
-				// 					size: this.readFileSize(list[i]),
-				// 					time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 					createTime: plus.android.invoke(list[i],"lastModified"),
-				// 					path: plus.android.invoke(list[i],"getPath")
-				// 				})
-				// 		    }
-				// 		}  
-				//     }
-				// }
-				
-				
-				file.sort((a, b) => {
-					return b.createTime - a.createTime;
-				})
-				this.fileLength = file.length;
-				this.list = folder.concat(file);
-				this.scrollTop();
-				this.checkes = [];
-			},
-			//分享文件
-			share (path) {
-				let shareIntent = new Intent(Intent.ACTION_SEND);
-				let filePath=plus.io.convertLocalFileSystemURL(path);
-				let file = plus.android.newObject("java.io.File", filePath);
-				shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
-				shareIntent.setType("audio/*");//此处可发送音频文件
-				main.startActivity(Intent.createChooser(shareIntent,"分享文件"));
-			},
-			//返回顶部
-			scrollTop () {
-				dom.scrollToElement(this.$refs.listTop, {animated: false});
-				this.oldOffsetY = 0;
-			},
-			readFileSize (file) {
-			    let fileSize = plus.android.newObject("java.io.FileInputStream", file);
-				let available = plus.android.invoke(fileSize, 'available');
-				let size = available != 'null' ? available : 0;
-				let fileSizeString;
-				if(size == 0){
-					fileSizeString = "0B";
-				}else if(size < 1024){
-					fileSizeString = size + "B";
-				}else if(size < 1048576){
-					fileSizeString = (size/1024).toFixed(2) + "KB";
-				}else if (size < 1073741824){
-					fileSizeString = (size/1048576).toFixed(2) + "MB";
-				}else{
-					fileSizeString = (size/1073741824).toFixed(2) + "GB";
-				}
-				return fileSizeString;
+			updatePath (path) {
+				this.updateMusicPath(path);
 			},
 			//根据文件路径判断当前文件是否已经导入,返回下标
 			isLead (path) {
-				return indexOf(this.playList, path, 'path');
+				return getApp().globalData.$utils.indexOf(this.playList, 'path', path);
 			}
 		},
 		onBackPress(event) {
-			//气泡菜单打开时,先关闭气泡菜单
-			if ( this.$refs.bubble.isShow ) {
-				this.$refs.bubble.hide();
-				return true;
-			}
-			return false;
+			// //气泡菜单打开时,先关闭气泡菜单
+			// if ( this.$refs.bubble.isShow ) {
+			// 	this.$refs.bubble.hide();
+			// 	return true;
+			// }
+			// return false;
 		},
 		components: {
-			CIcon,
-			CIamge,
-			CSearch,
-			Bubble,
-			BubbleItem,
-			ListScroll
+			FileList,
+			CButton
 		}
 	}
 </script>
