@@ -78,4 +78,5 @@
 	.white-actived:active {
 		background-color: rgba(255,255,255,0.3);
 	}
+	page {background: transparent;}
 </style>

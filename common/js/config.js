@@ -19,6 +19,10 @@ export const COMICURL = {
 	'loli': {
 		title: '写真网',
 		href: 'https://cosplayporn.cc'
+	},
+	'wnacg': {
+		title: '绅士漫画',
+		href: 'https://wnacg1.org'
 	}
 };
 //音乐网站链接

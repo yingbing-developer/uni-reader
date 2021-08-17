@@ -7,6 +7,7 @@ const tag1 = 'mangabz';
 const tag2 = 'loli';
 const tag4 = '18comic';
 const tag5 = 'sixmh6';
+const tag6 = 'wnacg';
 const tag7 = 'dmzj';
 
 function replaceStr (data) {
@@ -37,6 +38,9 @@ export function getComic (data) {
 	if ( sources.indexOf(tag5) == -1 && !data.isLastPage[tag5] ) {
 		newArr.push(getSixmh6(data));
 	}
+	if ( sources.indexOf(tag6) == -1 && !data.isLastPage[tag5] ) {
+		newArr.push(getWnacg(data));
+	}
 	if ( sources.indexOf(tag7) == -1 && !data.isLastPage[tag7] ) {
 		newArr.push(getDmzj(data));
 	}
@@ -56,6 +60,9 @@ export function getComicNum (data) {
 	if ( data.source == tag5 ) {
 		return getSixmh6Num(data.href);
 	}
+	if ( data.source == tag6 ) {
+		return getWnacgNum(data.href);
+	}
 	if ( data.source == tag7 ) {
 		return getDmzjNum(data.href);
 	}
@@ -73,6 +80,9 @@ export function getComicDetail (data) {
 	}
 	if ( data.source == tag5 ) {
 		return getSixmh6Detail(data.href);
+	}
+	if ( data.source == tag6 ) {
+		return getWnacgDetail(data.href);
 	}
 	if ( data.source == tag7 ) {
 		return getDmzjDetail(data.href);
@@ -656,6 +666,114 @@ function getSixmh6Detail (href) {
 	let p = Promise.race([p1, p2]);
 	p.abort = abort;
 	return p;
+}
+
+//获取绅士漫画网站的漫画列表
+function getWnacg (data) {
+	let dataSync = {
+		q: data.title,
+		p: data.page[tag6],
+		m: '',
+		f: '_all',
+		s: 'create_time_DESC'
+	}
+	return new Promise((resolve, reject) => {
+		http.get(COMICURL[tag6].href + '/search/', dataSync).then((res) => {
+			let comic = [];
+			let str = replaceStr(res.data);//解析html字符
+			let arr = str.match(/<li[^>]*class=([""]?)li gallary_item\1[^>]*>*([\s\S]*?)<\/li>/ig);//正则匹配所有漫画列表内容
+			if ( arr ) {
+				for ( let i = 0; i < arr.length; i++ ) {
+					let info = arr[i].match(/<div[^>]*class=([""]?)info_col\1[^>]*>*([\s\S]*?)<\/div>/ig);
+					let a = arr[i].match(/<a[^>]*([\s\S]*?)<\/a>/ig);
+					let aObj = HTMLParser(a[0])[0];
+					let introObj = HTMLParser(info[0])[0];
+					comic.push({
+						image: aObj.children ? ('https:' + aObj.children[0].attrs.src) : '',
+						name: aObj.attrs.title.replace(/<em>/g, '').replace(/<\/em>/g, '') || '暂无名称',
+						author: '佚名',
+						intro: introObj.children ? introObj.children[0].text : '暂无介绍',
+						path: COMICURL[tag6].href + aObj.attrs.href,
+						source: tag6
+					})
+				}
+			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					list: comic,
+					source: tag6
+				}
+			})
+		}).catch((err) => {
+			resolve({
+				code: ERR_FALSE,
+				data: {
+					list: [],
+					source: tag6
+				}
+			})
+		})
+	})
+}
+
+//获取绅士漫画网站的漫画章节
+function getWnacgNum (href) {
+	let abort;
+	let p1 = new Promise((resolve, reject) => {
+		http.get(href).then((res) => {
+			let str = replaceStr(res.data);//解析html字符
+			let num = str.match(/<a[^>]*class=([""]?)Btn right\1[^>]*>*([\s\S]*?)<\/a>/ig);
+			let numObj = HTMLParser(num[1])[0];//将html字符串转化为html数组
+			resolve({
+				code: ERR_OK,
+				data: [{
+					path: COMICURL[tag6].href + numObj.attrs.href,
+					name: '全本'
+				}]
+			})
+		}).catch((err) => {
+			reject({
+				code: ERR_FALSE,
+				data: []
+			})
+		})
+	})
+	let p2 = new Promise((resolve, reject) => (abort = reject));
+	let p = Promise.race([p1, p2]);
+	p.abort = abort;
+	return p;
+}
+
+//获取绅士漫画网站的漫画性情
+function getWnacgDetail (href) {
+	return new Promise((resolve, reject) => {
+		http.get(href).then((res) => {
+			let str = replaceStr(res.data);//解析html字符
+			let data = {
+				name: '',
+				author : '暂无作者',
+				intro: ''
+			}
+			let name = str.match(/<div[^>]*class=([""]?)BarTit\1[^>]*>*([\s\S]*?)<\/div>/ig);
+			let intro = str.match(/<a[^>]*class=([""]?)tagshow\1[^>]*>*([\s\S]*?)<\/a>/ig);
+			let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
+			for ( let i in intro ) {
+				let introObj = HTMLParser(intro[i])[0];//将html字符串转化为html数组
+				data.intro += introObj.children[0].text + (i < intro.length - 1 ? ' ' : '')
+			}
+			data.name = nameObj.children ? nameObj.children[0].text : '';
+			resolve({
+				code: ERR_OK,
+				data: data
+			})
+		}).catch((err) => {
+			reject({
+				code: ERR_FALSE,
+				data: {}
+			})
+		})
+	})
 }
 
 

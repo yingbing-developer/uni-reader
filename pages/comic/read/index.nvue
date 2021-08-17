@@ -1,7 +1,7 @@
 <template>
 	<view class="read" :style="{'background-color': skinColor.bgColor}">
 		<gap-bar :color="skinColor.navColor"></gap-bar>
-		<list @scroll="scroll">
+		<list ref="list" @scroll="scroll" @loadmore="getComicSync">
 			<!-- 利用appear通用事件，来判断列表是否触顶 -->
 			<cell><view style="height: 1px;" @appear="prevShow = true" @disappear="prevShow = false" v-if="comicSync.length"></view></cell>
 			
@@ -49,6 +49,7 @@
 	const Uri = plus.android.importClass("android.net.Uri");
 	const suffixs = 'jpg,png,gif,JPG,PNG,GIF';
 	const options = 'name,path';
+	const pageSize = 50;
 	export default {
 		mixins: [skinMixin],
 		computed: {
@@ -89,7 +90,10 @@
 		},
 		data () {
 			return {
+				currentPage: 1,
+				isLastPage: false,
 				comicSync: [],
+				comics: [],
 				nowIndex: 0,
 				//屏幕宽度，用于计算图片的高度
 				windowWidth: 0,
@@ -113,14 +117,14 @@
 			setTimeout(() => {
 				this.getSystemWidth().then((res) => {
 					this.windowWidth = res;
-					this.getComicSync();
+					this.getComics();
 				});
 			}, 300)
 		},
 		methods: {
 			...mapMutations(['updateBookRecord', 'updateBookReadStatus']),
 			//读取漫画内容
-			getComicSync () {
+			getComics () {
 				uni.showLoading({
 					title: '读取中..',
 					mask: true
@@ -138,7 +142,7 @@
 						//正式用
 						let getComicContent = new GetComicContent();
 						let comicStr = getComicContent.getContent(this.comicInfo.path, this.chapter);
-						this.comicSync = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
+						this.comics = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
 						
 						//调试用
 						// let arr = [];
@@ -168,19 +172,20 @@
 						// 	arr.sort((a, b) => {
 						// 		return getApp().globalData.$utils.cnnumtonum(a.name) - getApp().globalData.$utils.cnnumtonum(b.name);
 						// 	})
-						// 	this.comicSync = arr;
-							
-							this.$nextTick(() => {
-								setTimeout(() => {
-									this.scrollTo();
-									uni.hideLoading();
-								}, 50)
-							})
+						// 	this.comics = arr;
+						this.getComicSync();
+						this.$nextTick(() => {
+							setTimeout(() => {
+								this.scrollTo();
+								uni.hideLoading();
+							}, 50)
+						})
 						// }, 1)
 					} else {
 						//读取在线漫画内容
 						this.getOnlineComicContent().then((res) => {
-							this.comicSync = res;
+							this.comics = res;
+							this.getComicSync();
 							this.$nextTick(() => {
 								setTimeout(() => {
 									this.scrollTo();
@@ -225,6 +230,28 @@
 					}, TIMEOUT)
 				})
 				return Promise.race([p1, p2]);
+			},
+			getComicSync () {
+				if ( this.isLastPage ) {
+					return;
+				}
+				let pages = Math.ceil(this.comics.length / pageSize);
+				let start = (this.currentPage - 1) * pageSize;
+				let len = (start + pageSize) > this.comics.length ? this.comics.length : (start + pageSize);
+				let comics = [];
+				for(let i=start; i<len; i++){
+				    // 过滤隐藏文件  
+				    comics.push(this.comics[i])
+				}
+				if ( comics.length > 0 ) {
+					this.currentPage += 1;
+				}
+				if ( comics.length < pageSize ) {
+					this.isLastPage = true;
+				} else {
+					this.$refs["list"].resetLoadmore();
+				}
+				this.comicSync = this.comicSync.concat(comics);
 			},
 			//预览图片
 			preview (path) {

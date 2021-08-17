@@ -1,6 +1,5 @@
 <template>
-	<view id="iframe-box" :prop="iframeProp" :change:prop="iframe.iframePropChange">
-		<view class="mask" :style="{'background-color': skinColor.bgColor}"></view>
+	<view class="content" id="iframe-box" :prop="iframeProp" :change:prop="iframe.iframePropChange">
 	</view>
 </template>
 
@@ -78,6 +77,7 @@
 				iframe.src = this.iframeProp.url;
 				iframe.id = 'myIframe';
 				iframe.style.display = 'none';
+				iframe.style.opacity = 0;
 				iframe.sandbox = 'allow-scripts allow-same-origin';
 				//等待iframe加载完毕
 				iframe.onload = () => {
@@ -115,6 +115,9 @@
 					}
 					if ( source == 'sixmh6' ) {
 						data = this.getSixmh6Content();
+					}
+					if ( source == 'wnacg' ) {
+						data = this.getWnacgContent();
 					}
 					if ( source == 'dmzj' ) {
 						data = this.getDmzjContent();
@@ -189,6 +192,21 @@
 				};
 				return images;
 			},
+			//获取绅士漫画内容
+			getWnacgContent () {
+				let child = this.getIframeDom();
+				let head = child.document.getElementsByTagName('head')[0];
+				let scripts = head.getElementsByTagName('script');
+				let str = scripts[4].innerHTML.match(/var imglist = *([\s\S]*?)}]/ig)[0].replace('var imglist = ', '');
+				let arr = str.split('},{');
+				let images = new Array(arr.length - 1);
+				for ( let i = 0; i < images.length; i++ ) {
+					images[i] = {
+						path: 'https:' + arr[i].match(/url: fast_img_host\+\"*([\s\S]*?)\", caption:/)[1],
+					}
+				}
+				return images;
+			},
 			//获取dmzj漫画内容
 			getDmzjContent () {
 				let child = this.getIframeDom();
@@ -207,18 +225,4 @@
 </script>
 
 <style>
-	.content {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-	}
-	.mask {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-	}
 </style>
