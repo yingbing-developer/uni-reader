@@ -48,20 +48,20 @@
 		methods: {
 			...mapMutations(['addMusic', 'deleteMusic', 'clearMusic', 'updateMusicPlayRecord', 'updateMusicPath']),
 			clickFile (obj) {
-				let flag = this.isLead(path);
+				console.log(obj);
+				let flag = this.isLead(obj.path);
 				//如果这首歌已经导入了直接播放
 				if ( flag > -1 ) {
-					this.changeMusic(path);
+					this.changeMusic(obj.path);
 				} else {
-					let index = indexOf(this.list, path, 'path');
 					let music = [];
 					music.push({
-						name: this.list[index].name,
-						path: this.list[index].path
+						name: obj.name,
+						path: obj.path
 					});
 					this.addMusic(music);
 					this.$nextTick(() => {
-						index = this.isLead(obj.path);
+						let index = this.isLead(obj.path);
 						if ( index > -1 ) {
 							this.changeMusic(obj.path)
 						} else {
@@ -74,7 +74,7 @@
 				if ( this.playRecord != path ) {
 					this.updateMusicPlayRecord(path);
 				}
-				getApp().globalData.routePush('/pages/music/player', 'fade-in');
+				getApp().globalData.$Router.push({path: '/pages/music/player', animationType: 'fade-in'});
 			},
 			//导入文件
 			pushFile (arr) {

@@ -173,7 +173,8 @@
 	.lr-text {
 		font-size: 26rpx;
 		border-radius: 10rpx;
-		padding: 10rpx 20rpx;
+		text-align: center;
+		padding: 10rpx 15rpx;
 	}
 	.list-bottom {
 		margin-top: 30rpx;
