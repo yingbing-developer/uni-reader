@@ -3,7 +3,6 @@
 		<file-list
 		title="添加小说"
 		suffix="txt"
-		accept="text/plain"
 		:pathHistory="pathHistory"
 		:contrastList="pushList"
 		@clickFile="clickFile"

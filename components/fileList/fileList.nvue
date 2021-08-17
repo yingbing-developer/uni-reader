@@ -72,6 +72,7 @@
 	const Intent = plus.android.importClass("android.content.Intent");
 	const Uri = plus.android.importClass("android.net.Uri");
 	const environment = plus.android.importClass("android.os.Environment");
+	const MimeTypeMap = plus.android.importClass("android.webkit.MimeTypeMap");
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin],
@@ -85,11 +86,6 @@
 				default: ''
 			},
 			suffix: {
-				type: String,
-				default: ''
-			},
-			//分享文件的类型
-			accept: {
 				type: String,
 				default: ''
 			},
@@ -389,28 +385,28 @@
 				this.$refs.bubble.hide();
 			},
 			//根据文件对象获取文件列表 获取文件列表 原生方法
-			getFileSystem (ff) {
-				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
-				this.$emit('updatePath', plus.android.invoke(fd, 'getPath'));
+			// getFileSystem (ff) {
+			// 	let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
+			// 	this.$emit('updatePath', plus.android.invoke(fd, 'getPath'));
 				
-				let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-				let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
-				if ( GetFileList && GetDirectoryList ) {
-					let getFile = new GetFileList();
-					let getDirectory = new GetDirectoryList();
-					let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
-					let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
-					let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-					let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-					file.sort((a, b) => {
-						return b.createTime - a.createTime;
-					})
-					this.fileLength = file.length;
-					this.list = folder.concat(file);
-					this.scrollTop();
-					this.checkes = [];
-				}
-			},
+			// 	let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+			// 	let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
+			// 	if ( GetFileList && GetDirectoryList ) {
+			// 		let getFile = new GetFileList();
+			// 		let getDirectory = new GetDirectoryList();
+			// 		let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
+			// 		let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
+			// 		let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+			// 		let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+			// 		file.sort((a, b) => {
+			// 			return b.createTime - a.createTime;
+			// 		})
+			// 		this.fileLength = file.length;
+			// 		this.list = folder.concat(file);
+			// 		this.scrollTop();
+			// 		this.checkes = [];
+			// 	}
+			// },
 			//根据文件对象获取文件列表 获取文件列表 native.js方法
 			getFileSystem (ff) {
 				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
@@ -501,17 +497,18 @@
 			},
 			//分享文件
 			share (path) {
+				let index = getApp().globalData.$utils.indexOf(this.list, 'path', path);
 				//自定义分享则抛出分享事件
 				if ( this.shareCustom ) {
-					let index = getApp().globalData.$utils.indexOf(this.list, 'path', path);
 					this.$emit('share', this.list[index]);
 					return;
 				}
+				let accept = MimeTypeMap.getSingleton().getMimeTypeFromExtension(getApp().globalData.$utils.suffix(this.list[index].name));
 				let shareIntent = new Intent(Intent.ACTION_SEND);
-				let filePath=plus.io.convertLocalFileSystemURL(path);
+				let filePath = plus.io.convertLocalFileSystemURL(path);
 				let file = plus.android.newObject("java.io.File", filePath);
 				shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
-				shareIntent.setType(this.accept);
+				shareIntent.setType(accept);
 				main.startActivity(Intent.createChooser(shareIntent,"分享文件"));
 			},
 			//返回顶部

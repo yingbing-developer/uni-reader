@@ -3,7 +3,6 @@
 		<file-list
 		title="添加音乐"
 		suffix="flac,m4a,ogg,ape,amr,wma,wav,mp3,aac"
-		accept="audio/*"
 		:pathHistory="pathHistory"
 		:contrastList="pushList"
 		@clickFile="clickFile"
