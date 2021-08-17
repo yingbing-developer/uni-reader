@@ -9,35 +9,11 @@
 			</view>
 		</nav-bar>
 		<c-search @confirm="setNameFilter" v-if="comicPathHistory"></c-search>
-		
 		<!-- 资源路径选择列表 -->
-		<list-scroll @scroll="scroll" :line-height="108" :list="list" v-if="!comicPathHistory">
-			<!-- 返回项 -->
-			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
-				<view class="list-icon">
-					<c-icon name="folder" size="75" color="#FFCA28"></c-icon>
-				</view>
-				<view class="list-right-back">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">..</text>
-				</view>
-			</view>
-			<!-- 文件夹列表 -->
-			<template v-slot="{item}">
-				<view @tap="clickFolder(item.path)" class="list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
-					<view class="list-icon">
-						<c-icon name="folder" size="75" color="#FFCA28"></c-icon>
-					</view>
-					<view class="list-right">
-						<view class="lr-top">
-							<text class="list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-						</view>
-						<view class="lr-bottom">
-							<text class="list-text" :style="{'color': skinColor.textColor}">{{item.time}}</text>
-						</view>
-					</view>
-				</view>
-			</template>
-		</list-scroll>
+		<file-list
+		v-if="!comicPathHistory"
+		:titleShow="false"
+		@updatePath="updatePath"></file-list>
 		
 		<!-- 漫画列表 -->
 		<list-scroll @scroll="scroll" :line-height="200" :list="comicSync" v-else>
@@ -106,17 +82,15 @@
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import FileList from '@/components/fileList/fileList.nvue';
 	import Bubble from '@/components/bubble/bubble.nvue'
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
-	import { dateFormat, suffix, indexOf, cnnumtonum } from '@/common/js/util.js'
 	import { mapGetters, mapMutations } from 'vuex'
 	const main = plus.android.runtimeMainActivity();
 	const Intent = plus.android.importClass("android.content.Intent");
 	const Uri = plus.android.importClass("android.net.Uri");
 	const environment = plus.android.importClass("android.os.Environment");
-	const GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
-	const GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
 	const suffixs = 'jpg,png,gif,JPG,PNG,GIF'
 	const options = 'name,path';
 	const zipName = '_SHARE_HAOYONG_READER';
@@ -150,27 +124,8 @@
 			}
 		},
 		created () {
-			if( environment.getExternalStorageState() !== environment.MEDIA_MOUNTED ) {
-				uni.showToast({
-					title: '没有找到SD卡',
-					icon: 'none'
-				})
-			} else {
-				setTimeout(() => {
-					//获取扩展存储卡
-					let GetSDPath = plus.android.importClass('com.itstudy.io.GetExtSDCardPathList');
-					if ( GetSDPath ) {
-						let getSDPath = new GetSDPath();
-						let pathStr = getSDPath.getSDPath();
-						this.SDpaths = JSON.parse(JSON.parse(JSON.stringify(pathStr))) || [];
-					}
-					
-					if ( this.comicPathHistory ) {
-						this.getComicList(this.comicPathHistory);
-					} else {
-						this.getFileSystem();
-					}
-				}, 300)
+			if ( this.comicPathHistory ) {
+				this.getComicList(this.comicPathHistory);
 			}
 		},
 		onShow () {
@@ -178,7 +133,8 @@
 			setTimeout(() => {
 				let folder = plus.android.newObject("java.io.File", this.comicPathHistory);
 				let files = plus.android.invoke(folder, 'listFiles');
-				for ( let i = 0; i < files.length; i++ ) {
+				let len = files ? files.length : 0
+				for ( let i = 0; i < len; i++ ) {
 					let name = plus.android.invoke(files[i], 'getName');
 					if ( plus.android.invoke(name, "endsWith", '.zip') && name.indexOf(zipName) > -1 && plus.android.invoke(files[i], 'exists') && files[i] != null  ) {
 						plus.android.invoke(files[i], 'delete');
@@ -191,9 +147,16 @@
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},
+			updatePath (path) {
+				this.comicPath = path;
+			},
+			goInternalRoot () {
+				this.clearComicPath();
+				this.$refs.bubble.hide();
+			},
 			//选择资源路径
 			checkPath () {
-				getApp().globalData.message('操作提示', '确认读取当前路径下的漫画资源吗？').then((res) => {
+				getApp().globalData.$dom.confirm('操作提示', '确认读取当前路径下的漫画资源吗？').then((res) => {
 					if ( res == 'confirm' ) {
 						this.updateComicPath(this.comicPath);
 						this.getComicList(this.comicPath);
@@ -216,13 +179,14 @@
 				}
 				//正式用
 				const GetComicList = plus.android.importClass('com.itstudy.io.GetComicList');
-				let getComicList = new GetComicList();
-				let comicStr = getComicList.getComic(path);
-				this.comicList = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
-				this.comicList.sort((a, b) => {
-					return b.createTime; - a.createTime
-				})
-				
+				if ( GetComicList ) {
+					let getComicList = new GetComicList();
+					let comicStr = getComicList.getComic(path);
+					this.comicList = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
+					this.comicList.sort((a, b) => {
+						return b.createTime; - a.createTime
+					})
+				}
 				//调试用
 				// let comicList = []
 				// let list = plus.android.invoke(ff, 'listFiles');
@@ -245,7 +209,6 @@
 				// 	return b.createTime; - a.createTime
 				// })
 				// this.comicList = comicList;
-				
 				
 				uni.hideLoading();
 			},
@@ -293,7 +256,7 @@
 				if ( this.checkes.length <= 0 ) {
 					return;
 				}
-				getApp().globalData.message('操作提示', '确认删除选择的文件吗？').then((res) => {
+				getApp().globalData.$dom.confirm('操作提示', '确认删除选择的文件吗？').then((res) => {
 					if ( res == 'confirm' ) {
 						this.deleteFiles(this.checkes);
 					}
@@ -323,7 +286,7 @@
 				let len = this.checkes.length;
 				for ( let i = 0; i < len; i++ ) {
 					//根据文件路径判断文件有没有被导入过
-					let index = indexOf(this.comicList, this.checkes[i], 'path');
+					let index = getApp().globalData.$utisl.indexOf(this.comicList, 'path', this.checkes[i]);
 					if ( this.isLead(this.comicList[index].path) == -1 ) {
 						books.push({
 							name: this.comicList[index].name,
@@ -355,7 +318,7 @@
 			},
 			//展示操作列表
 			showAction (path) {
-				let flag = indexOf(this.list, path, 'path');
+				let flag = getApp().globalData.$utisl.indexOf(this.list, 'path', path);
 				let actions = [];
 				//已经导入的文件操作列表
 				if ( this.isLead(path) > -1 ) {
@@ -382,12 +345,12 @@
 						value: 'share'
 					}]
 				}
-				getApp().globalData.actionSheet(actions).then((val) => {
+				getApp().globalData.$dom.actionSheet(actions).then((val) => {
 					//用户选择导入操作
 					if ( val == 'push' ) {
 						//根据文件路径判断文件有没有被导入过
 						if ( this.isLead(path) == -1 ) {
-							let flag = indexOf(this.comicList, path, 'path');
+							let flag = getApp().globalData.$utisl.indexOf(this.comicList, 'path', path);
 							let books = [];
 							books.push({
 								name: this.comicList[flag].name,
@@ -409,8 +372,8 @@
 					}
 					//选择取消导入
 					if ( val == 'pop' ) {
-						let name = this.comicList[indexOf(this.comicList, path, 'path')].name;
-						getApp().globalData.message('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
+						let name = this.comicList[getApp().globalData.$utisl.indexOf(this.comicList, 'path', path)].name;
+						getApp().globalData.$dom.confirm('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
 							if ( res == 'confirm' ) {
 								this.deleteBook(path);
 							}
@@ -418,8 +381,8 @@
 					}
 					//用户选择删除操作
 					if ( val == 'delete' ) {
-						let name = this.comicList[indexOf(this.comicList, path, 'path')].name;
-						getApp().globalData.message('操作提示', '确认要删除  ' + name + '  吗？').then((res) => {
+						let name = this.comicList[getApp().globalData.$utisl.indexOf(this.comicList, 'path', path)].name;
+						getApp().globalData.$dom.confirm('操作提示', '确认要删除  ' + name + '  吗？').then((res) => {
 							if ( res == 'confirm' ) {
 								this.deleteFiles([path]);
 							}
@@ -473,7 +436,7 @@
 						this.deleteBook(path);
 					}
 					//删除当前页面显示的数据
-					let index = indexOf(this.comicList, path, 'path');
+					let index = getApp().globalData.$utils.indexOf(this.comicList, 'path', path);
 					this.comicList.splice(index, 1);
 				}
 				let len = list.length;
@@ -531,46 +494,9 @@
 				}
 				
 			},
-			//前往内部存储根目录
-			goInternalRoot () {
-				this.clearComicPath();
-				this.getFileSystem();
-				this.$refs.bubble.hide();
-			},
-			//前往扩展卡根目录
-			goExtenalRoot (path) {
-				this.clearComicPath();
-				this.getFileSystem(plus.android.newObject("java.io.File", path));
-				this.$refs.bubble.hide();
-			},
-			//返回上级目录
-			backParent () {
-				let fd = plus.android.newObject("java.io.File", this.comicPath);
-				if ( fd != null && plus.android.invoke(fd, 'exists') ) {
-					let parent = plus.android.invoke(fd, 'getParent');
-					if ( parent ) {
-						this.getFileSystem(plus.android.newObject("java.io.File", parent));
-					} else {
-						uni.showToast({
-							icon: 'none',
-							title: '没有上级文件夹了'
-						})
-					}
-				} else {
-					this.getFileSystem();
-				}
-			},
-			//点击文件夹访问
-			clickFolder (path) {
-				let index = indexOf(this.list, path, 'path');
-				//如果是文件夹则访问文件列表
-				if ( this.list[index].type == 'folder' ) {
-					this.getFileSystem(plus.android.newObject("java.io.File", path));
-				}
-			},
 			//阅读漫画
 			readComic (path) {
-				let index = indexOf(this.comicList, path, 'path');
+				let index = getApp().globalData.$utisl.indexOf(this.comicList, 'path', path);
 				let fd = plus.android.newObject("java.io.File", path);
 				if ( fd == null || !plus.android.invoke(fd, 'exists') ) {
 					plus.nativeUI.toast("漫画路径不存在！", {verticalAlign: 'bottom'});
@@ -578,10 +504,10 @@
 					return;
 				}
 				//查询有没有导入过该漫画
-				let bookIndex = indexOf(this.bookList, path, 'path');
+				let bookIndex = getApp().globalData.$utisl.indexOf(this.bookList, 'path', path);
 				//导入过直接阅读
 				if ( bookIndex > -1 ) {
-					getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
+					getApp().globalData.$Router.push({path: '/pages/comic/detail/index', query: {index: bookIndex}});
 				} else {
 					//未导入，则先导入再进行阅读
 					let books = [];
@@ -594,59 +520,18 @@
 					});
 					this.addBooks(books);
 					this.$nextTick(() => {
-						bookIndex = indexOf(this.bookList, path, 'path');
+						bookIndex = getApp().globalData.$utisl.indexOf(this.bookList, 'path', path);
 						if ( bookIndex > -1 ) {
-							getApp().globalData.routePush('/pages/comic/detail/index?index=' + bookIndex);
+							getApp().globalData.$Router.push({path: '/pages/comic/detail/index', query: {index: bookIndex}});
 						} else {
 							plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
 						}
 					})
 				}
 			},
-			//根据文件对象获取文件列表
-			getFileSystem (ff) {
-				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
-				this.comicPath = plus.android.invoke(fd, 'getPath');
-				
-				//获取文件夹列表 正式用
-				let getDirectory = new GetDirectoryList();
-				let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
-				let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-				
-				//获取文件夹列表 调试用
-				// let list = plus.android.invoke(fd, "listFiles");
-				// let len = list ? list.length : 0;
-				// let folder = [];
-				// for(let i=0; i<len; i++){
-				//     // 过滤隐藏文件  
-				//     if ( !plus.android.invoke(list[i],"isHidden") ){
-				// 		let name = plus.android.invoke(list[i], 'getName');
-				// 		// 文件夹
-				// 		if ( plus.android.invoke(list[i],"isDirectory") ){
-				// 			folder.push({
-				// 				name: name,
-				// 				type: 'folder',
-				// 				size: '0B',
-				// 				time: dateFormat(plus.android.invoke(list[i],"lastModified")),
-				// 				createTime: plus.android.invoke(list[i],"lastModified"),
-				// 				path: plus.android.invoke(list[i],"getPath")
-				// 			})
-				// 		}
-				//     }
-				// }
-				
-				this.list = folder;
-				this.checkes = [];
-				this.scrollTop();
-			},
-			//返回顶部
-			scrollTop () {
-				dom.scrollToElement(this.$refs.listTop, {animated: false});
-				this.oldOffsetY = 0;
-			},
 			//根据文件路径判断当前文件是否已经导入,返回下标
 			isLead (path) {
-				return indexOf(this.bookList, path, 'path');
+				return getApp().globalData.$utisl.indexOf(this.bookList, 'path', path);
 			}
 		},
 		onBackPress(event) {
@@ -663,7 +548,8 @@
 			Bubble,
 			BubbleItem,
 			CImage,
-			ListScroll
+			ListScroll,
+			FileList
 		}
 	}
 </script>

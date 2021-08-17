@@ -1,14 +1,16 @@
 <template>
 	<view class="search" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar :title="title" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
-			<view class="nav-right" slot="right">
-				<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
-				<view @tap="$refs.bubble.show()">
-					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
+		<block v-if="titleShow">
+			<nav-bar :title="title" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+				<view class="nav-right" slot="right">
+					<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
+					<view @tap="$refs.bubble.show()">
+						<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
+					</view>
 				</view>
-			</view>
-		</nav-bar>
-		<c-search @confirm="setNameFilter"></c-search>
+			</nav-bar>
+			<c-search @confirm="setNameFilter"></c-search>
+		</block>
 		<list-scroll ref="list" @loadmore="loadmore" :loadmoreoffset="500" @scroll="scroll" :line-height="108" :list="listSync">
 			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
 				<view class="list-icon">
@@ -74,6 +76,10 @@
 	export default {
 		mixins: [skinMixin],
 		props: {
+			titleShow: {
+				type: Boolean,
+				default: true
+			},
 			title: {
 				type: String,
 				default: ''
@@ -383,26 +389,28 @@
 				this.$refs.bubble.hide();
 			},
 			//根据文件对象获取文件列表 获取文件列表 原生方法
-			// getFileSystem (ff) {
-			// 	let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
-			// 	this.$emit('updatePath', plus.android.invoke(fd, 'getPath'));
-			// 	
-			// 	// let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
-			// 	// let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
-			// 	// let getFile = new GetFileList();
-			// 	// let getDirectory = new GetDirectoryList();
-			// 	// let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
-			// 	// let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
-			// 	// let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
-			// 	// let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
-			// 	file.sort((a, b) => {
-			// 		return b.createTime - a.createTime;
-			// 	})
-			// 	this.fileLength = file.length;
-			// 	this.list = folder.concat(file);
-			// 	this.scrollTop();
-			// 	this.checkes = [];
-			// },
+			getFileSystem (ff) {
+				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
+				this.$emit('updatePath', plus.android.invoke(fd, 'getPath'));
+				
+				let GetFileList = plus.android.importClass('com.itstudy.io.GetFileList');
+				let GetDirectoryList = plus.android.importClass('com.itstudy.io.GetDirectoryList');
+				if ( GetFileList && GetDirectoryList ) {
+					let getFile = new GetFileList();
+					let getDirectory = new GetDirectoryList();
+					let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
+					let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
+					let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
+					let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
+					file.sort((a, b) => {
+						return b.createTime - a.createTime;
+					})
+					this.fileLength = file.length;
+					this.list = folder.concat(file);
+					this.scrollTop();
+					this.checkes = [];
+				}
+			},
 			//根据文件对象获取文件列表 获取文件列表 native.js方法
 			getFileSystem (ff) {
 				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
