@@ -11,7 +11,7 @@
 			</nav-bar>
 			<c-search @confirm="setNameFilter"></c-search>
 		</block>
-		<list-scroll ref="list" @loadmore="loadmore" :loadmoreoffset="500" @scroll="scroll" :line-height="108" :list="listSync">
+		<list-scroll ref="list" :loadmoreoffset="500" @scroll="scroll" :line-height="108" :list="listSync">
 			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
 				<view class="list-icon">
 					<c-icon name="folder" size="75" color="#FFCA28"></c-icon>
@@ -42,7 +42,7 @@
 		</list-scroll>
 		<!-- 气泡弹窗 -->
 		<bubble ref="bubble">
-			<block v-if="fileLength > 0">
+			<block v-if="fileLength > 0 && fileLength == fileList.length">
 				<bubble-item @click="selectAll" title="全选" v-if="checkes.length < fileLength"></bubble-item>
 				<bubble-item @click="cancelAll" v-if="checkes.length == fileLength" title="取消全选"></bubble-item>
 			</block>
@@ -112,8 +112,6 @@
 		},
 		data () {
 			return {
-				currentPage: 1,
-				isLastPage: false,
 				list: [],
 				fileList: [],
 				checkes: [],
@@ -394,7 +392,7 @@
 			// 	if ( GetFileList && GetDirectoryList ) {
 			// 		let getFile = new GetFileList();
 			// 		let getDirectory = new GetDirectoryList();
-			// 		let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), 'txt');
+			// 		let fileStr = getFile.getFiles(plus.android.invoke(fd, 'getPath'), this.suffix);
 			// 		let directoryStr = getDirectory.getDirectories(plus.android.invoke(fd, 'getPath'));
 			// 		let folder = JSON.parse(JSON.parse(JSON.stringify(directoryStr)));
 			// 		let file = JSON.parse(JSON.parse(JSON.stringify(fileStr)));
@@ -409,6 +407,7 @@
 			// },
 			//根据文件对象获取文件列表 获取文件列表 native.js方法
 			getFileSystem (ff) {
+				clearTimeout(this.fileTimer);
 				let fd = ff && ff != null && plus.android.invoke(ff, 'exists') ? ff : environment.getExternalStorageDirectory();
 				this.$emit('updatePath', plus.android.invoke(fd, 'getPath'));
 				// let fileFilter = plus.android.implements("java.io.FileFilter", {
@@ -439,7 +438,9 @@
 								path: plus.android.invoke(list[i], 'getPath')
 							})
 						} else {
-							fileList.push(list[i]);
+							if ( this.suffix.indexOf(getApp().globalData.$utils.suffix(plus.android.invoke(list[i],"getName"))) > -1 ) {
+								fileList.push(list[i]);
+							}
 						}
 				    }
 				}
@@ -447,53 +448,35 @@
 				this.fileList = getApp().globalData.$utils.deepClone(fileList);
 				this.scrollTop();
 				this.checkes = [];
-				this.currentPage = 1;
-				this.isLastPage = false;
-				this.loadMoreFile();
+				this.fileLength = 0;
+				this.loadmoreFile(0);
 			},
-			loadmore (e) {
-				this.loadMoreFile();
-			},
-			loadMoreFile () {
-				if ( this.isLastPage ) {
-					return;
-				}
-				let pages = Math.ceil(this.fileList.length / this.pageSize);
-				let start = (this.currentPage - 1) * this.pageSize;
-				let len = (start + this.pageSize) > this.fileList.length ? this.fileList.length : (start + this.pageSize);
+			loadmoreFile (i) {
 				let file = [];
-				for(let i=start; i<len; i++){
-				    // 过滤隐藏文件  
-				    let types = this.suffix.split(',');
-				    let path = plus.android.invoke(this.fileList[i],"getPath");
-				    let name = plus.android.invoke(this.fileList[i],"getName");
-				    let time = plus.android.invoke(this.fileList[i],"lastModified");
-				    for ( let j in types) {
-				    	if ( getApp().globalData.$utils.suffix(name) == types[j] ) {
-				    		file.push({
-				    			name: name,
-				    			type: getApp().globalData.$utils.suffix(name),
-				    			size: this.readFileSize(this.fileList[i]),
-				    			time: getApp().globalData.$utils.dateFormat(time),
-				    			createTime: time,
-				    			path: path
-				    		})
-				    	}
-				    }
+				for ( let j = i * this.pageSize; j < (i + 1) * this.pageSize; j++ ) {
+					if ( !this.fileList[j] ) break;
+					let path = plus.android.invoke(this.fileList[j],"getPath");
+					let name = plus.android.invoke(this.fileList[j],"getName");
+					let time = plus.android.invoke(this.fileList[j],"lastModified");
+					file.push({
+						name: name,
+						type: getApp().globalData.$utils.suffix(name),
+						size: this.readFileSize(this.fileList[j]),
+						time: getApp().globalData.$utils.dateFormat(time),
+						createTime: time,
+						path: path
+					})
 				}
 				file.sort((a, b) => {
 					return b.createTime - a.createTime;
 				})
-				if ( file.length > 0 ) {
-					this.currentPage += 1;
-				}
-				if ( file.length < this.pageSize ) {
-					this.isLastPage = true;
-				} else {
-					this.$refs["list"].resetLoadmore();
-				}
 				this.fileLength += file.length;
 				this.list = this.list.concat(file);
+				if ( i < Math.ceil(this.fileList.length / this.pageSize) - 1) {
+					this.fileTimer = setTimeout(() => {
+						this.loadmoreFile(i + 1);
+					}, 1000)
+				}
 			},
 			//分享文件
 			share (path) {
@@ -538,6 +521,9 @@
 			isLead (path) {
 				return getApp().globalData.$utils.indexOf(this.contrastList, 'path', path);
 			}
+		},
+		beforeDestroy () {
+			clearTimeout(this.fileTimer);
 		},
 		watch: {
 			checkes (val) {
