@@ -166,6 +166,9 @@
 									this.$set(this.isLastPages, res[i].data.source, true);
 								}
 							}
+							if ( res[i].data.source == 'sixmh6' ) {
+								this.$set(this.isLastPages, res[i].data.source, true);
+							}
 							if ( res[i].data.list.length == 0 ) {
 								this.$set(this.isLastPages, res[i].data.source, true);
 							}
@@ -176,7 +179,7 @@
 						}
 					}
 					comicList.sort((a, b) => {
-						return b.name.indexOf(this.nameFilter) - a.name.indexOf(this.nameFilter)
+						return b.name.toString().indexOf(this.nameFilter) - a.name.toString().indexOf(this.nameFilter)
 					})
 					//判断是不是所有网站数据都加载完了
 					let flag = true;
@@ -187,7 +190,6 @@
 						}
 					}
 					this.isLastPage = flag;
-					
 					if ( type == 'search' ) {
 						this.comicList = comicList;
 						this.scrollTop();

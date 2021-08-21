@@ -384,7 +384,7 @@
 				uni.$emit('setting-menu', {flag: 'edit'});
 			},
 			routerPush () {
-				getApp().globalData.$router.push({
+				getApp().globalData.$Router.push({
 					path: '/pages/setting/index'
 				});
 			}

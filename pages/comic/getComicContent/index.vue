@@ -5,11 +5,9 @@
 
 <script>
 	import { COMICURL } from '@/common/js/config.js'
-	import { skinMixin } from '@/common/mixin/index.js'
 	let bgBox = null;
 	let wv = null;
 	export default {
-		mixins: [skinMixin],
 		data () {
 			return {
 				url: '',
