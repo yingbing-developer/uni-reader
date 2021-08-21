@@ -44,12 +44,8 @@
 		<!-- 气泡弹窗 -->
 		<bubble ref="bubble">
 			<block v-if="musicList.length > 0">
-				<view @tap="selectAll" v-if="checkes.length < musicList.length">
-					<bubble-item title="全选"></bubble-item>
-				</view>
-				<view @tap="cancelAll" v-if="checkes.length == musicList.length">
-					<bubble-item title="取消全选"></bubble-item>
-				</view>
+				<bubble-item title="全选" @click="selectAll" v-if="checkes.length < musicList.length"></bubble-item>
+				<bubble-item title="取消全选" @click="cancelAll" v-if="checkes.length == musicList.length"></bubble-item>
 			</block>
 		</bubble>
 		  
