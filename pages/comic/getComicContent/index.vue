@@ -29,6 +29,14 @@
 			this.origin = COMICURL[data.source].href;
 			this.source = data.source;
 		},
+		onReady () {
+			setTimeout(() => {
+				let currentWebview = this.$scope.$getAppWebview();
+				currentWebview.overrideUrlLoading({mode:"reject",match:'.*'}, (e)=>{
+					console.log(e.url,'overrideUrlLoading');
+				});
+			}, 50)
+		},
 		methods: {
 			finish (e) {
 				uni.$emit('comicContent', {
