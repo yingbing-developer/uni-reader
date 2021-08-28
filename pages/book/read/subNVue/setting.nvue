@@ -160,11 +160,11 @@
 			chapterNow () {
 				for ( let i in this.catalog ) {
 					if ( i < this.catalog.length - 1 ) {
-						if ( this.bookInfo.record >= this.catalog[i].index && this.bookInfo.record < this.catalog[parseInt(i) + 1].index ) {
+						if ( this.bookInfo.record >= this.catalog[i].start && this.bookInfo.record < this.catalog[parseInt(i) + 1].start ) {
 							return parseInt(i)
 						}
 					} else {
-						if ( this.bookInfo.record >= this.catalog[i].index) {
+						if ( this.bookInfo.record >= this.catalog[i].start) {
 							return parseInt(i)
 						}
 					}
@@ -214,7 +214,7 @@
 			this.lightPercent = this.light;
 		},
 		methods: {
-			...mapMutations(['changeBookFontSize', 'changeBookLight', 'updateBookRecord', 'saveBookmark', 'clearBookmark']),
+			...mapMutations(['changeBookFontSize', 'changeBookLight', 'saveBookmark', 'clearBookmark']),
 			show () {
 				uni.$emit('setting-isShow', {
 					show: true
@@ -282,10 +282,7 @@
 			//上个章节
 			prevChapter () {
 				if ( this.catalog[this.chapterNow - 1] ) {
-					this.updateBookRecord({
-						path: this.path,
-						record: this.catalog[this.chapterNow - 1].index
-					});
+					uni.$emit('change-page', this.catalog[this.chapterNow - 1].start)
 				} else {
 					uni.showToast({
 						icon: 'none',
@@ -297,10 +294,7 @@
 			nextChapter () {
 				let flag = this.chapterNow >= 0 ? this.catalog[this.chapterNow + 1] : this.catalog[0];
 				if ( flag ) {
-					this.updateBookRecord({
-						path: this.path,
-						record: flag.index
-					});
+					uni.$emit('change-page', flag.start)
 				} else {
 					uni.showToast({
 						icon: 'none',
@@ -336,13 +330,13 @@
 			addBookmark () {
 				this.saveBookmark({
 					path: this.path,
-					index: this.bookInfo.record,
-					title: this.markTitle
+					start: this.bookInfo.record,
+					title: this.markTitle.substring(0, 20)
 				})
 			},
 			//清空书签
 			clearMark () {
-				getApp().globalData.message('清空提示', '确认要清空本书籍保存的书签吗？').then((res) => {
+				getApp().globalData.$dom.confirm('清空提示', '确认要清空本书籍保存的书签吗？').then((res) => {
 					if ( res == 'confirm' ) {
 						this.clearBookmark(this.path);
 						uni.$emit('page-popup', {
@@ -360,10 +354,7 @@
 				}
 				this.timer = setTimeout(() => {
 					let record = parseInt((percent / 100) * this.bookInfo.length);
-					this.updateBookRecord({
-						path: this.path,
-						record: record
-					})
+					uni.$emit('change-page', record)
 				}, 100)
 			},
 			//打开章节/书签目录子窗体

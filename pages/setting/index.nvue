@@ -7,27 +7,12 @@
 					<text class="list-title" :style="{'color': skinColor.titleColor}">阅读动画</text>
 					<view class="list-right list-bottom">
 						<text
-						@tap="changeBookPageMode(item.value)"
-						:style="{
-							'background-color': bookReadMode.pageMode == item.value ? skinColor.activeBgColor : '',
-							'color': bookReadMode.pageMode == item.value ? skinColor.activeColor : skinColor.titleColor
-						}"
-						class="lr-text" v-for="(item, index) in pages"
-						:key="index">{{item.title}}</text>
-					</view>
-				</view>
-			</cell>
-			<cell v-if="bookReadMode.pageMode != 'none'">
-				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">翻页方式</text>
-					<view class="list-right list-bottom">
-						<text
 						@tap="changeBookReadPageType(item.value)"
 						:style="{
 							'background-color': bookReadMode.pageType == item.value ? skinColor.activeBgColor : '',
 							'color': bookReadMode.pageType == item.value ? skinColor.activeColor : skinColor.titleColor
 						}"
-						class="lr-text" v-for="(item, index) in pageTypes"
+						class="lr-text" v-for="(item, index) in pagesTypes"
 						:key="index">{{item.title}}</text>
 					</view>
 				</view>
@@ -77,28 +62,18 @@
 		mixins:[skinMixin],
 		data () {
 			return {
-				pages: [{
-					title: '左右滑动',
-					value: 'L2RTrans'
-				},{
-					title: '上下滑动',
-					value: 'U2DTrans'
+				pagesTypes: [{
+					title: '上下滚动',
+					value: 'scroll'
 				},{
 					title: '仿真翻页',
-					value: 'RealPage'
+					value: 'real'
 				},{
 					title: '覆盖翻页',
-					value: 'CoverPage'
+					value: 'cover'
 				},{
 					title: '关闭动画',
 					value: 'none'
-				}],
-				pageTypes: [{
-					title: '触摸',
-					value: 'touch'
-				},{
-					title: '点击',
-					value: 'click'
 				}],
 				comicSource: [],
 				musicSource: []
@@ -126,7 +101,7 @@
 			...mapGetters(['bookReadMode', 'getComicSourcesController', 'getMusicSourcesController'])
 		},
 		methods: {
-			...mapMutations(['changeBookPageMode', 'changeBookReadPageType', 'setComicSourcesController', 'setMusicSourcesController']),
+			...mapMutations(['changeBookReadPageType', 'setComicSourcesController', 'setMusicSourcesController']),
 			changeComicSources (bool, index) {
 				this.$set(this.comicSource[index], 'isOpen', bool);
 				let arr = [];

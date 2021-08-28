@@ -45,11 +45,11 @@
 				if ( this.title == '章节' ) {
 					for ( let i = 0; i < len; i++ ) {
 						if ( i < this.list.length - 1 ) {
-							if ( this.bookInfo.record >= this.list[i].index && this.bookInfo.record < this.list[parseInt(i) + 1].index ) {
+							if ( this.bookInfo.record >= this.list[i].start && this.bookInfo.record < this.list[parseInt(i) + 1].start ) {
 								return i
 							}
 						} else {
-							if ( this.bookInfo.record >= this.list[i].index) {
+							if ( this.bookInfo.record >= this.list[i].start) {
 								return i
 							}
 						}
@@ -57,7 +57,7 @@
 				} 
 				if ( this.title == '书签' ) {
 					for ( let i = 0; i < len; i++ ) {
-						if ( this.bookInfo.record == this.list[i].index ) {
+						if ( this.bookInfo.record == this.list[i].start ) {
 							return i
 						}
 					}
@@ -84,10 +84,7 @@
         methods: {
 			...mapMutations(['updateBookRecord']),
 			clickItem (index) {
-				this.updateBookRecord({
-					path: this.path,
-					record: this.list[index].index
-				});
+				uni.$emit('change-page', this.list[index].start)
 				dom.scrollToElement(this.$refs['list'][index], {animated: false});
 			},
 			clear () {

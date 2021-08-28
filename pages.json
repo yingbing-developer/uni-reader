@@ -11,6 +11,7 @@
 		{
 			"path": "pages/book/read/index",
 			"style": {
+				"disableScroll": false, // 不嵌套 scroller
 				"app-plus": {
 				    "subNVues":[{
 				        "id": "catalog", // 唯一标识

@@ -26,7 +26,7 @@ const store = new Vuex.Store({
     state: {
 		skin: uni.getStorageSync(SKIN) || 'default', //皮肤
 		books: uni.getStorageSync(BOOKS) || [],//书籍列表(包括小说和漫画)
-		bookRead: uni.getStorageSync(BOOKREAD) || {pageMode: 'RealPage', pageType: 'touch', fontSize: 20, light: 1},//小说阅读模式包含字体大小，翻页方式和动画时间
+		bookRead: uni.getStorageSync(BOOKREAD) || {pageType: 'real', fontSize: 15, light: 1, lineHeight: 15},//小说阅读模式包含字体大小，翻页方式和行间距
 		bookPath: uni.getStorageSync(BOOKPATH) || '',//上次访问的小说文件夹路径
 		bookmark: uni.getStorageSync(BOOKMARK) || [],//小说书签
 		comicPath: uni.getStorageSync(COMICPATH) || '',//上次访问的漫画文件夹路径
@@ -233,14 +233,14 @@ const store = new Vuex.Store({
 			state.bookRead.fontSize = fontSize;
 			uni.setStorageSync(BOOKREAD, state.bookRead);
 		},
-		//改变小说翻页模式
-		changeBookPageMode (state, scroll) {
-			state.bookRead.pageMode = scroll;
-			uni.setStorageSync(BOOKREAD, state.bookRead);
-		},
 		//改变小说点击翻页的动画效果
 		changeBookReadPageType (state, type) {
 			state.bookRead.pageType = type;
+			uni.setStorageSync(BOOKREAD, state.bookRead);
+		},
+		//改变小说内容行间距
+		changeBookReadLineHeight (state, lineHeight) {
+			state.bookRead.lineHeight = lineHeight;
 			uni.setStorageSync(BOOKREAD, state.bookRead);
 		},
 		//改变小说阅读页亮度
