@@ -59,7 +59,7 @@
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
-	import { getComic, getComicNum} from '@/common/online/getComic.js'
+	import { getComic } from '@/common/online/getComic.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'

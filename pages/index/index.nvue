@@ -35,8 +35,8 @@
 						<c-icon name="waste-fill" size="40" :color="skinColor.iconColor"></c-icon>
 					</fixed-button>
 				</view>
-				<view @tap="comicOnline">
-					<fixed-button :show="currentTab == 1">
+				<view @tap="searchOnline">
+					<fixed-button>
 						<c-icon name="network" size="40" :color="skinColor.iconColor"></c-icon>
 					</fixed-button>
 				</view>
@@ -217,9 +217,13 @@
 					getApp().globalData.$Router.push({path: '/pages/comic/search/index'});
 				}
 			},
-			//搜索在线漫画
-			comicOnline () {
-				getApp().globalData.$Router.push({path: '/pages/comic/online/index'});
+			//搜索在线书籍
+			searchOnline () {
+				if ( this.currentTab == 0 ) {
+					getApp().globalData.$Router.push({path: '/pages/book/online/index'});
+				} else {
+					getApp().globalData.$Router.push({path: '/pages/comic/online/index'});
+				}
 			}
 		},
 		onBackPress(event) {

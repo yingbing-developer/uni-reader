@@ -5,6 +5,7 @@ import { TIMEOUT } from '../js/config.js'
 function request (type = 'GET', url, data, options = {header: {}}) {
 	var params = data;
 	url += (url.indexOf('?') < 0 ? '?' : '&') + param(params) || ''; // 请求路径
+	console.log(url);
 	return new Promise((resolve,reject) => {
 		uni.request({
 			url: url,

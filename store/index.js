@@ -21,6 +21,7 @@ const PLAYMODE = 'UNI_READER_MUSIC_PLAY_MODE'
 const PLAYRECORD = 'UNI_READER_MUSIC_PLAY_RECORD'
 const COMICSOURCES = 'UNI_READER_ONLINE_COMIC_SOURCES'
 const MUSICSOURCES = 'UNI_READER_ONLINE_MUSIC_SOURCES'
+const BOOKSOURCES = 'UNI_READER_ONLINE_BOOK_SOURCES'
 const MUSICLYRICSHOW = 'UNI_READER_ONLINE_MUSIC_LYRIC_SHOW'
 const store = new Vuex.Store({
     state: {
@@ -41,7 +42,8 @@ const store = new Vuex.Store({
 		musicPlayRecord: uni.getStorageSync(PLAYRECORD) || '', //音乐播放记录
 		musicLyricShow: uni.getStorageSync(MUSICLYRICSHOW) || false, //控制歌词显示
 		musicSourcesController: uni.getStorageSync(MUSICSOURCES) || [], //在线音乐来源控制,放进来的表示关闭获取此来源的音乐
-		comicSourcesController: uni.getStorageSync(COMICSOURCES) || [] //在线漫画来源控制,放进来的表示关闭获取此来源的漫画
+		comicSourcesController: uni.getStorageSync(COMICSOURCES) || [], //在线漫画来源控制,放进来的表示关闭获取此来源的漫画
+		bookSourcesController: uni.getStorageSync(BOOKSOURCES) || [] //在线小说来源控制,放进来的表示关闭获取此来源的漫画
 	},
 	getters: {
 		//当前皮肤模式
@@ -107,6 +109,9 @@ const store = new Vuex.Store({
 		},
 		bookReadMode (state) {
 			return state.bookRead;
+		},
+		getBookSourcesController (state) {
+			return state.bookSourcesController
 		},
 		comicPathHistory (state) {
 			return state.comicPath;
@@ -276,6 +281,11 @@ const store = new Vuex.Store({
 				}
 			});
 			uni.setStorageSync(BOOKMARK, state.bookmark);
+		},
+		//设置在线小说来源
+		setBookSourcesController (state, sources) {
+			state.bookSourcesController = sources;
+			uni.setStorageSync(BOOKSOURCES, state.bookSourcesController);
 		},
 		//更新漫画资源路径
 		updateComicPath (state, path) {

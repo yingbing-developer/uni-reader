@@ -415,7 +415,7 @@
 						if ( scrollBox.getElementsByClassName('scroll-item').length > 3 ) scrollBox.removeChild(scrollBox.lastChild);
 					} else {
 						if ( scrollBox.getElementsByClassName('scroll-item').length > 3 ) scrollBox.removeChild(scrollBox.firstChild);
-						scrollBox.scrollTop = scrollBox.scrollHeight - scrollBox.lastChild.offsetHeight - scrollBox.offsetHeight + 50;
+						scrollBox.scrollTop = scrollBox.scrollHeight - scrollBox.lastChild.offsetHeight - scrollBox.offsetHeight;
 					}
 				}
 			},

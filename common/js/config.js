@@ -1,3 +1,11 @@
+//小说网站链接
+export const BOOKURL = {
+	'baoshuu': {
+		title: '手机宝书',
+		href: 'http://m.baoshuu.com'
+	}
+};
+
 //漫画网站链接
 export const COMICURL = {
 	'mangabz': {

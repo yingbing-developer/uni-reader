@@ -3,9 +3,17 @@
 		{
 			"path": "pages/index/index"
 		},
-		//小说添加页
+		//本地小说添加页
 		{
 			"path": "pages/book/search/index"
+		},
+		//在线小说添加页
+		{
+			"path": "pages/book/online/index"
+		},
+		//小说详情页
+		{
+			"path": "pages/book/detail/index"
 		},
 		//小说阅读页
 		{
