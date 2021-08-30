@@ -118,14 +118,14 @@
 </template>
 
 <script>
-	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
+	import bookMixin from '@/common/mixin/book.js';
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CProgress from '@/components/progress/progress.nvue'
 	import NavBar from '@/components/nav-bar/nav-bar.nvue'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		data () {
 			return {
 				//书签
@@ -139,7 +139,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'bookReadMode', 'bookmarks']),
 			bookInfo () {
 				return this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path)];
 			},
@@ -214,7 +213,6 @@
 			this.lightPercent = this.light;
 		},
 		methods: {
-			...mapMutations(['changeBookFontSize', 'changeBookLight', 'saveBookmark', 'clearBookmark']),
 			show () {
 				uni.$emit('setting-isShow', {
 					show: true

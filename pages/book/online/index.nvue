@@ -59,6 +59,7 @@
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
+	import bookMixin from '@/common/mixin/book.js';
 	import { getBook } from '@/common/online/getBook.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
@@ -68,10 +69,9 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
 	import { BOOKURL } from '@/common/js/config.js'
-	import { mapGetters, mapMutations } from 'vuex'
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		data () {
 			return {
 				//漫画列表
@@ -88,7 +88,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'getBookSourcesController']),
 			noDataTitle () {
 				return this.nameFilter ? '没有搜索结果' : '请输入小说名称'
 			},
@@ -105,7 +104,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['addBooks', 'deleteBook']),
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},

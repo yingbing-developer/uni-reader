@@ -61,6 +61,7 @@
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
+	import musicMixin from '@/common/mixin/music.js'
 	import { getMusic} from '@/common/online/getMusic.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
@@ -70,10 +71,9 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
 	import { MUSICURL } from '@/common/js/config.js'
-	import { mapGetters, mapMutations } from 'vuex'
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, musicMixin],
 		data () {
 			return {
 				//音乐列表
@@ -92,7 +92,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['playList', 'getMusicPlayStatus', 'getMusicPlayRecord']),
 			noDataTitle () {
 				return this.nameFilter ? '没有搜索结果' : '请输入关键字搜索音乐'
 			},
@@ -113,7 +112,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['addMusic', 'deleteMusic', 'updateMusicPlayRecord']),
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},

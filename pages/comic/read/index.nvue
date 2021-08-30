@@ -35,8 +35,8 @@
 </template>
 
 <script>
-	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
+	import bookMixin from '@/common/mixin/book.js';
 	import { TIMEOUT } from '@/common/js/config.js'
 	import ComicSetting from '../setting/index.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
@@ -51,9 +51,8 @@
 	const options = 'name,path';
 	const pageSize = 50;
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		computed: {
-			...mapGetters(['bookList', 'comicOrienMode']),
 			//书籍信息
 			comicInfo () {
 				const pages = getCurrentPages();
@@ -122,7 +121,6 @@
 			}, 300)
 		},
 		methods: {
-			...mapMutations(['updateBookRecord', 'updateBookReadStatus']),
 			//读取漫画内容
 			getComics () {
 				uni.showLoading({

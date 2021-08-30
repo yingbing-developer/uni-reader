@@ -32,9 +32,7 @@ const getters = {
 				activeColor: '#FAFAFA',
 				activedName: 'actived'
 			}
-		}
-		// 夜间模式
-		if ( state.skin == 'night' ) {
+		} else if ( state.skin == 'night' ) {// 夜间模式
 			return {
 				bgColor: '#2C2C2C',
 				titleColor: '#8F8F8F',
@@ -65,4 +63,11 @@ const mutations = {
 		state.skin = skin;
 		uni.setStorageSync(SKIN, skin)
 	}
+}
+
+export default {
+    namespaced: true,
+    state,
+    getters,
+    mutations
 }

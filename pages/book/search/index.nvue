@@ -19,18 +19,17 @@
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
+	import bookMixin from '@/common/mixin/book.js';
 	import FileList from '@/components/fileList/fileList.nvue';
-	import { mapGetters, mapMutations } from 'vuex'
 	import CButton from '@/components/c-button/c-button.nvue'
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		data () {
 			return {
 				checkList: []
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'bookPathHistory']),
 			pathHistory () {
 				return this.bookPathHistory;
 			},
@@ -39,7 +38,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['addBooks', 'deleteBook', 'updateBookPath']),
 			clickFile (obj) {
 				//查询有没有导入过该txt文件
 				let bookIndex = this.isLead(obj.path);

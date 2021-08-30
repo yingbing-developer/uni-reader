@@ -80,10 +80,10 @@
 	import MusicBtn from '@/components/music-btn/music-btn.nvue'
 	import MusicLyric from '@/components/music-lyric/music-lyric.nvue'
 	import { skinMixin, menuTouchMixin } from '@/common/mixin/index.js'
-	import { mapGetters, mapMutations } from 'vuex'
+	import bookMixin from '@/common/mixin/book.js';
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin, menuTouchMixin],
+		mixins: [skinMixin, menuTouchMixin, bookMixin],
 		data () {
 			return {
 				currentTab: 0,
@@ -118,7 +118,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList']),
 			noDataTitle () {
 				if ( this.currentTab == 0 ) {
 					return this.tabs[this.currentTab].isReaded ? '没有读完的小说哦！' : '没有正在阅读的小说哦！';
@@ -139,7 +138,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['deleteBook', 'clearBooks']),
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},

@@ -79,6 +79,7 @@
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
+	import bookMixin from '@/common/mixin/book.js';
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
@@ -86,7 +87,6 @@
 	import Bubble from '@/components/bubble/bubble.nvue'
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
-	import { mapGetters, mapMutations } from 'vuex'
 	const main = plus.android.runtimeMainActivity();
 	const Intent = plus.android.importClass("android.content.Intent");
 	const Uri = plus.android.importClass("android.net.Uri");
@@ -96,7 +96,7 @@
 	const zipName = '_SHARE_HAOYONG_READER';
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		data () {
 			return {
 				list: [],
@@ -113,7 +113,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'comicPathHistory']),
 			comicSync () {
 				let arr = this.comicList.filter((item) => {
 					if ( item.name.indexOf(this.nameFilter) > -1 ) {
@@ -143,7 +142,6 @@
 			}, 20)
 		},
 		methods: {
-			...mapMutations(['addBooks', 'deleteBook', 'updateComicPath', 'clearComicPath']),
 			scroll (e) {
 				this.oldOffsetY = e.contentOffset.y;
 			},

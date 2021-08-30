@@ -2,16 +2,13 @@ import { TIMEOUT } from '../js/config.js'
 
 
 //request封装
-function request (type = 'GET', url, data, options = {header: {}}) {
-	var params = data;
-	url += (url.indexOf('?') < 0 ? '?' : '&') + param(params) || ''; // 请求路径
-	console.log(params);
+function request (type = 'GET', url, options) {
 	return new Promise((resolve,reject) => {
 		uni.request({
 			url: url,
-			data: data,
+			data: options.params || {},
 			method: type || 'GET',
-			header: options.header,
+			header: options.header || {},
 			timeout: TIMEOUT,
 			sslVerify: false,
 			success: ((res) => {
@@ -26,12 +23,16 @@ function request (type = 'GET', url, data, options = {header: {}}) {
 }
 
 export default class http {
-	get(url, data, options) {
-		return request('GET', url, data, options)
+	get(url, options = {params: {}, headers: {}}) {
+		url += (url.indexOf('?') < 0 ? '?' : '&') + param(options.params || {}) || ''; // 请求路径
+		return request('GET', url, options)
 	}
-	
-	post(url, data, options) {
-		return request('POST', url, data, options)
+	postget(url, options = {params: {}, headers: {}}) {
+		url += (url.indexOf('?') < 0 ? '?' : '&') + param(options.params || {}) || ''; // 请求路径
+		return request('POST', url, options)
+	}
+	post(url, options = {params: {}, headers: {}}) {
+		return request('POST', url, options)
 	}
 }
 

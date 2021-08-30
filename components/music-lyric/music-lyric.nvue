@@ -1,7 +1,6 @@
 <template><view></view></template>
 
 <script>
-	import { mapGetters } from 'vuex';
 	import lyricMixin from '@/common/mixin/lyric.js'
 	import { skinMixin } from '@/common/mixin/index.js'
 	let musicLyric = null;

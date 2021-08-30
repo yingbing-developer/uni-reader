@@ -55,11 +55,12 @@
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
+	import musicMixin from '@/common/mixin/music.js'
+	import bookMixin from '@/common/mixin/book.js'
 	import { COMICURL, MUSICURL } from '@/common/js/config.js'
-	import { mapGetters, mapMutations } from 'vuex'
 	import CSwitch from '@/components/c-switch/c-switch.nvue'
 	export default {
-		mixins:[skinMixin],
+		mixins:[skinMixin, bookMixin, musicMixin],
 		data () {
 			return {
 				pagesTypes: [{
@@ -97,11 +98,7 @@
 				})
 			}
 		},
-		computed: {
-			...mapGetters(['bookReadMode', 'getComicSourcesController', 'getMusicSourcesController'])
-		},
 		methods: {
-			...mapMutations(['changeBookReadPageType', 'setComicSourcesController', 'setMusicSourcesController']),
 			changeComicSources (bool, index) {
 				this.$set(this.comicSource[index], 'isOpen', bool);
 				let arr = [];

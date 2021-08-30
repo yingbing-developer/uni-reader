@@ -1,10 +1,15 @@
+import Utils from '@/common/js/util.js';
+const { indexOf, suffix, dateFormat, removeSuffix, randomString } = Utils;
+
 import {
 BOOKS,
 BOOKPATH,
 BOOKREAD,
 BOOKMARK,
 COMICPATH,
-COMICORIEN} from '../config.js'
+COMICORIEN,
+COMICSOURCES,
+BOOKSOURCES} from '../config.js'
 const state = {
 	books: uni.getStorageSync(BOOKS) || [],//书籍列表(包括小说和漫画)
 	bookRead: uni.getStorageSync(BOOKREAD) || {pageType: 'real', fontSize: 15, light: 1, lineHeight: 15},//小说阅读模式包含字体大小，翻页方式和行间距
@@ -43,7 +48,7 @@ const getters = {
 	}
 }
 
-mutations: {
+const mutations = {
 	//新增书籍
 	addBooks (state, books) {
 		for ( let i in books ) {

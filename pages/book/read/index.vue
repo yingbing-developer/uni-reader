@@ -23,10 +23,10 @@
 </template>
 
 <script>
-	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
+	import bookMixin from '@/common/mixin/book.js';
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		data () {
 			return {
 				//文本内容
@@ -38,7 +38,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookReadMode', 'bookList']),
 			//书籍信息
 			bookInfo () {
 				const pages = getCurrentPages();
@@ -110,7 +109,6 @@
 			})
 		},
 		methods: {
-			...mapMutations(['updateBookReadStatus', 'updateBookLength', 'updateBookReadTime', 'updateBookRecord']),
 			getContent () {
 				//获取内容 正式用
 				let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');

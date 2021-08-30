@@ -41,11 +41,11 @@
 <script>
 	import CImage from '@/components/c-image/c-image.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
-	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
+	import bookMixin from '@/common/mixin/book.js';
 	import { getComicDetail, getComicNum } from '@/common/online/getComic.js'
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		data () {
 			return {
 				catalog: [],
@@ -55,7 +55,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList']),
 			//漫画信息
 			bookInfo () {
 				const pages = getCurrentPages();
@@ -91,7 +90,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['updateBookName', 'updateBookLength', 'updateBookReadTime', 'updateBookRecord']),
 			//获取漫画详情信息
 			getDetail (data) {
 				uni.showLoading({

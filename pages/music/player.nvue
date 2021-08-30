@@ -83,12 +83,12 @@
 	import MusicIcon from '@/components/music-icon/music-icon.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import CProgress from '@/components/progress/progress.nvue'
-	import { mapGetters, mapMutations } from 'vuex';
 	import { skinMixin } from '@/common/mixin/index.js';
+	import musicMixin from '@/common/mixin/music.js'
 	import lyricMixin from '@/common/mixin/lyric.js';
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin, lyricMixin],
+		mixins: [skinMixin, lyricMixin, musicMixin],
 		data () {
 			return {
 				duration: 400,
@@ -98,7 +98,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayDuration']),
 			//播放状态
 			playStatus () {
 				return this.getMusicPlayStatus;
@@ -133,7 +132,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['changeMusicPlayMode', 'changeMusicPlayStatus', 'updateMusicPlayRecord', 'setMusicLyricShow']),
 			//更新时间
 			updateTime (percent) {
 				uni.$emit('update-time', {

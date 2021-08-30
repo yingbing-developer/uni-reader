@@ -20,7 +20,7 @@ function replaceStr (data) {
 //获取小说列表
 export function getBook (data) {
 	//判断一下哪些来源被关闭了
-	let sources = store.state.bookSourcesController;
+	let sources = store.getters['book/getComicSourcesController'];
 	let newArr = [];
 	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
 		newArr.push(getBaoshuu(data));
@@ -80,8 +80,9 @@ function getBaoshuu (data) {
 		page: data.page[tag1]
 	}
 	return new Promise((resolve, reject) => {
-		http.get(BOOKURL[tag1].href + '/search.asp', dataSync, {
-			header: {
+		http.get(BOOKURL[tag1].href + '/search.asp', {
+			params: dataSync,
+			headers: {
 				Referer: 'https://m.baoshuu.com',
 				Accept: 'text/html; Charset=gb2312',
 				Host: 'm.baoshuu.com',

@@ -23,10 +23,10 @@
 <script>
 	import ListItem from './list-item.nvue'
 	import { skinMixin } from '@/common/mixin/index.js';
-	import { mapGetters, mapMutations } from 'vuex'
+	import bookMixin from '@/common/mixin/book.js';
 	const dom = weex.requireModule('dom')
     export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		data() {
 			return {
 				list: [],
@@ -36,7 +36,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList']),
 			bookInfo () {
 				return this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path)];
 			},
@@ -82,7 +81,6 @@
 			uni.$off('page-popup');
 		},
         methods: {
-			...mapMutations(['updateBookRecord']),
 			clickItem (index) {
 				uni.$emit('change-page', this.list[index].start)
 				dom.scrollToElement(this.$refs['list'][index], {animated: false});

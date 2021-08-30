@@ -19,18 +19,17 @@
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
+	import musicMixin from '@/common/mixin/music.js'
 	import CButton from '@/components/c-button/c-button.nvue'
 	import FileList from '@/components/fileList/fileList.nvue';
-	import { mapGetters, mapMutations } from 'vuex'
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, musicMixin],
 		data () {
 			return {
 				checkList: []
 			}
 		},
 		computed: {
-			...mapGetters(['playList', 'musicPathHistory', 'getMusicPlayRecord', 'getMusicPlayStatus']),
 			playRecord () {
 				return this.getMusicPlayRecord;
 			},
@@ -45,7 +44,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['addMusic', 'deleteMusic', 'clearMusic', 'updateMusicPlayRecord', 'updateMusicPath']),
 			clickFile (obj) {
 				console.log(obj);
 				let flag = this.isLead(obj.path);

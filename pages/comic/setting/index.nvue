@@ -46,15 +46,15 @@
 </template>
 
 <script>
-	import { mapGetters, mapMutations } from 'vuex'
 	import { skinMixin } from '@/common/mixin/index.js'
+	import bookMixin from '@/common/mixin/book.js';
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import NavBar from '@/components/nav-bar/nav-bar.nvue'
 	import Crosswise from '@/components/crosswise/crosswise.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, bookMixin],
 		props: {
 			path: {
 				type: String,
@@ -83,7 +83,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['bookList', 'comicOrienMode']),
 			comicInfo () {
 				return this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path)];
 			},
@@ -97,7 +96,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['updateBookRecord', 'changeComicOrien']),
 			show () {
 				this.isShow = true;
 				uni.$emit('musicBtn-show');

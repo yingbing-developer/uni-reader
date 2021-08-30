@@ -40,7 +40,7 @@ const time2seconds = function (time){
 //获取音乐列表
 export function getMusic (data) {
 	//判断一下哪些来源被关闭了
-	let sources = store.state.musicSourcesController;
+	let sources = store.getters['music/getMusicSourcesController'];
 	let newArr = [];
 	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
 		newArr.push(getQqmusic(data));
@@ -91,7 +91,8 @@ function getQqmusic (data) {
         remoteplace: 'txt.mqq.all'
     })
 	return new Promise((resolve, reject) => {
-		http.get(MUSICURL[tag1].href + '/soso/fcgi-bin/client_search_cp', dataSync, {
+		http.get(MUSICURL[tag1].href + '/soso/fcgi-bin/client_search_cp', {
+			params: dataSync,
 			header: {
 				referer: 'https://c.y.qq.com',
 				host: 'c.y.qq.com',
@@ -145,7 +146,8 @@ function getQqmusicPlayUrl(data) {
 	    data: JSON.stringify({"req":{"module":"CDN.SrfCdnDispatchServer","method":"GetCdnDispatch","param":{"guid":"7764863790","calltype":0,"userip":""}},"req_0":{"module":"vkey.GetVkeyServer","method":"CgiGetVkey","param":{"guid":"7764863790","songmid":[data.path],"songtype":[0],"uin":"0","loginflag":1,"platform":"20"}},"comm":{"uin":0,"format":"json","ct":24,"cv":0}})
 	})
 	return new Promise((resolve, reject) => {
-		http.get('https://u.y.qq.com/cgi-bin/musicu.fcg', dataSync, {
+		http.get('https://u.y.qq.com/cgi-bin/musicu.fcg', {
+			params: dataSync,
 			header: {
 				referer: 'https://u.y.qq.com',
 				host: 'u.y.qq.com',
@@ -185,7 +187,8 @@ function getQqmusicLyric (data) {
         musicid: data.lyric
     })
 	return new Promise((resolve, reject) => {
-		http.get('https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_yqq.fcg', dataSync, {
+		http.get('https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_yqq.fcg', {
+			params: dataSync,
 			header: {
 				referer: 'https://c.y.qq.com',
 				host: 'c.y.qq.com',
@@ -235,7 +238,9 @@ function getwangyimusic (data) {
 		offset: (data.page[tag2] - 1) * 20
 	}
 	return new Promise((resolve, reject) => {
-		http.get(MUSICURL[tag2].href + '/cloudsearch', dataSync).then((res) => {
+		http.get(MUSICURL[tag2].href + '/cloudsearch', {
+			params: dataSync
+		}).then((res) => {
 			let songs = res.data.result.songs;
 			let music = [];
 			if ( res.data.code == 200 ) {
@@ -280,7 +285,9 @@ function getwangyiPlayUrl(data) {
 		id: data.path
 	}
 	return new Promise((resolve, reject) => {
-		http.get(MUSICURL[tag2].href + '/song/url', dataSync).then((res) => {
+		http.get(MUSICURL[tag2].href + '/song/url', {
+			params: dataSync
+		}).then((res) => {
 			let playUrl = ''
 			if ( res.data.code == 200 ) {
 				playUrl = res.data.data[0].url || '';
@@ -310,7 +317,9 @@ function getwangyiLyric (data) {
 		id: data.path
 	}
 	return new Promise((resolve, reject) => {
-		http.get(MUSICURL[tag2].href + '/lyric', dataSync).then((res) => {
+		http.get(MUSICURL[tag2].href + '/lyric', {
+			params: dataSync
+		}).then((res) => {
 			let lyrics = [];
 			if ( res.data.code == 200 ) {
 				let arr = res.data.lrc.lyric.split('\n');

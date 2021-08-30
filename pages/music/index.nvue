@@ -52,11 +52,11 @@
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CProgress from '@/components/progress/progress.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
-	import { mapGetters, mapMutations } from 'vuex';
 	import { skinMixin } from '@/common/mixin/index.js';
+	import musicMixin from '@/common/mixin/music.js'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, musicMixin],
 		data () {
 			return {
 				anima: {
@@ -70,7 +70,6 @@
 			this.show();
 		},
 		computed: {
-			...mapGetters(['playList', 'getMusicPlayStatus' , 'getMusicPlayMode', 'getMusicPlayRecord']),
 			listSync () {
 				return this.playList.filter((item) => {
 					return item;
@@ -87,7 +86,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['changeMusicPlayMode', 'changeMusicPlayStatus', 'clearMusic', 'deleteMusic', 'updateMusicPlayRecord']),
 			show () {
 				animation.transition(this.$refs.mask, {
 				    styles: {

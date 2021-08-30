@@ -24,7 +24,7 @@ function replaceStr (data) {
 //获取漫画列表
 export function getComic (data) {
 	//判断一下哪些来源被关闭了
-	let sources = store.state.comicSourcesController;
+	let sources = store.getters['book/getComicSourcesController'];
 	let newArr = [];
 	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
 		newArr.push(getMangabz(data));
@@ -94,10 +94,6 @@ export function getComicDetail (data) {
 
 //获取mangaBz网站的漫画列表
 function getMangabz (data) {
-	// let dataSync = {
-	// 	title: data.title,
-	// 	page: data.page[tag1]
-	// }
 	let dataSync = {
 		t: 3,
 		f: 0,
@@ -106,32 +102,9 @@ function getMangabz (data) {
 		pageindex: data.page[tag1]
 	}
 	return new Promise((resolve, reject) => {
-		// http.get(COMICURL[tag1].href + '/search', dataSync).then((res) => {
-		// 	let str = replaceStr(res.data);//解析html字符
-		// 	let arr = str.match(/<a[^>]*class=([""]?)manga-item\1[^>]*>*([\s\S]*?)<\/a>/ig);//正则匹配所有漫画标签内容
-		// 	let comic = [];
-		// 	if ( arr ) {
-		// 		for ( let i = 0; i < arr.length; i++ ) {
-		// 			let img = arr[i].match(/<img[^>]*class=([""]?)manga-item-cover\1[^>]*>/ig);
-		// 			let name = arr[i].match(/<p[^>]*class=([""]?)manga-item-title\1[^>]*>*([\s\S]*?)<\/p>/ig);
-		// 			let author = arr[i].match(/<p[^>]*class=([""]?)manga-item-subtitle\1[^>]*>*([\s\S]*?)<\/p>/ig);
-		// 			let intro = arr[i].match(/<p[^>]*class=([""]?)manga-item-content\1[^>]*>*([\s\S]*?)<\/p>/ig);
-		// 			let aObj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
-		// 			let imgObj = HTMLParser(img[0])[0];//将html字符串转化为html数组
-		// 			let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
-		// 			let authorObj = HTMLParser(author[0])[0];//将html字符串转化为html数组
-		// 			let introObj = HTMLParser(intro[0])[0];//将html字符串转化为html数组
-		// 			comic.push({
-		// 				image: imgObj.attrs.src || '',
-		// 				name: nameObj.children ? nameObj.children[0].text : '暂无',
-		// 				author: authorObj.children ? authorObj.children[0].text.replace('作者：', '') : '暂无',
-		// 				intro: introObj.children ? introObj.children[0].text : '暂无介绍',
-		// 				path: aObj.attrs.href || '',
-		// 				source: tag1
-		// 			})
-		// 		}
-		// 	}
-		http.get(COMICURL[tag1].href + '/pager.ashx?d=Sat%20Aug%2021%202021%2009:31:43%20GMT+0800%20(中国标准时间)', dataSync).then((res) => {
+		http.get(COMICURL[tag1].href + '/pager.ashx?d=Sat%20Aug%2021%202021%2009:31:43%20GMT+0800%20(中国标准时间)', {
+			params: dataSync
+		}).then((res) => {
 			let comic = [];
 			if ( res.data?.length > 0 ) {
 				for ( let i in res.data ) {
@@ -244,7 +217,9 @@ function getLoli (data) {
 		page: data.page[tag2]
 	}
 	return new Promise((resolve, reject) => {
-		http.get(COMICURL[tag2].href + '/page/' + data.page[tag2] + '/', dataSync).then((res) => {
+		http.get(COMICURL[tag2].href + '/page/' + data.page[tag2] + '/', {
+			params: dataSync
+		}).then((res) => {
 			let str = replaceStr(res.data);//解析html字符
 			let arr = str.match(/<li[^>]*class=([""]?)g1-collection-item\1[^>]*>*([\s\S]*?)<\/li>/ig);//正则匹配所有漫画标签内容
 			let comic = [];
@@ -293,8 +268,8 @@ function getLoli (data) {
 //获取写真网站的漫画性情
 function getLoliDetail (href) {
 	return new Promise((resolve, reject) => {
-		http.get(href, {}, {
-			header: {
+		http.get(href, {
+			headers: {
 				referer: 'https://cosplayporn.cc',
 				host: 'cosplayporn.cc',
 			}
@@ -358,7 +333,9 @@ function get18comic (data) {
 		page: data.page[tag4]
 	}
 	return new Promise((resolve, reject) => {
-		http.get(COMICURL[tag4].href + '/search/photos', dataSync).then((res) => {
+		http.get(COMICURL[tag4].href + '/search/photos', {
+			params: dataSync
+		}).then((res) => {
 			let comic = [];
 			let str = replaceStr(res.data);//解析html字符
 			let arr = str.match(/<div[^>]*class=([""]?)well well-sm\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画列表内容
@@ -517,7 +494,9 @@ function getSixmh6 (data) {
 			});
 			return;
 		}
-		http.get(COMICURL[tag5].href + '/search', dataSync).then((res) => {
+		http.get(COMICURL[tag5].href + '/search', {
+			params: dataSync
+		}).then((res) => {
 			let comic = [];
 			let str = replaceStr(res.data);//解析html字符
 			let ul = str.match(/<ul[^>]*class=([""]?)result-list\1[^>]*>*([\s\S]*?)<\/ul>/ig);//正则匹配所有漫画列表内容
@@ -699,7 +678,9 @@ function getWnacg (data) {
 		s: 'create_time_DESC'
 	}
 	return new Promise((resolve, reject) => {
-		http.get(COMICURL[tag6].href + '/search/', dataSync).then((res) => {
+		http.get(COMICURL[tag6].href + '/search/', {
+			params: dataSync
+		}).then((res) => {
 			let comic = [];
 			let str = replaceStr(res.data);//解析html字符
 			let arr = str.match(/<li[^>]*class=([""]?)li gallary_item\1[^>]*>*([\s\S]*?)<\/li>/ig);//正则匹配所有漫画列表内容

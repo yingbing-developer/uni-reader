@@ -1,9 +1,9 @@
 <template><view></view></template>
 
 <script>
-	import { mapGetters, mapMutations } from 'vuex';
 	import { getPlayUrl, getLyric } from '@/common/online/getMusic.js'
 	import { skinMixin } from '@/common/mixin/index.js'
+	import musicMixin from '@/common/mixin/music.js'
 	let audio = null;
 	let musicBox = null;
 	let musicLine = null;
@@ -18,7 +18,7 @@
 	const fontSize = uni.upx2px(40);
 	const iconGap = uni.upx2px(30);
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, musicMixin],
 		data () {
 			return {
 				windowWidth: 0,
@@ -37,7 +37,6 @@
 			}
 		},
 		computed: {
-			...mapGetters(['playList', 'getMusicPlayStatus', 'getMusicPlayMode', 'getMusicPlayRecord', 'getMusicLyricShow']),
 			//播放状态
 			playStatus () {
 				return this.getMusicPlayStatus;
@@ -106,7 +105,6 @@
 			})
 		},
 		methods: {
-			...mapMutations(['changeMusicPlayStatus', 'changeMusicPlayMode', 'updateMusicPlayRecord', 'changeMusicPlayTime', 'changeMusicPlayDuration', 'setMusicLyric', 'setMusicLyricShow']),
 			init () {
 				musicLine = new plus.nativeObj.View('line',{
 					top:'90%',left:'0',height: height + 'px', width: '0'
