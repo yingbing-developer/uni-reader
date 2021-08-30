@@ -1,6 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import Utils from '@/common/js/util.js';
+import book from './modules/book.js'
+import music from './modules/music.js'
+import skin from './modules/skin.js'
 const { indexOf, suffix, dateFormat, removeSuffix, randomString } = Utils;
 import {
 SKIN,
@@ -374,6 +377,11 @@ const store = new Vuex.Store({
 		setComicSourcesController (state, sources) {
 			state.comicSourcesController = sources;
 			uni.setStorageSync(COMICSOURCES, state.comicSourcesController);
+		},
+		modules: {
+			book,
+			music,
+			skin
 		}
 	},
     actions: {}
