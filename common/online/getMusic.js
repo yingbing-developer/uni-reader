@@ -93,7 +93,7 @@ function getQqmusic (data) {
 	return new Promise((resolve, reject) => {
 		http.get(MUSICURL[tag1].href + '/soso/fcgi-bin/client_search_cp', {
 			params: dataSync,
-			header: {
+			headers: {
 				referer: 'https://c.y.qq.com',
 				host: 'c.y.qq.com',
 			}
@@ -148,7 +148,7 @@ function getQqmusicPlayUrl(data) {
 	return new Promise((resolve, reject) => {
 		http.get('https://u.y.qq.com/cgi-bin/musicu.fcg', {
 			params: dataSync,
-			header: {
+			headers: {
 				referer: 'https://u.y.qq.com',
 				host: 'u.y.qq.com',
 			}
@@ -189,7 +189,7 @@ function getQqmusicLyric (data) {
 	return new Promise((resolve, reject) => {
 		http.get('https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_yqq.fcg', {
 			params: dataSync,
-			header: {
+			headers: {
 				referer: 'https://c.y.qq.com',
 				host: 'c.y.qq.com',
 			}

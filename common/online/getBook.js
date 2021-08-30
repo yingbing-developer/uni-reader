@@ -74,21 +74,22 @@ export function getComicDetail (data) {
 //获取手机宝书网站的小说列表
 function getBaoshuu (data) {
 	let dataSync = {
-		word: gb2312(data.title),
+		word: escape(gb2312(data.title)),
 		m: 2,
 		ChannelID: 0,
 		page: data.page[tag1]
 	}
 	return new Promise((resolve, reject) => {
-		http.get(BOOKURL[tag1].href + '/search.asp', {
+		http.postget(BOOKURL[tag1].href + '/search.asp', {
 			params: dataSync,
 			headers: {
 				Referer: 'https://m.baoshuu.com',
-				Accept: 'text/html; Charset=gb2312',
+				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
 				Host: 'm.baoshuu.com',
-				Cookie: 'READHISTORY=1; Hm_lvt_beea64d95d9d5ffa32d7e7ad09ba18de=1601724566; Hm_lvt_5a43c3dcb5816bfec6637d7a05995393=1601077821,1603372414; Hm_lvt_65c0945a729028f2ff343d44765253f3=1603372436,1603519539; Hm_lvt_a9ca99be8ef2ddaba4a20f9804aedf7e=1601698263,1601724138,1602932152,1603519587; Hm_lvt_b923046ea768e3b4e902caf58b16fc13=1603372435,1603519539,1603801208,1604742086; Hm_lvt_367453fd44f55e3a6e99a7141f1c77d5=1603519539,1603801200,1604742027,1605010807; Hm_lvt_20e3d43a8af94081812f4fa083d50c1d=1609644004,1609727242; Hm_lvt_6d7fb6e0c01f66b2f24eaed304243e3b=1609644005,1609727242; CNZZDATA1276383317=833027924-1598060513-%7C1629325343; Hm_lvt_b13d8dae46c06e1573b8bc063cf7e6b7=1626869876,1628324474,1629117376,1629326644; ASPSESSIONIDQSTSRSQS=LGHNEAIBFFHHGENOCFGKCPKL',
+				Cookie: 'UM_distinctid=1783b0d7fe43f8-0224fcecd87da9-376b4502-1fa400-1783b0d7fe59f7; READHISTORY=1; Hm_lvt_fed71f7d1edb5bacb3fe60e703a761aa=1629376402,1629415930,1629810834,1629845299; CNZZDATA1276437823=1507837864-1615895385-%7C1630353326',
 			}
 		}).then((res) => {
+			console.log(res);
 			let str = replaceStr(res.data);//解析html字符
 			let all = str.match(/<div[^>]*class=([""]?)sslist\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有小说内容
 			console.log(all);

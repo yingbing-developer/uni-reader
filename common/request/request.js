@@ -8,7 +8,7 @@ function request (type = 'GET', url, options) {
 			url: url,
 			data: options.params || {},
 			method: type || 'GET',
-			header: options.header || {},
+			header: options.headers || {},
 			timeout: TIMEOUT,
 			sslVerify: false,
 			success: ((res) => {
@@ -23,15 +23,15 @@ function request (type = 'GET', url, options) {
 }
 
 export default class http {
-	get(url, options = {params: {}, headers: {}}) {
+	get(url, options = {}) {
 		url += (url.indexOf('?') < 0 ? '?' : '&') + param(options.params || {}) || ''; // 请求路径
 		return request('GET', url, options)
 	}
-	postget(url, options = {params: {}, headers: {}}) {
+	postget(url, options = {}) {
 		url += (url.indexOf('?') < 0 ? '?' : '&') + param(options.params || {}) || ''; // 请求路径
 		return request('POST', url, options)
 	}
-	post(url, options = {params: {}, headers: {}}) {
+	post(url, options = {}) {
 		return request('POST', url, options)
 	}
 }

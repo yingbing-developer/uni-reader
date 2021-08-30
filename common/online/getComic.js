@@ -590,7 +590,7 @@ function getSixmh6Num (href) {
 			id: id,
 			id2: 1
 		}, {
-			header: {
+			headers: {
 				'Referer': 'http://m.sixmh6.com/23227/',
 				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
 			}
