@@ -1,28 +1,25 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import Utils from '@/common/js/util.js';
-const indexOf = Utils.indexOf;
-const suffix = Utils.suffix;
-const dateFormat = Utils.dateFormat;
-const removeSuffix = Utils.removeSuffix;
-const randomString = Utils.randomString;
+const { indexOf, suffix, dateFormat, removeSuffix, randomString } = Utils;
+import {
+SKIN,
+BOOKS,
+BOOKPATH,
+BOOKREAD,
+BOOKMARK,
+COMICPATH,
+COMICORIEN,
+MUSICPATH,
+PLAYLIST,
+PLAYSTATUS,
+PLAYMODE,
+PLAYRECORD,
+COMICSOURCES,
+MUSICSOURCES,
+BOOKSOURCES,
+MUSICLYRICSHOW } from './config.js'
 Vue.use(Vuex)
-const SKIN = 'UNI_READER_SKIN'
-const BOOKS = 'UNI_READER_BOOK_LIST'
-const BOOKPATH = 'UNI_READER_BOOK_PATH'
-const BOOKREAD = 'UNI_READER_BOOK_READ'
-const BOOKMARK = 'UNI_READER_BOOK_MARK'
-const COMICPATH = 'UNI_READER_COMIC_PATH'
-const COMICORIEN = 'UNI_READER_COMIC_ORIEN'
-const MUSICPATH = 'UNI_READER_MUSIC_PATH'
-const PLAYLIST = 'UNI_READER_MUSIC_PLAY_LIST'
-const PLAYSTATUS = 'UNI_READER_MUSIC_PLAY_STATUS'
-const PLAYMODE = 'UNI_READER_MUSIC_PLAY_MODE'
-const PLAYRECORD = 'UNI_READER_MUSIC_PLAY_RECORD'
-const COMICSOURCES = 'UNI_READER_ONLINE_COMIC_SOURCES'
-const MUSICSOURCES = 'UNI_READER_ONLINE_MUSIC_SOURCES'
-const BOOKSOURCES = 'UNI_READER_ONLINE_BOOK_SOURCES'
-const MUSICLYRICSHOW = 'UNI_READER_ONLINE_MUSIC_LYRIC_SHOW'
 const store = new Vuex.Store({
     state: {
 		skin: uni.getStorageSync(SKIN) || 'default', //皮肤
