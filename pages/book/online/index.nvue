@@ -1,21 +1,16 @@
 <template>
 	<view class="search" :style="{'background-color': skinColor.bgColor}">
 		<nav-bar title="在线小说" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
-			<!-- <view class="nav-right" slot="right">
-				<view @tap="$refs.bubble.show()">
-					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
-				</view>
-			</view> -->
 		</nav-bar>
 		<c-search @confirm="setNameFilter" close-clear></c-search>
 		
-		<!-- 漫画列表 -->
-		<list-scroll ref="list" @scroll="scroll" :line-height="200" :list="bookList" @loadmore="loadmore">
-			<no-data slot="fixed" v-if="bookList.length <= 0" :title="noDataTitle"></no-data>
+		<!-- 小说列表 -->
+		<list-scroll ref="list" @scroll="scroll" :line-height="200" :list="list" @loadmore="loadmore">
+			<no-data slot="fixed" v-if="list.length <= 0" :title="noDataTitle"></no-data>
 			<!-- 列表顶部 用于返回顶部 -->
 			<view slot="listTop" ref="listTop"></view>
 			<template v-slot="{item}">
-				<view @tap="readComic(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor}">
+				<view @tap="readBook(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor}">
 					<view class="comic-list-icon">
 						<c-image class="comic-image" :src="item.image" mode="aspectFill"></c-image>
 					</view>
@@ -28,16 +23,19 @@
 							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">作者：{{item.author}}</text>
 						</view>
 						<view class="comic-lr-line">
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">更新：{{item.status}}</text>
+						</view>
+						<view class="comic-lr-line">
 							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">简介：{{item.intro}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">简介：{{item.desc}}</text>
 						</view>
 					</view>
 				</view>
 			</template>
-			<view slot="listBottom" class="comic-loading" v-if="isLastPage && bookList.length > 0"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">没有更多了</text></view>
-			<loading slot="loading" class="comic-loading" v-if="bookList.length >= 6 && !isLastPage"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">加载中...</text></loading>
+			<view slot="listBottom" class="comic-loading" v-if="isLastPage && list.length > 0"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">没有更多了</text></view>
+			<loading slot="loading" class="comic-loading" v-if="list.length >= 6 && !isLastPage"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">加载中...</text></loading>
 		</list-scroll>
 		
 		<!-- 气泡弹窗 -->
@@ -75,7 +73,7 @@
 		data () {
 			return {
 				//漫画列表
-				bookList: [],
+				list: [],
 				//名称过滤
 				nameFilter: '',
 				//当前页数
@@ -123,20 +121,20 @@
 						}
 						this.searchBook()
 					} else {
-						if ( this.bookList.length == 0 ) {
+						if ( this.list.length == 0 ) {
 							uni.showToast({
-								title: '请输入漫画名称',
+								title: '请输入小说名称',
 								icon: 'none'
 							})
 						} else {
-							this.bookList = [];
+							this.list = [];
 						}
 					}
 				}, 500)
 			},
 			//触底加载更多小说
 			loadmore (e) {
-				if ( this.nameFilter && !this.isLastPage && this.bookList.length >= 6 ) {
+				if ( this.nameFilter && !this.isLastPage && this.list.length >= 6 ) {
 					clearTimeout(this.moreTimer);
 					this.moreTimer = setTimeout(() => {
 						for ( let i in this.nowPages ) {
@@ -155,7 +153,7 @@
 				}).then((res) => {
 					uni.hideLoading();
 					this.$refs["list"].resetLoadmore();
-					let bookList = [];
+					let list = [];
 					for ( let i in res ) {
 						//请求成功
 						if ( res[i].code == 200 ) {
@@ -170,13 +168,13 @@
 							if ( res[i].data.list.length == 0 ) {
 								this.$set(this.isLastPages, res[i].data.source, true);
 							}
-							bookList = bookList.concat(res[i].data.list);
+							list = list.concat(res[i].data.list);
 						} else  {
 							//请求失败
 							this.nowPages[res[i].data.source] = this.nowPages[res[i].data.source] > 1 ? this.nowPages[res[i].data.source] - 1 : 1;
 						}
 					}
-					bookList.sort((a, b) => {
+					list.sort((a, b) => {
 						return b.name.toString().indexOf(this.nameFilter) - a.name.toString().indexOf(this.nameFilter)
 					})
 					//判断是不是所有网站数据都加载完了
@@ -189,10 +187,10 @@
 					}
 					this.isLastPage = flag;
 					if ( type == 'search' ) {
-						this.bookList = bookList;
+						this.list = list;
 						this.scrollTop();
 					} else {
-						this.bookList = this.bookList.concat(bookList);
+						this.list = this.list.concat(list);
 					}
 				}).catch((err) => {
 					for ( let i in err ) {
@@ -207,9 +205,8 @@
 			},
 			//展示操作列表
 			showAction (path) {
-				let flag = getApp().globalData.$utils.indexOf(this.bookList, 'path', path);
+				let flag = getApp().globalData.$utils.indexOf(this.list, 'path', path);
 				let actions = [];
-				this.actionPath = path;
 				//已经导入的文件操作列表
 				if ( this.isLead(path) > -1 ) {
 					actions = [{
@@ -227,8 +224,8 @@
 					//用户选择导入操作
 					if ( res.value == 'push' ) {
 						//根据文件路径判断文件有没有被导入过
-						if ( this.isLead(this.actionPath) == -1 ) {
-							this.leadBook(this.actionPath);
+						if ( this.isLead(path) == -1 ) {
+							this.leadBook(path);
 							
 						} else {
 							uni.showToast({
@@ -239,10 +236,10 @@
 					}
 					//选择取消导入
 					if ( res.value == 'pop' ) {
-						let name = this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.actionPath)].name;
+						let name = this.list[getApp().globalData.$utils.indexOf(this.list, 'path', path)].name;
 						getApp().globalData.$dom.confirm('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
 							if ( res == 'confirm' ) {
-								this.deleteBook(this.actionPath);
+								this.deleteBook(path);
 							}
 						});
 					}
@@ -256,7 +253,7 @@
 			//阅读漫画
 			readBook (path) {
 				//查询有没有导入过该漫画
-				let bookIndex = getApp().globalData.$utils.indexOf(this.bookList, 'path', path);
+				let bookIndex = this.isLead(path);
 				//导入过直接阅读
 				if ( bookIndex > -1 ) {
 					getApp().globalData.$Router.push({
@@ -272,20 +269,20 @@
 			},
 			//导入书籍
 			leadBook (path, isRead = false) {
-				let flag = getApp().globalData.$utils.indexOf(this.bookList, 'path', path);
+				let flag = getApp().globalData.$utils.indexOf(this.list, 'path', path);
 				let books = [];
 				books.push({
-					name: this.bookList[flag].name,
-					image: this.bookList[flag].image,
+					name: this.list[flag].name,
+					image: this.list[flag].image,
 					length: 0,
 					type: 'story',
-					path: this.bookList[flag].path,
-					source: this.bookList[flag].source
+					path: this.list[flag].path,
+					source: this.list[flag].source
 				});
 				this.addBooks(books);
 				if ( isRead ) {
 					this.$nextTick(() => {
-						let bookIndex = getApp().globalData.$utils.indexOf(this.bookList, 'path', path);
+						let bookIndex = this.isLead(path);
 						if ( bookIndex > -1 ) {
 							getApp().globalData.$Router.push({
 								path: '/pages/book/detail/index',

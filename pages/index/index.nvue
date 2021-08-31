@@ -53,7 +53,7 @@
 					<view class="book-bottom">
 						<text class="book-name">{{item.name}}</text>
 						<view class="b-bottom">
-							<text class="book-progress" v-if="item.type == 'story'">已阅读至 {{ item | progress }}%</text>
+							<text class="book-progress" v-if="item.type == 'story'">已阅读至 {{ item | progress }}</text>
 							<text class="book-progress" v-if="item.type == 'comic'">已阅读至 {{ item | comicProgress }}</text>
 						</view>
 					</view>
@@ -106,10 +106,14 @@
 		},
 		filters: {
 			progress (value) {
-				if ( value.record == 0 ) {
-					return 0
+				if ( value.source == 'local' ) {
+					if ( value.record.split('-')[1] == 0 ) {
+						return 0
+					} else {
+						return ((value.record.split('-')[1] / value.length) * 100).toFixed(2) + '%';
+					}
 				} else {
-					return ((value.record / value.length) * 100).toFixed(2);
+					return '第' + value.record.split('-')[0] + '章';
 				}
 			},
 			comicProgress (value) {
@@ -196,7 +200,11 @@
 					}
 				}
 				if ( this.bookList[index].type == 'story' ) {
-					getApp().globalData.$Router.push({path: '/pages/book/read/index', query: {index: index}});
+					if ( this.bookList[index].source == 'local' ) {
+						getApp().globalData.$Router.push({path: '/pages/book/read/index', query: {index: index}});
+					} else {
+						getApp().globalData.$Router.push({path: '/pages/book/detail/index', query: {index: index}});
+					}
 				} else if ( this.bookList[index].type == 'comic' ) {
 					getApp().globalData.$Router.push({path: '/pages/comic/detail/index', query: {index: index}});
 				} else {

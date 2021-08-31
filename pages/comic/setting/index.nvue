@@ -163,14 +163,14 @@
 			},
 			upChapter (chapter) {
 				let record = chapter + '-0';
-				this.updateBookRecord({
+				this.updateBookInfo({
 					path: this.comicInfo.path,
 					record: record
 				})
 			},
 			upPNum (index) {
 				let record = this.chapter + '-' + index.toString();
-				this.updateBookRecord({
+				this.updateBookInfo({
 					path: this.comicInfo.path,
 					record: record
 				})

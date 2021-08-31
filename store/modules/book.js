@@ -60,7 +60,7 @@ const mutations = {
 				time: dateFormat(time).split(' ')[0],
 				path: books[i].path,
 				length: books[i].length || 0,
-				record: books[i].type == 'story' ? 0 : '0-0',
+				record: '0-0',
 				lastReadTime: time,
 				isReaded: false,
 				//书籍类型 默认小说story
@@ -88,34 +88,15 @@ const mutations = {
 		})
 		uni.setStorageSync(BOOKS, state.books);
 	},
-	// 更新书籍名称
-	updateBookName (state, book) {
-		let index = indexOf(state.books, 'path', book.path);
-		state.books[index].name = book.name;
-		uni.setStorageSync(BOOKS, state.books);
-	},
-	// 更新书籍文本长度
-	updateBookLength (state, book) {
-		let index = indexOf(state.books, 'path', book.path);
-		state.books[index].length = book.length;
-		uni.setStorageSync(BOOKS, state.books);
-	},
-	// 更新书籍阅读位置
-	updateBookRecord (state, book) {
-		let index = indexOf(state.books, 'path', book.path);
-		state.books[index].record = book.record;
-		uni.setStorageSync(BOOKS, state.books);
-	},
-	// 更新书籍阅读状态
-	updateBookReadStatus (state, book) {
-		let index = indexOf(state.books, 'path', book.path);
-		state.books[index].isReaded = book.isReaded;
-		uni.setStorageSync(BOOKS, state.books);
-	},
-	// 更新书籍最后阅读时间
-	updateBookReadTime (state, path) {
-		let index = indexOf(state.books, 'path', path);
-		state.books[index].lastReadTime = new Date().getTime();
+	// 更新书籍信息
+	updateBookInfo (state, bookInfo = {}) {
+		let index = indexOf(state.books, 'path', bookInfo.path);
+		state.books[index].name = bookInfo.name || state.books[index].name;
+		state.books[index].image = bookInfo.image || state.books[index].image;
+		state.books[index].length = bookInfo.length || state.books[index].length;
+		state.books[index].record = bookInfo.record || state.books[index].record;
+		state.books[index].lastReadTime = bookInfo.lastReadTime || state.books[index].lastReadTime;
+		state.books[index].isReaded = bookInfo.isReaded || state.books[index].isReaded;
 		uni.setStorageSync(BOOKS, state.books);
 	},
 	//更新访问的小说文件夹路径

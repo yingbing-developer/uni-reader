@@ -24,11 +24,11 @@ function request (type = 'GET', url, options) {
 
 export default class http {
 	get(url, options = {}) {
-		url += (url.indexOf('?') < 0 ? '?' : '&') + param(options.params || {}) || ''; // 请求路径
+		url += (url.indexOf('?') < 0 ? '?' : '&') + param(options.params || {}, options.headers?.Charset || 'utf-8') || ''; // 请求路径
 		return request('GET', url, options)
 	}
 	postget(url, options = {}) {
-		url += (url.indexOf('?') < 0 ? '?' : '&') + param(options.params || {}) || ''; // 请求路径
+		url += (url.indexOf('?') < 0 ? '?' : '&') + param(options.params || {}, options.headers?.Charset || 'utf-8') || ''; // 请求路径
 		return request('POST', url, options)
 	}
 	post(url, options = {}) {
@@ -36,11 +36,11 @@ export default class http {
 	}
 }
 
-function param(data) {
+function param(data, charset) {
     let url = ''
     for (var k in data) {
         let value = data[k] !== undefined ? data[k] : ''
-        url += `&${k}=${encodeURIComponent(value)}`
+        url += charset == 'utf-8' ? `&${k}=${encodeURIComponent(value)}` : `&${k}=${value}`
     }
     return url ? url.substring(1) : ''
 }

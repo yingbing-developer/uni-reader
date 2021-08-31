@@ -62,7 +62,7 @@
 		color: #666666;
 	}
 	.color-red {
-		color: #FF3B30;
+		color: #FF3B30!important;
 	}
 	.padding-gap {
 		padding-left: 30rpx;

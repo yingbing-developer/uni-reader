@@ -142,6 +142,10 @@
 			bookInfo () {
 				return this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path)];
 			},
+			//阅读位置
+			record () {
+				return parseInt(this.bookInfo.record.split('-')[1]);
+			},
 			pageIndex () {
 				return this.bookInfo.pageIndex
 			},
@@ -149,24 +153,28 @@
 				return parseFloat(this.bookReadMode.light) * 100;
 			},
 			progress () {
-				if ( this.bookInfo.record == 0 ) {
+				if ( this.record == 0 ) {
 					return 0
 				} else {
-					return parseFloat(((this.bookInfo.record / this.bookInfo.length) * 100).toFixed(2))
+					return parseFloat(((this.record / this.bookInfo.length) * 100).toFixed(2))
 				}
 			},
 			//当前章节
 			chapterNow () {
-				for ( let i in this.catalog ) {
-					if ( i < this.catalog.length - 1 ) {
-						if ( this.bookInfo.record >= this.catalog[i].start && this.bookInfo.record < this.catalog[parseInt(i) + 1].start ) {
-							return parseInt(i)
-						}
-					} else {
-						if ( this.bookInfo.record >= this.catalog[i].start) {
-							return parseInt(i)
+				if ( this.bookInfo.source == 'local' ) {
+					for ( let i in this.catalog ) {
+						if ( i < this.catalog.length - 1 ) {
+							if ( this.record >= this.catalog[i].start && this.record < this.catalog[parseInt(i) + 1].start ) {
+								return parseInt(i)
+							}
+						} else {
+							if ( this.record >= this.catalog[i].start) {
+								return parseInt(i)
+							}
 						}
 					}
+				} else {
+					return parseInt(this.bookInfo.record.split('-')[0]);
 				}
 			},
 			//书签
@@ -328,7 +336,7 @@
 			addBookmark () {
 				this.saveBookmark({
 					path: this.path,
-					start: this.bookInfo.record,
+					start: this.record,
 					title: this.markTitle.substring(0, 20)
 				})
 			},

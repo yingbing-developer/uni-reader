@@ -109,7 +109,7 @@
 						this.intro = data.intro;
 						//如果名字发生更改，则更新本地记录的名称
 						if ( data.name != this.comicInfo.name ) {
-							this.updateBookName({
+							this.updateBookInfo({
 								path: this.comicInfo.path,
 								name: data.name
 							})
@@ -118,7 +118,7 @@
 					if ( res[1].code == 200 ) {
 						//如果章节有更新，更新本地漫画章节数量
 						if ( this.catalog.length != res[1].data.length && res[1].data ) {
-							this.updateBookLength({
+							this.updateBookInfo({
 								path: this.comicInfo.path,
 								length: res[1].data.length || 0
 							})
@@ -145,13 +145,16 @@
 				let readIndex = getApp().globalData.$utils.indexOf(arr, 'path', path);
 				//更新阅读章节记录
 				let record = readIndex + '-' + (this.cNum == readIndex ? this.pNum : 0);
-				this.updateBookRecord({
+				this.updateBookInfo({
 					path: this.comicInfo.path,
 					record: record
 				})
 				let index = getApp().globalData.$utils.indexOf(this.bookList, 'path', this.comicInfo.path);
 				//更新阅读时间
-				this.updateBookReadTime(this.comicInfo.path);
+				this.updateBookInfo({
+					path: this.comicInfo.path,
+					lastReadTime: new Date()
+				});
 				getApp().globalData.$Router.push({
 					path: '/pages/comic/read/index',
 					query: {
@@ -186,13 +189,13 @@
 				//名称有改变则更新本地记录
 				let comicName = plus.android.invoke(fd, "getName");
 				if ( comicName != this.comicInfo.name ) {
-					this.updateBookName({
+					this.updateBookInfo({
 						path: this.comicInfo.path,
 						name: comicName
 					})
 				}
 				//更新本地章节数量
-				this.updateBookLength({
+				this.updateBookInfo({
 					path: this.comicInfo.path,
 					length: length == 0 && list.length > 0 ? 1 : length
 				})

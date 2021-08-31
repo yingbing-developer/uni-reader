@@ -43,7 +43,7 @@
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
-	import { getComicDetail, getComicNum } from '@/common/online/getComic.js'
+	import { getBookDetail, getBookNum } from '@/common/online/getBook.js'
 	export default {
 		mixins: [skinMixin, bookMixin],
 		data () {
@@ -80,7 +80,7 @@
 		},
 		onReady () {
 			if ( this.bookInfo.source == 'local' ) {
-				this.getLocalComicCatalog()
+				// this.getLocalComicCatalog()
 			} else {
 				this.getDetail({
 					source: this.bookInfo.source,
@@ -96,8 +96,8 @@
 					title: '解析中',
 					mask: true
 				})
-				const getIntro = getComicDetail(data);
-				const getNum = getComicNum(data)
+				const getIntro = getBookDetail(data);
+				const getNum = getBookNum(data)
 				Promise.all([
 				    getIntro,
 					getNum

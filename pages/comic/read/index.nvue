@@ -414,7 +414,7 @@
 			//更新章节
 			upChapter (chapter) {
 				let record = chapter + '-0';
-				this.updateBookRecord({
+				this.updateBookInfo({
 					path: this.comicInfo.path,
 					record: record
 				})
@@ -435,7 +435,7 @@
 			},
 			upReadStatus () {
 				//退出前更新本章节的阅读位置
-				this.updateBookRecord({
+				this.updateBookInfo({
 					path: this.comicInfo.path,
 					record: this.chapter + '-' + this.nowIndex
 				})
@@ -443,13 +443,13 @@
 				if ( this.nextShow ) {
 					//本地漫画才判断有没有读完
 					if ( this.comicInfo.source == 'local' ) {
-						this.updateBookReadStatus({
+						this.updateBookInfo({
 							path: this.comicInfo.path,
 							isReaded: this.chapter + 1 >= this.chapters.length
 						})
 					}
 				} else {
-					this.updateBookReadStatus({
+					this.updateBookInfo({
 						path: this.comicInfo.path,
 						isReaded: false
 					})

@@ -47,7 +47,7 @@
 			},
 			//阅读位置
 			record () {
-				return this.bookInfo.record;
+				return parseInt(this.bookInfo.record.split('-')[1]);
 			},
 			//文件路径
 			path () {
@@ -63,7 +63,7 @@
 				return this.bookReadMode.lineHeight;
 			},
 			progress () {
-				if ( this.bookInfo.record == 0 ) {
+				if ( this.record == 0 ) {
 					return 0
 				} else {
 					return parseFloat(((this.record / this.bookInfo.length) * 100).toFixed(2))
@@ -100,7 +100,10 @@
 		},
 		onReady () {
 			//更新阅读时间
-			this.updateBookReadTime(this.path);
+			this.updateBookInfo({
+				path: this.path,
+				lastReadTime: new Date()
+			});
 			uni.getSystemInfo({
 				success: (res) => {//根据状态栏高度, 进行导航栏顶部适配
 					this.barHeight = res.statusBarHeight + 4;
@@ -116,7 +119,7 @@
 				this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
 				uni.hideLoading();
 				//更新文本总长度
-				this.updateBookLength({
+				this.updateBookInfo({
 					path: this.path,
 					length: this.bookContent.length
 				})
@@ -142,7 +145,7 @@
 				// 				plus.android.invoke(reader, 'close');
 				// 				this.bookContent = e.target.result;
 				// 				//更新文本总长度
-				// 				this.updateBookLength({
+				// 				this.updateBookInfo({
 				// 					path: this.path,
 				// 					length: this.bookContent.length
 				// 				})
@@ -184,12 +187,12 @@
 			savePageRecord (e) {
 				this.currentPage = e;
 				//更新阅读位置
-				this.updateBookRecord({
+				this.updateBookInfo({
 					path: this.path,
-					record: e.start
+					record: e.chapter?.toString() || '0' + '-' + e.start
 				});
 				//更新阅读状态(是否读完)
-				this.updateBookReadStatus({
+				this.updateBookInfo({
 					path: this.path,
 					isReaded: e.end >= this.bookContent.length
 				})

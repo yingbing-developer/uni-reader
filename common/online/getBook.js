@@ -28,45 +28,15 @@ export function getBook (data) {
 	return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
 }
 //获取小说章节
-export function getComicNum (data) {
+export function getBookNum (data) {
 	if ( data.source == tag1 ) {
-		return getMangabzNum(data.href);
-	}
-	if ( data.source == tag2 ) {
-		return getLoliNum(data.href);
-	}
-	if ( data.source == tag4 ) {
-		return get18comicNum(data.href);
-	}
-	if ( data.source == tag5 ) {
-		return getSixmh6Num(data.href);
-	}
-	if ( data.source == tag6 ) {
-		return getWnacgNum(data.href);
-	}
-	if ( data.source == tag7 ) {
-		return getDmzjNum(data.href);
+		return getBaoshuuNum(data.href);
 	}
 }
 //获取小说详情信息
-export function getComicDetail (data) {
+export function getBookDetail (data) {
 	if ( data.source == tag1 ) {
-		return getMangabzDetail(data.href);
-	}
-	if ( data.source == tag2 ) {
-		return getLoliDetail(data.href);
-	}
-	if ( data.source == tag4 ) {
-		return get18comicDetail(data.href);
-	}
-	if ( data.source == tag5 ) {
-		return getSixmh6Detail(data.href);
-	}
-	if ( data.source == tag6 ) {
-		return getWnacgDetail(data.href);
-	}
-	if ( data.source == tag7 ) {
-		return getDmzjDetail(data.href);
+		return getBaoshuuDetail(data.href);
 	}
 }
 
@@ -74,7 +44,7 @@ export function getComicDetail (data) {
 //获取手机宝书网站的小说列表
 function getBaoshuu (data) {
 	let dataSync = {
-		word: escape(gb2312(data.title)),
+		word: gb2312(data.title),
 		m: 2,
 		ChannelID: 0,
 		page: data.page[tag1]
@@ -84,41 +54,31 @@ function getBaoshuu (data) {
 			params: dataSync,
 			headers: {
 				Referer: 'https://m.baoshuu.com',
-				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				Charset: 'gb2312',//自定义字符格式
 				Host: 'm.baoshuu.com',
 				Cookie: 'UM_distinctid=1783b0d7fe43f8-0224fcecd87da9-376b4502-1fa400-1783b0d7fe59f7; READHISTORY=1; Hm_lvt_fed71f7d1edb5bacb3fe60e703a761aa=1629376402,1629415930,1629810834,1629845299; CNZZDATA1276437823=1507837864-1615895385-%7C1630353326',
 			}
 		}).then((res) => {
-			console.log(res);
 			let str = replaceStr(res.data);//解析html字符
 			let all = str.match(/<div[^>]*class=([""]?)sslist\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有小说内容
-			console.log(all);
-			let arr = all.match(/<li[^>]*>*([\s\S]*?)<\/li>/ig);//正则匹配所有小说内容
-			let books = [];
+			let arr = all[0].match(/<li[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配所有小说内容
+			let list = [];
 			if ( arr ) {
 				for ( let i = 0; i < arr.length; i++ ) {
-					let name = arr[i].match(/<h1[^>]*>*([\s\S]*?)<\/h1>/ig);
-					let a = name.match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
-					let desc = arr[i].match(/<p[^>]*>*([\s\S]*?)<\/p>/ig);
-					let nameObj = HTMLParser(name[0])[0];//将html字符串转化为html数组
-					console.log(nameObj);
-					let nameText = '';
-					let path = ''
-					for ( let i in a ) {
-						let aObj = HTMLParser(a[i])[0];//将html字符串转化为html数组
-						if ( i == 1 ) {
-							path = aObj.attrs.href || '';
-						}
-						nameText += '';
-					}
-					let descObj = HTMLParser(desc[0])[0];//将html字符串转化为html数组
-					books.push({
+					let h1 = arr[i].match(/<h1[^>]*>*([\s\S]*?)<\/h1>/ig);
+					let a = h1[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
+					let tag = HTMLParser(a[0])[0];//将html字符串转化为html数组
+					a[1] = a[1].replace('<font color="red">', '');
+					a[1] = a[1].replace('</font>', '');
+					let nameObj = HTMLParser(a[1])[0];//将html字符串转化为html数组
+					let desc = arr[i].match(/<p[^>]*>*([\s\S]*?)<\/p>/);
+					list.push({
 						image: '/static/cover/cover_' + Math.floor(Math.random()*6 + 1) + '.png',
-						name: nameText,
+						name: '【' + tag.children[0].text + '】' + nameObj.children[0].text,
 						author: '暂无',
-						desc: descObj.children ? descObj.children[0].text : '暂无介绍',
+						desc: desc[1] || '暂无介绍',
 						status: '已完结',
-						path: path,
+						path: BOOKURL[tag1].href + nameObj.attrs.href,
 						source: tag1
 					})
 				}
@@ -126,7 +86,7 @@ function getBaoshuu (data) {
 			resolve({
 				code: ERR_OK,
 				data: {
-					list: books,
+					list: list,
 					source: tag1
 				}
 			})
@@ -142,11 +102,18 @@ function getBaoshuu (data) {
 	})
 }
 
-//获取mangaBz网站的漫画章节
-function getMangabzNum (href) {
+//获取手机宝书网站的小说章节
+function getBaoshuuNum (href) {
 	let abort;
 	let p1 = new Promise((resolve, reject) => {
-		http.get(COMICURL[tag1].href + href).then((res) => {
+		http.get(href, {
+			headers: {
+				Referer: 'https://m.baoshuu.com',
+				Accept: 'text/html; Charset=UTF-8',
+				'Content-Type': 'text/html; Charset=UTF-8',
+				Host: 'm.baoshuu.com'
+			}
+		}).then((res) => {
 			let str = replaceStr(res.data);//解析html字符
 			let arr = str.match(/<div[^>]*class=([""]?)detail-list-item\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配漫画全部章节
 			let nums = [];
@@ -178,12 +145,17 @@ function getMangabzNum (href) {
 	return p;
 }
 
-//获取mangaBz网站的漫画详情信息
-function getMangabzDetail (href) {
+//获取手机宝书网站的小说详情信息
+function getBaoshuuDetail (href) {
 	return new Promise((resolve, reject) => {
-		http.get(COMICURL[tag1].href + href).then((res) => {
+		http.get(href, {
+			headers: {
+				'content-type': 'text/html; Charset=gb2312'
+			}
+		}).then((res) => {
 			let str = replaceStr(res.data);//解析html字符
-			let subtitle = str.match(/<p[^>]*class=([""]?)detail-main-subtitle\1[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配漫画详情信息
+			let h1 = str.match(/<h1[^\s]>*([\s\S]*?)<\/h1>/);//正则匹配漫画详情信息
+			console.log(h1[1]);
 			let strs = subtitle[0].match(/<span[^\s]>*([\s\S]*?)<\/span>/ig);//正则匹配漫画作者和类型
 			let data = {
 				name: '',
