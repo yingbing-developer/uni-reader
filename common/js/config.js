@@ -30,7 +30,7 @@ export const COMICURL = {
 	},
 	'wnacg': {
 		title: '绅士漫画',
-		href: 'https://wnacg1.org'
+		href: 'https://hentaicomic.org'
 	}
 };
 //音乐网站链接
