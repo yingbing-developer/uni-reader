@@ -1,5 +1,5 @@
 <template>
-	<view class="getInfo" id="get-book-info" :prop="bookInfoProp" :change:prop="bookInfo.bookInfoChange"></view>
+	<view class="getInfo" :id="'get-book-info' + dataId" :prop="bookInfoProp" :change:prop="bookInfo.bookInfoChange"></view>
 </template>
 
 <script>
@@ -12,8 +12,13 @@
 		computed: {
 			bookInfoProp () {
 				return {
-					xhrs: this.xhrs
+					xhrs: this.xhrs,
+					dataId: this.dataId
 				}
+			},
+			dataId () {
+				let mydate = new Date();
+				return 'cms' + mydate.getMinutes() + mydate.getSeconds() + mydate.getMilliseconds() + Math.round(Math.random() * 10000);
 			}
 		},
 		onLoad (data) {
@@ -53,7 +58,7 @@
 		},
 		methods: {
 			initDom () {
-				bookInfoDom = bookInfo.init(document.getElementById('get-book-info'));
+				bookInfoDom = bookInfo.init(document.getElementById('get-book-info' + this.bookInfoProp.dataId));
 				// 观测更新的数据在 view 层可以直接访问到
 				bookInfoDom.setOption(this.bookInfoProp);
 			},
