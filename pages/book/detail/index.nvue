@@ -43,7 +43,7 @@
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
-	import { getBookDetail, getBookNum } from '@/common/online/getBook.js'
+	import { getBookInfo } from '@/common/online/getBook.js'
 	export default {
 		mixins: [skinMixin, bookMixin],
 		data () {
@@ -96,35 +96,30 @@
 					title: '解析中',
 					mask: true
 				})
-				const getIntro = getBookDetail(data);
-				const getNum = getBookNum(data)
-				Promise.all([
-				    getIntro,
-					getNum
-				]).then((res) => {
+				getBookInfo(data).then((res) => {
 					uni.hideLoading();
-					if ( res[0].code == 200 ) {
-						let data = res[0].data;
-						this.author = data.author;
-						this.intro = data.intro;
-						//如果名字发生更改，则更新本地记录的名称
-						if ( data.name != this.bookInfo.name ) {
-							this.updateBookName({
-								path: this.bookInfo.path,
-								name: data.name
-							})
-						}
-					}
-					if ( res[1].code == 200 ) {
-						//如果章节有更新，更新本地漫画章节数量
-						if ( this.catalog.length != res[1].data.length && res[1].data ) {
-							this.updateBookLength({
-								path: this.bookInfo.path,
-								length: res[1].data.length || 0
-							})
-						}
-						this.catalog = res[1].data;
-					}
+					// if ( res[0].code == 200 ) {
+					// 	let data = res[0].data;
+					// 	this.author = data.author;
+					// 	this.intro = data.intro;
+					// 	//如果名字发生更改，则更新本地记录的名称
+					// 	if ( data.name != this.bookInfo.name ) {
+					// 		this.updateBookName({
+					// 			path: this.bookInfo.path,
+					// 			name: data.name
+					// 		})
+					// 	}
+					// }
+					// if ( res[1].code == 200 ) {
+					// 	//如果章节有更新，更新本地漫画章节数量
+					// 	if ( this.catalog.length != res[1].data.length && res[1].data ) {
+					// 		this.updateBookLength({
+					// 			path: this.bookInfo.path,
+					// 			length: res[1].data.length || 0
+					// 		})
+					// 	}
+					// 	this.catalog = res[1].data;
+					// }
 				}).catch((err) => {
 					uni.showToast({
 						title: '解析失败',

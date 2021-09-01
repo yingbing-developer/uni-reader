@@ -8,7 +8,7 @@ export default {
 					setTimeout(() => {
 						uni.$on('actionSheet-btn', (data) => {
 							resolve(data)
-							getApp().globalData.$Router.back();
+							uni.navigateBack({delta: 1})
 							uni.$off('actionSheet-btn');
 						})
 					}, 60)
@@ -25,7 +25,7 @@ export default {
 					setTimeout(() => {
 						uni.$on('message-btn', (data) => {
 							resolve(data.flag)
-							getApp().globalData.$Router.back();
+							uni.navigateBack({delta: 1})
 							uni.$off('message-btn');
 						})
 					}, 60)
@@ -33,15 +33,15 @@ export default {
 			});
 		})
 	},
-	xhr (type = 'GET', href, options) {
+	xhr (xhrs) {
 		return new Promise((resolve, reject) => {
 			uni.navigateTo({
-				url: `/modules/xhr?type=${type}&url=${encodeURIComponent(href)}&options=${options ? encodeURIComponent(JSON.stringify(options)) : ''}`,
+				url: `/modules/xhr?xhrs=${xhrs ? encodeURIComponent(JSON.stringify(xhrs)) : ''}`,
 				complete: (res) => {
 					setTimeout(() => {
 						uni.$on('xhr-btn', (data) => {
 							resolve(data)
-							getApp().globalData.$Router.back();
+							uni.navigateBack({delta: 1})
 							uni.$off('xhr-btn');
 						})
 					}, 60)

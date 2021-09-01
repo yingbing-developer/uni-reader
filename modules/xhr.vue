@@ -6,31 +6,22 @@
 	export default {
 		data () {
 			return {
-				type: '',
-				url: '',
-				options: ''
+				xhrs: ''
 			}
 		},
 		computed: {
 			bookInfoProp () {
 				return {
-					type: this.type,
-					url: this.url,
-					options: this.options || {}
+					xhrs: this.xhrs
 				}
 			}
 		},
 		onLoad (data) {
-			this.type = data.type;
-			this.url = decodeURIComponent(data.url);
-			this.options = data.options ? JSON.parse(decodeURIComponent(data.options)) : {};
+			this.xhrs = data.xhrs ? JSON.parse(decodeURIComponent(data.xhrs)) : {};
 		},
 		methods: {
 			finish (e) {
-				uni.$emit('xhr-btn', {
-					status: e.status,
-					data: e.response
-				})
+				uni.$emit('xhr-btn', e)
 			}
 		}
 	}
@@ -43,9 +34,22 @@
 			this.initDom.bind(this);
 			let meta = document.createElement('meta');
 			meta['http-equiv'] = 'Content-Type';
-			meta.content = 'text/html; charset=UTF-8';
+			meta.content = 'text/html; charset=GB2312';
 			document.body.appendChild(meta);
-			this.httpRequest();
+			if ( Object.prototype.toString.call(this.bookInfoProp.xhrs) === '[object Array]' ) {
+				let arr = [];
+				for ( let i in this.bookInfoProp.xhrs ) {
+					arr.push(this.httpRequest(this.bookInfoProp.xhrs[i]))
+				}
+				Promise.all(arr).then((res) => {
+					this.resolve(res);
+				})
+			} else {
+				this.httpRequest(this.bookInfoProp.xhrs).then((res) => {
+					this.resolve(res);
+				})
+			}
+			
 		},
 		methods: {
 			initDom () {
@@ -53,27 +57,43 @@
 				// 观测更新的数据在 view 层可以直接访问到
 				bookInfoDom.setOption(this.bookInfoProp);
 			},
-			httpRequest () {
-				const http = new XMLHttpRequest();
-				const url = this.bookInfoProp.url;
-				const type = this.bookInfoProp.type;
-				const headers = this.bookInfoProp.options.headers || '';
-				if ( headers ) {
-					for ( let i in headers ) {
-						http.setRequestHeader(i, headers[i]);
+			httpRequest ( data = {} ) {
+				return new Promise((resolve) => {
+					const http = new XMLHttpRequest();
+					const headers = data.options?.headers || '';
+					const params = data.options?.params || '';
+					const formData = new FormData();
+					http.addEventListener('load', (e) => {
+						if ( http.status == 200 ) {
+							const args = {code: http.status, data: http.response}
+							resolve(args);
+						} else {
+							const args = {code: http.status, data: ''}
+							resolve(args);
+						}
+					});
+					http.addEventListener('error', (e) => {
+						const args = {code: http.status || 400, data: ''}
+						resolve(args);
+					});
+					http.addEventListener('timeout', (e) => {
+						const args = {code: http.status || 401, data: ''}
+						resolve(args);
+					});
+					http.open(data.type || 'GET', data.url);
+					if ( headers ) {
+						for ( let i in headers ) {
+							http.setRequestHeader(i, headers[i]);
+						}
 					}
-				}
-				http.open('GET', url);
-				http.send();
-				http.onreadystatechange = (e) => {
-					if ( http.status == 200 ) {
-						const args = {status: http.status, 'response': http.responseText}
-						this.resolve(args);
-					} else {
-						const args = {status: http.status, 'response': ''}
-						this.resolve(args);
+					if ( params ) {
+						for ( let i in params ) {
+							formData.append(i, params[i]);
+						}
 					}
-				}
+					http.send(formData);
+				})
+				
 			},
 			resolve (args) {
 				// #ifndef H5
@@ -87,9 +107,7 @@
 				this.finish(args);
 				// #endif
 			},
-			bookInfoChange () {
-				
-			}
+			bookInfoChange () {}
 		}
 	}
 </script>

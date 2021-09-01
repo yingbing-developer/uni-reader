@@ -27,16 +27,10 @@ export function getBook (data) {
 	}
 	return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
 }
-//获取小说章节
-export function getBookNum (data) {
-	if ( data.source == tag1 ) {
-		return getBaoshuuNum(data.href);
-	}
-}
 //获取小说详情信息
-export function getBookDetail (data) {
+export function getBookInfo (data) {
 	if ( data.source == tag1 ) {
-		return getBaoshuuDetail(data.href);
+		return getBaoshuuInfo(data.href);
 	}
 }
 
@@ -102,84 +96,78 @@ function getBaoshuu (data) {
 	})
 }
 
-//获取手机宝书网站的小说章节
-function getBaoshuuNum (href) {
-	let abort;
-	let p1 = new Promise((resolve, reject) => {
-		http.get(href, {
-			headers: {
-				Referer: 'https://m.baoshuu.com',
-				Accept: 'text/html; Charset=UTF-8',
-				'Content-Type': 'text/html; Charset=UTF-8',
-				Host: 'm.baoshuu.com'
-			}
+//获取手机宝书网站的小说详情信息
+function getBaoshuuInfo (href) {
+	return new Promise((resolve, reject) => {
+		getApp().globalData.$dom.xhr({
+			type: 'GET',
+			url: href
 		}).then((res) => {
-			let str = replaceStr(res.data);//解析html字符
-			let arr = str.match(/<div[^>]*class=([""]?)detail-list-item\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配漫画全部章节
-			let nums = [];
-			if ( arr ) {
-				for ( let i = 0; i < arr.length; i++ ) {
-					let obj = HTMLParser(arr[i])[0];//将html字符串转化为html数组
-					nums.push({
-						path: obj.children ? COMICURL[tag1].href + obj.children[0].attrs.href : '',
-						name: obj.children[0].children ? obj.children[0].children[0].text.replace(/\s+/g,"") : '未知'
-					})
+			if ( res.code == 200 ) {
+				let str = replaceStr(res.data);//解析html字符
+				let subtilte = str.match(/<div[^>]*class=([""]?)mlist\1[^>]*>*([\s\S]*?)<\/div>/);
+				let name = subtilte[0].match(/<h1[^\s]>*([\s\S]*?)<\/h1>/);//正则匹配小说详情信息
+				let li = subtilte[0].match(/<li[^\s]>*([\s\S]*?)<\/a>/ig);//正则匹配小说详情信息
+				let author = li[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/);
+				let content = str.match(/<div[^>]*class=([""]?)conten\1[^>]*>*([\s\S]*?)<\/div>/);
+				let readUrl = str.match(/<a[^>]*class=([""]?)left\1[^>]*>*([\s\S]*?)<\/a>/ig);
+				let readUrlObj = HTMLParser(readUrl[1])[0];//将html字符串转化为html数组
+				let desc = content[0].match(/<p[^>]*>*([\s\S]*?)<\/p>/)[1];
+				desc = desc.replace('<span style="color: #ff0000">', '');
+				desc = desc.replace('</span>', '\n');
+				desc = desc.replace(/<br\/>/ig, '\n');
+				let data = {
+					name: name[1],
+					author: author[1],
+					desc: desc,
+					chapters: []
 				}
+				setTimeout(() => {
+					getBaoshuuChapters(BOOKURL[tag1].href + readUrlObj.attrs.href).then((res) => {
+						console.log(res);
+						resolve({
+							code: ERR_OK,
+							data: data
+						})
+					}).catch((err) => {
+						resolve({
+							code: ERR_OK,
+							data: data
+						})
+					})
+				}, 200)
+			} else {
+				reject({
+					code: ERR_FALSE,
+					data: {}
+				})
 			}
-			let response = {
-				code: ERR_OK,
-				data: nums
-			}
-			resolve(response)
-		}).catch((err) => {
-			let response = {
-				code: ERR_FALSE,
-				data: []
-			}
-			reject(response)
 		})
 	})
-	let p2 = new Promise((resolve, reject) => (abort = reject));
-	let p = Promise.race([p1, p2]);
-	p.abort = abort;
-	return p;
 }
 
-//获取手机宝书网站的小说详情信息
-function getBaoshuuDetail (href) {
+//获取手机宝书网站的小说章节
+function getBaoshuuChapters (href) {
+	console.log(href);
 	return new Promise((resolve, reject) => {
-		getApp().globalData.$dom.xhr('GET', href).then((res) => {
-			console.log(res);
-			let str = replaceStr(res);//解析html字符
-			let h1 = str.match(/<h1[^\s]>*([\s\S]*?)<\/h1>/);//正则匹配漫画详情信息
-			console.log(h1);
-			// let strs = subtitle[0].match(/<span[^\s]>*([\s\S]*?)<\/span>/ig);//正则匹配漫画作者和类型
-			// let data = {
-			// 	name: '',
-			// 	author : '',
-			// 	intro: ''
-			// }
-			// if ( strs ) {
-			// 	for ( let i in strs ) {
-			// 		let obj = HTMLParser(strs[i])[0]
-			// 		data.author += obj.children ? obj.children[0].text + ' ' : ''
-			// 	} 
-			// }
-			// subtitle = str.match(/<p[^>]*class=([""]?)detail-main-content\1[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配漫画介绍
-			// data.intro = HTMLParser(subtitle[0])[0].children ? HTMLParser(subtitle[0])[0].children[0].text : '';
-			// subtitle = str.match(/<p[^>]*class=([""]?)detail-main-title\1[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配漫画介绍
-			// data.name = HTMLParser(subtitle[0])[0].children ? HTMLParser(subtitle[0])[0].children[0].text : '';
-			// let response = {
-			// 	code: ERR_OK,
-			// 	data: data
-			// }
-			// resolve(response)
-		}).catch((err) => {
-			let response = {
-				code: ERR_FALSE,
-				data: {}
+		getApp().globalData.$dom.xhr({
+			type: 'GET',
+			url: href,
+			options: {
+				headers: {
+					'Content-Type': 'text/html; charset=GB2312'
+				}
 			}
-			reject(response)
+		}).then((res) => {
+			if ( res.code == 200 ) {
+				let str = replaceStr(res.data);//解析html字符
+				console.log(str);
+				let div = str.match(/<div[^>]*id=([""]?)gobottom\1[^>]*>*([\s\S]*?)<\/div>/);
+				console.log(div);
+				resolve([])
+			} else {
+				reject([])
+			}
 		})
 	})
 }
