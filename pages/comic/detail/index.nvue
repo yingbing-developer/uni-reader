@@ -86,7 +86,6 @@
 					source: this.comicInfo.source,
 					href: this.comicInfo.path
 				})
-				
 			}
 		},
 		methods: {

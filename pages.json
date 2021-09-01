@@ -103,23 +103,58 @@
 		},
 		//确认弹窗
 		{
-			"path": "pages/base/confirm",
+			"path": "modules/confirm",
 			"style": {
-				"backgroundColor": "transparent"
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
+				}
 			} 
 		},
 		//选择对话框
 		{
-			"path": "pages/base/actionSheet",
+			"path": "modules/actionSheet",
 			"style": {
-				"backgroundColor": "transparent"
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
+				}
 			} 
+		},
+		//页面请求
+		{
+			"path": "modules/xhr",
+			"style": {
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
+				}
+			}
 		},
 		//文本编辑框
 		{
-			"path": "pages/base/edit",
+			"path": "modules/edit",
 			"style": {
-				"backgroundColor": "transparent"
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
+				}
 			} 
 		}
 	],

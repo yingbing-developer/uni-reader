@@ -221,9 +221,9 @@
 			},
 			//打开编辑子窗体
 			openEditNvue () {
+				let content = this.bookContent.substr(this.currentPage.start, this.currentPage.end);
 				uni.navigateTo({
-					url: `/pages/base/edit?content=${encodeURIComponent(this.currentPage.text)}&start=${this.currentPage.start}&end=${this.currentPage.end}`,
-					animationType: 'none',
+					url: `/modules/edit?content=${encodeURIComponent(content)}&start=${this.currentPage.start}&end=${this.currentPage.end}`,
 					complete: (res) => {
 						setTimeout(() => {
 							uni.$on('edit-btn', (data) => {

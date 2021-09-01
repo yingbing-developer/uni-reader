@@ -148,35 +148,32 @@ function getBaoshuuNum (href) {
 //获取手机宝书网站的小说详情信息
 function getBaoshuuDetail (href) {
 	return new Promise((resolve, reject) => {
-		http.get(href, {
-			headers: {
-				'content-type': 'text/html; Charset=gb2312'
-			}
-		}).then((res) => {
-			let str = replaceStr(res.data);//解析html字符
+		getApp().globalData.$dom.xhr('GET', href).then((res) => {
+			console.log(res);
+			let str = replaceStr(res);//解析html字符
 			let h1 = str.match(/<h1[^\s]>*([\s\S]*?)<\/h1>/);//正则匹配漫画详情信息
-			console.log(h1[1]);
-			let strs = subtitle[0].match(/<span[^\s]>*([\s\S]*?)<\/span>/ig);//正则匹配漫画作者和类型
-			let data = {
-				name: '',
-				author : '',
-				intro: ''
-			}
-			if ( strs ) {
-				for ( let i in strs ) {
-					let obj = HTMLParser(strs[i])[0]
-					data.author += obj.children ? obj.children[0].text + ' ' : ''
-				} 
-			}
-			subtitle = str.match(/<p[^>]*class=([""]?)detail-main-content\1[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配漫画介绍
-			data.intro = HTMLParser(subtitle[0])[0].children ? HTMLParser(subtitle[0])[0].children[0].text : '';
-			subtitle = str.match(/<p[^>]*class=([""]?)detail-main-title\1[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配漫画介绍
-			data.name = HTMLParser(subtitle[0])[0].children ? HTMLParser(subtitle[0])[0].children[0].text : '';
-			let response = {
-				code: ERR_OK,
-				data: data
-			}
-			resolve(response)
+			console.log(h1);
+			// let strs = subtitle[0].match(/<span[^\s]>*([\s\S]*?)<\/span>/ig);//正则匹配漫画作者和类型
+			// let data = {
+			// 	name: '',
+			// 	author : '',
+			// 	intro: ''
+			// }
+			// if ( strs ) {
+			// 	for ( let i in strs ) {
+			// 		let obj = HTMLParser(strs[i])[0]
+			// 		data.author += obj.children ? obj.children[0].text + ' ' : ''
+			// 	} 
+			// }
+			// subtitle = str.match(/<p[^>]*class=([""]?)detail-main-content\1[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配漫画介绍
+			// data.intro = HTMLParser(subtitle[0])[0].children ? HTMLParser(subtitle[0])[0].children[0].text : '';
+			// subtitle = str.match(/<p[^>]*class=([""]?)detail-main-title\1[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配漫画介绍
+			// data.name = HTMLParser(subtitle[0])[0].children ? HTMLParser(subtitle[0])[0].children[0].text : '';
+			// let response = {
+			// 	code: ERR_OK,
+			// 	data: data
+			// }
+			// resolve(response)
 		}).catch((err) => {
 			let response = {
 				code: ERR_FALSE,
