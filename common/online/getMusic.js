@@ -1,5 +1,5 @@
-import http from '@/common/request'
-import { MUSICURL, ERR_OK, ERR_FALSE, commonParams } from '@/common/js/config.js'
+import http from '@/plugins/request/index.js'
+import { MUSICURL, ERR_OK, ERR_FALSE, commonParams } from '@/assets/js/config.js'
 import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
 
 const tag1 = 'qqmusic';

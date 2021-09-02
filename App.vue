@@ -1,15 +1,15 @@
 <script>
-	import { Route } from '@/common/router/router.js';
-	import Router from '@/common/router';
-	import Http from '@/common/request/request.js'
-	import Dom from '@/common/dom/index.js'
-	import Utils from '@/common/js/util.js'
-	import Config from '@/common/js/config.js'
+	import { Route } from '@/plugins/router/router.js';
+	import Router from '@/plugins/router';
+	import Http from '@/plugins/request'
+	import Dom from '@/plugins/dom'
+	import Utils from '@/assets/js/util.js'
+	import Config from '@/assets/js/config.js'
 	export default {
 		globalData: {
 			$Router: Router,
 			$Route: new Route(),
-			$http: new Http(),
+			$http: Http,
 			$dom: Dom,
 			$utils: Utils,
 			$config: Config

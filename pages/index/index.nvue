@@ -53,8 +53,8 @@
 					<view class="book-bottom">
 						<text class="book-name">{{item.name}}</text>
 						<view class="b-bottom">
-							<text class="book-progress" v-if="item.type == 'story'">已阅读至 {{ item | progress }}</text>
-							<text class="book-progress" v-if="item.type == 'comic'">已阅读至 {{ item | comicProgress }}</text>
+							<text class="book-progress" v-if="item.type == 'story'">{{ item | progress }}</text>
+							<text class="book-progress" v-if="item.type == 'comic'">{{ item | comicProgress }}</text>
 						</view>
 					</view>
 				</view>
@@ -107,18 +107,17 @@
 		filters: {
 			progress (value) {
 				if ( value.source == 'local' ) {
-					if ( value.record.split('-')[1] == 0 ) {
-						return 0
+					if ( value.record.position == 0 ) {
+						return '已阅读至 ' + 0 + '%'
 					} else {
-						return ((value.record.split('-')[1] / value.length) * 100).toFixed(2) + '%';
+						return '已阅读至 ' + ((value.record.position / value.length) * 100).toFixed(2) + '%';
 					}
 				} else {
-					return '第' + value.record.split('-')[0] + '章';
+					return value.record.chapter > -1 ? '已阅读至 ' + value.record.title : '未阅读';
 				}
 			},
 			comicProgress (value) {
-				let arr = value.record.split('-');
-				return (parseInt(arr[0]) + 1) + '话 ' + (parseInt(arr[1]) + 1) + 'P'
+				return value.record.chapter > -1 ? '已阅读至 ' + value.record.title : '未阅读'
 			}
 		},
 		computed: {

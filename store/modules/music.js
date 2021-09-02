@@ -1,4 +1,4 @@
-import Utils from '@/common/js/util.js';
+import Utils from '@/assets/js/util.js';
 const { indexOf, suffix, dateFormat, removeSuffix, randomString } = Utils;
 
 import {

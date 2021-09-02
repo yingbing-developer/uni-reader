@@ -13,8 +13,8 @@
 			</view>
 		</view>
 		<view class="btns">
-			<view class="old-btn btn" @tap="readComic(readed.path)">
-				<text class="btn-text" :style="{'color': skinColor.bgColor}">上次读到 {{readed ? readed.name : cNum}} 第{{pNum + 1}}P</text>
+			<view class="old-btn btn" @tap="readRecord">
+				<text class="btn-text" :style="{'color': skinColor.bgColor}">{{readed ? '上次读到 ' + record.title : '未阅读'}}</text>
 			</view>
 			<view class="new-btn btn" @tap="startRead">
 				<text class="btn-text new-btn-text">开始阅读</text>
@@ -62,20 +62,17 @@
 				let index =  page.options.index;
 				return this.bookList[index];
 			},
+			record () {
+				return this.comicInfo.record;
+			},
 			//上次阅读章节
 			readed () {
-				let index = this.comicInfo.record.split('-')[0];
+				let index = this.record.chapter;
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				if ( this.sortType == 'reverse' ) {
 					arr.reverse();
 				}
-				return arr[index];
-			},
-			cNum () {
-				return parseInt(this.comicInfo.record.split('-')[0]);
-			},
-			pNum () {
-				return parseInt(this.comicInfo.record.split('-')[1]);
+				return index > -1 ? arr[index] : false;
 			}
 		},
 		onReady () {
@@ -87,6 +84,7 @@
 					href: this.comicInfo.path
 				})
 			}
+			console.log(this.record);
 		},
 		methods: {
 			//获取漫画详情信息
@@ -137,13 +135,25 @@
 				let nums = this.sortType == 'reverse' ? arr.reverse() : arr;
 				this.readComic(nums[0].path);
 			},
+			//从上次位置开始阅读
+			readRecord () {
+				if ( this.readed ) {
+					this.readComic(this.readed.path);
+				} else {
+					this.startRead();
+				}
+			},
 			//阅读漫画
 			readComic (path) {
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				let nums = this.sortType == 'reverse' ? JSON.stringify(arr.reverse()) : JSON.stringify(arr);
 				let readIndex = getApp().globalData.$utils.indexOf(arr, 'path', path);
 				//更新阅读章节记录
-				let record = readIndex + '-' + (this.cNum == readIndex ? this.pNum : 0);
+				let record = {
+					chapter: readIndex,
+					position: this.record.chapter == readIndex ? this.record.position : 0,
+					title: arr[readIndex].name
+				}
 				this.updateBookInfo({
 					path: this.comicInfo.path,
 					record: record

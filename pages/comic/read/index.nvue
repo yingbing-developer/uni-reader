@@ -37,7 +37,7 @@
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
-	import { TIMEOUT } from '@/common/js/config.js'
+	import { TIMEOUT } from '@/assets/js/config.js'
 	import ComicSetting from '../setting/index.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import ComicImage from '@/components/comic-image/comic-image.nvue'
@@ -74,13 +74,11 @@
 			},
 			//阅读章节记录
 			chapter () {
-				let chapter = parseFloat(this.comicInfo.record.split('-')[0]);
-				return chapter;
+				return parseFloat(this.comicInfo.record.chapter);
 			},
 			//上次阅读到章节第几张图
 			pNum () {
-				let chapter = parseFloat(this.comicInfo.record.split('-')[0]);
-				return chapter == this.readIndex ? parseFloat(this.comicInfo.record.split('-')[1]) : 0;
+				return this.chapter == this.readIndex ? parseFloat(this.comicInfo.record.position) : 0;
 			},
 			//屏幕方向
 			comicOrien () {
@@ -413,10 +411,10 @@
 			},
 			//更新章节
 			upChapter (chapter) {
-				let record = chapter + '-0';
 				this.updateBookInfo({
-					path: this.comicInfo.path,
-					record: record
+					chapter: chapter,
+					position: 0,
+					title: this.chapters[chapter].name
 				})
 			},
 			//获取屏幕宽度
@@ -437,7 +435,11 @@
 				//退出前更新本章节的阅读位置
 				this.updateBookInfo({
 					path: this.comicInfo.path,
-					record: this.chapter + '-' + this.nowIndex
+					record: {
+						chapter: this.chapter,
+						position: this.nowIndex,
+						title: this.chapters[this.chapter].name
+					}
 				})
 				//退出前判断有没有读完漫画
 				if ( this.nextShow ) {

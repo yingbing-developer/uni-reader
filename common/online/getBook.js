@@ -1,8 +1,9 @@
-import http from '@/common/request'
-import { BOOKURL, ERR_OK, ERR_FALSE } from '@/common/js/config.js'
-import HTMLParser from '@/common/js/html-parse.js'
-import gb2312 from '@/common/js/gb2312.js'
+import http from '@/plugins/request/index.js'
+import { BOOKURL, ERR_OK, ERR_FALSE } from '@/assets/js/config.js'
+import HTMLParser from '@/assets/js/html-parse.js'
+import gb2312 from '@/assets/js/gb2312.js'
 import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
+
 
 const tag1 = 'baoshuu';
 
@@ -96,17 +97,48 @@ function getBaoshuu (data) {
 	})
 }
 
-//获取手机宝书网站的小说详情信息
+//获取手机宝书网站的小说信息
 function getBaoshuuInfo (href) {
+	return new Promise(async(resolve, reject) => {
+		let data = await getBaoshuuDetails(href);
+		data.chapters = await getBaoshuuChapters(data.href);
+		resolve({
+			code: ERR_OK,
+			data: {
+				data: data,
+				source: tag1
+			}
+		})
+	}).catch(() => {
+		reject({
+			code: ERR_FALSE,
+			data: {
+				data: {},
+				source: tag1
+			}
+		})
+	})
+}
+
+//获取手机宝书网站的小说详情
+function getBaoshuuDetails (href) {
 	return new Promise((resolve, reject) => {
 		getApp().globalData.$dom.xhr({
 			type: 'GET',
 			url: href
 		}).then((res) => {
 			if ( res.code == 200 ) {
+				uni.showLoading({
+					title: '解析中',
+					mask: true
+				})
 				let str = replaceStr(res.data);//解析html字符
 				let subtilte = str.match(/<div[^>]*class=([""]?)mlist\1[^>]*>*([\s\S]*?)<\/div>/);
 				let name = subtilte[0].match(/<h1[^\s]>*([\s\S]*?)<\/h1>/);//正则匹配小说详情信息
+				let mlist = str.match(/<div[^>]*class=([""]?)mlist\1[^>]*>*([\s\S]*?)<\/a>/);
+				let image = mlist[0].match(/<img[^>]*>/ig);//正则匹配小说详情信息
+				let imageObj = image ? HTMLParser(image[0])[0] : '';//将html字符串转化为html数组
+				let cover = imageObj ? (BOOKURL[tag1].href + imageObj.attrs.src) : '';
 				let li = subtilte[0].match(/<li[^\s]>*([\s\S]*?)<\/a>/ig);//正则匹配小说详情信息
 				let author = li[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/);
 				let content = str.match(/<div[^>]*class=([""]?)conten\1[^>]*>*([\s\S]*?)<\/div>/);
@@ -116,31 +148,19 @@ function getBaoshuuInfo (href) {
 				desc = desc.replace('<span style="color: #ff0000">', '');
 				desc = desc.replace('</span>', '\n');
 				desc = desc.replace(/<br\/>/ig, '\n');
+				let lastIndex = readUrlObj.attrs.href.lastIndexOf('/');
+				let allLength = readUrlObj.attrs.href.length;
 				let data = {
 					name: name[1],
 					author: author[1],
+					cover: cover,
 					desc: desc,
+					href: BOOKURL[tag1].href + readUrlObj.attrs.href.substr(0, lastIndex + 1) + gb2312(readUrlObj.attrs.href.substring(lastIndex + 1, allLength)),
 					chapters: []
 				}
-				setTimeout(() => {
-					getBaoshuuChapters(BOOKURL[tag1].href + readUrlObj.attrs.href).then((res) => {
-						console.log(res);
-						resolve({
-							code: ERR_OK,
-							data: data
-						})
-					}).catch((err) => {
-						resolve({
-							code: ERR_OK,
-							data: data
-						})
-					})
-				}, 200)
+				resolve(data)
 			} else {
-				reject({
-					code: ERR_FALSE,
-					data: {}
-				})
+				resolve({})
 			}
 		})
 	})
@@ -148,25 +168,36 @@ function getBaoshuuInfo (href) {
 
 //获取手机宝书网站的小说章节
 function getBaoshuuChapters (href) {
-	console.log(href);
 	return new Promise((resolve, reject) => {
 		getApp().globalData.$dom.xhr({
 			type: 'GET',
 			url: href,
 			options: {
 				headers: {
-					'Content-Type': 'text/html; charset=GB2312'
+					Charset: 'gb2312'//自定义字符格式
 				}
 			}
 		}).then((res) => {
 			if ( res.code == 200 ) {
 				let str = replaceStr(res.data);//解析html字符
-				console.log(str);
-				let div = str.match(/<div[^>]*id=([""]?)gobottom\1[^>]*>*([\s\S]*?)<\/div>/);
-				console.log(div);
-				resolve([])
+				let bottom = str.match(/<div[^>]*id=([""]?)gobottom\1[^>]*>*([\s\S]*?)<br\/>/);
+				let div = bottom[0].match(/<div[^>]*>*([\s\S]*?)<\/div>/ig);
+				let divObj = HTMLParser(div[div.length - 1])[0];//将html字符串转化为html数组
+				let divStr = divObj.children[0].text;
+				let lastChapter = divStr.split('/')[1].replace('页', '');
+				let chapters = [];
+				for ( let i = 0; i <= lastChapter; i++ ) {
+					chapters.push({
+						title: '第' + (i + 1) + '页',
+						value: i + 1,
+						path: href + '&yeshu=' + i,
+						isEnd: i == lastChapter
+					})
+				}
+				chapters.reverse();
+				resolve(chapters)
 			} else {
-				reject([])
+				resolve([])
 			}
 		})
 	})

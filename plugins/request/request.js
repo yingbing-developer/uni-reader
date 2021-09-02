@@ -1,4 +1,4 @@
-import { TIMEOUT } from '../js/config.js'
+import { TIMEOUT } from '@/assets/js/config.js'
 
 
 //request封装

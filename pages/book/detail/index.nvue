@@ -5,36 +5,56 @@
 			<c-image class="book-img" :src="bookInfo.image" mode="aspectFill"></c-image>
 			<view class="book-info-right">
 				<text class="book-name" :style="{'color': skinColor.titleColor}">{{bookInfo.name}}</text>
-				<text class="book-intro-title" :style="{'color': skinColor.menuTitleColor}">{{bookInfo.source == 'local' ? '佚名' : author}}</text>
+				<text class="book-intro-title" :style="{'color': skinColor.menuTitleColor}">作者：{{bookInfo.source == 'local' ? '佚名' : author}}</text>
 				<view class="book-intro">
 					<text class="book-intro-title" :style="{'color': skinColor.titleColor}">内容简介</text>
-					<text class="book-intro-text" :style="{'color': skinColor.menuTitleColor}">{{bookInfo.source == 'local' ? '暂无介绍' : intro}}</text>
+					<text class="book-intro-text" :style="{'color': skinColor.menuTitleColor}">{{bookInfo.source == 'local' ? '暂无介绍' : desc}}</text>
 				</view>
 			</view>
 		</view>
 		<view class="btns">
-			<view class="old-btn btn" @tap="readComic(readed.path)">
-				<text class="btn-text" :style="{'color': skinColor.bgColor}">上次读到 {{readed ? readed.name : cNum}} 第{{pNum + 1}}P</text>
+			<view class="old-btn btn" @tap="readRecord">
+				<text class="btn-text" :style="{'color': skinColor.bgColor}">{{readed ? '上次读到 ' + record.title : '未阅读'}}</text>
 			</view>
 			<view class="new-btn btn" @tap="startRead">
 				<text class="btn-text new-btn-text">开始阅读</text>
 			</view>
 		</view>
 		
-		<view class="catalog-line">
-			<text class="catalog-title" :style="{'color': skinColor.titleColor}">小说章节</text>
-			<text class="sort-title" @tap="changeSortType">{{sortType == 'reverse' ? '倒序' : '正序'}}</text>
+		<view class="tabs">
+			<view class="tab" @tap="tabIndex = 0">
+				<text class="tab-text" :class="{'tab-actived': tabIndex == 0}" :style="{'color': tabIndex == 0 ? '#21C088' : skinColor.titleColor}">简介</text>
+			</view>
+			<view class="tab" @tap="tabIndex = 1">
+				<text class="tab-text" :class="{'tab-actived': tabIndex == 1}" :style="{'color': tabIndex == 1 ? '#21C088' : skinColor.titleColor}">章节</text>
+			</view>
 		</view>
-		
-		<!-- 漫画列表 -->
-		<list-scroll :column-width="130" :line-height="80" :list="catalog" :bounce="false">
-			<no-data slot="fixed" v-if="catalog.length <= 0" title="貌似没有章节哦"></no-data>
-			<template v-slot="{item}">
-				<view class="catalog-block" :style="{'background-color': item.path == readed.path ? skinColor.gapColor : '', 'border-color': skinColor.gapColor}" @tap="readComic(item.path)">
-					<text class="catalog-text" :style="{'color': skinColor.menuTitleColor}">{{item.name}}</text>
+		<swiper class="swiper" :duration="500" :current="tabIndex" @change="currentChange" >
+			<swiper-item>
+				<scroll-view scroll-y class="book-desc">
+					<text class="book-desc-text" :style="{'color': skinColor.menuTitleColor, 'border-color': skinColor.gapColor, 'background-color': skinColor.gapColor}">{{bookInfo.source == 'local' ? '暂无介绍' : desc}}</text>
+				</scroll-view>
+			</swiper-item>
+			<swiper-item>
+				<view class="catalog-line">
+					<text class="catalog-title" :style="{'color': skinColor.titleColor}">小说章节</text>
+					<text class="sort-title" @tap="changeSortType">{{sortType == 'reverse' ? '倒序' : '正序'}}</text>
 				</view>
-			</template>
-		</list-scroll>
+				<!-- 章节列表 -->
+				<list-scroll :line-height="110" :list="catalog" :bounce="false" v-if="showList">
+					<no-data slot="fixed" v-if="catalog.length <= 0" title="貌似没有章节哦"></no-data>
+					<template v-slot="{item}">
+						<view class="catalog-list">
+							<view class="catalog-block" :class="skinColor.activedName" :style="{'background-color': item.path == readed.path ? skinColor.gapColor : '', 'border-color': skinColor.gapColor}" @tap="readComic(item.path)">
+								<text class="catalog-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
+								<text class="readed-text color-red" v-if="item.path == readed.path">阅读中</text>
+							</view>
+						</view>
+					</template>
+				</list-scroll>
+			</swiper-item>
+		</swiper>
+		
 	</view>
 </template>
 
@@ -50,32 +70,31 @@
 			return {
 				catalog: [],
 				author: '',
-				intro: '',
+				desc: '',
+				tabIndex: 0,
+				showList: false,
 				sortType: 'reverse'
 			}
 		},
 		computed: {
-			//漫画信息
+			//书籍信息
 			bookInfo () {
 				const pages = getCurrentPages();
 				const page = pages[pages.length - 1];
 				let index =  page.options.index;
 				return this.bookList[index];
 			},
+			record () {
+				return this.bookInfo.record;
+			},
 			//上次阅读章节
 			readed () {
-				let index = this.bookInfo.record.split('-')[0];
+				let index = this.record.chapter;
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				if ( this.sortType == 'reverse' ) {
 					arr.reverse();
 				}
-				return arr[index];
-			},
-			cNum () {
-				return parseInt(this.bookInfo.record.split('-')[0]);
-			},
-			pNum () {
-				return parseInt(this.bookInfo.record.split('-')[1]);
+				return index > -1 ? arr[index] : false;
 			}
 		},
 		onReady () {
@@ -90,36 +109,34 @@
 			}
 		},
 		methods: {
-			//获取漫画详情信息
-			getDetail (data) {
+			//获取小说详情信息
+			getDetail (obj) {
 				uni.showLoading({
 					title: '解析中',
 					mask: true
 				})
-				getBookInfo(data).then((res) => {
+				getBookInfo(obj).then((res) => {
 					uni.hideLoading();
-					// if ( res[0].code == 200 ) {
-					// 	let data = res[0].data;
-					// 	this.author = data.author;
-					// 	this.intro = data.intro;
-					// 	//如果名字发生更改，则更新本地记录的名称
-					// 	if ( data.name != this.bookInfo.name ) {
-					// 		this.updateBookName({
-					// 			path: this.bookInfo.path,
-					// 			name: data.name
-					// 		})
-					// 	}
-					// }
-					// if ( res[1].code == 200 ) {
-					// 	//如果章节有更新，更新本地漫画章节数量
-					// 	if ( this.catalog.length != res[1].data.length && res[1].data ) {
-					// 		this.updateBookLength({
-					// 			path: this.bookInfo.path,
-					// 			length: res[1].data.length || 0
-					// 		})
-					// 	}
-					// 	this.catalog = res[1].data;
-					// }
+					if ( res.code == 200 ) {
+						let data = res.data.data;
+						this.author = data.author;
+						this.desc = data.desc;
+						//如果名字发生更改，则更新本地记录的名称
+						if ( data.name != this.bookInfo.name ) {
+							this.updateBookInfo({
+								path: this.bookInfo.path,
+								name: data.name
+							})
+						}
+						//如果图片更改，则更新本地记录的图片
+						if ( data.cover != this.bookInfo.image && data.cover ) {
+							this.updateBookInfo({
+								path: this.bookInfo.path,
+								image: data.cover
+							})
+						}
+						this.catalog = data.chapters;
+					}
 				}).catch((err) => {
 					uni.showToast({
 						title: '解析失败',
@@ -130,25 +147,35 @@
 			//开始阅读
 			startRead () {
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
-				let nums = this.sortType == 'reverse' ? arr.reverse() : arr;
-				this.readComic(nums[0].path);
+				let chapters = this.sortType == 'reverse' ? arr.reverse() : arr;
+				this.readBook(chapters[0].path);
 			},
-			//阅读漫画
-			readComic (path) {
+			//从上次位置开始阅读
+			readRecord () {
+				if ( this.readed ) {
+					this.readBook(this.readed.path);
+				} else {
+					this.startRead();
+				}
+			},
+			//阅读
+			readBook (path) {
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				let nums = this.sortType == 'reverse' ? JSON.stringify(arr.reverse()) : JSON.stringify(arr);
 				let readIndex = getApp().globalData.$utils.indexOf(arr, 'path', path);
 				//更新阅读章节记录
-				let record = readIndex + '-' + (this.cNum == readIndex ? this.pNum : 0);
-				this.updateBookRecord({
+				let record = {
+					chapter: readIndex,
+					position: this.record.chapter == readIndex ? this.record.position : 0,
+					title: arr[readIndex].title
+				}
+				this.updateBookInfo({
 					path: this.bookInfo.path,
 					record: record
 				})
 				let index = getApp().globalData.$utils.indexOf(this.bookList, 'path', this.bookInfo.path);
-				//更新阅读时间
-				this.updateBookReadTime(this.bookInfo.path);
 				getApp().globalData.$Router.push({
-					path: '/pages/comic/read/index',
+					path: '/pages/book/read/index',
 					query: {
 						index: index,
 						nums: encodeURIComponent(nums),
@@ -156,46 +183,16 @@
 					}
 				});
 			},
-			//获取本地漫画章节
-			getLocalComicCatalog () {
-				let fd = plus.android.newObject("java.io.File", this.bookInfo.path);
-				let list = plus.android.invoke(fd, "listFiles");
-				let length = 0;
-				let len = list.length;
-				for ( let i = 0; i < len; i++ ) {
-					if ( plus.android.invoke(list[i], "isDirectory") ) {
-						length += 1;
-						this.catalog.push({
-							path: plus.android.invoke(list[i], "getPath"),
-							name: plus.android.invoke(list[i], "getName")
-						})
-					}
-				}
-				if ( list.length > 0 && this.catalog.length == 0 ) {
-					this.catalog.push({
-						path: plus.android.invoke(fd, "getPath"),
-						name: '全本'
-					})
-				}
-				this.catalog.reverse();
-				//名称有改变则更新本地记录
-				let comicName = plus.android.invoke(fd, "getName");
-				if ( comicName != this.bookInfo.name ) {
-					this.updateBookName({
-						path: this.bookInfo.path,
-						name: comicName
-					})
-				}
-				//更新本地章节数量
-				this.updateBookLength({
-					path: this.bookInfo.path,
-					length: length == 0 && list.length > 0 ? 1 : length
-				})
-			},
 			//改变排序方式
 			changeSortType () {
 				this.sortType = this.sortType == 'reverse' ? 'positive' : 'reverse';
 				this.catalog.reverse();
+			},
+			currentChange (e) {
+				this.tabIndex = e.detail.current;
+				if ( this.tabIndex == 1 && !this.showList ) {
+					this.showList = true;
+				}
 			}
 		},
 		components: {
@@ -269,6 +266,32 @@
 		margin-right: 10rpx;
 		background-color: #21C088;
 	}
+	.tabs {
+		flex-direction: row;
+		padding: 20rpx;
+	}
+	.tab {
+		margin-right: 30rpx;
+	}
+	.tab-text {
+		text-align: center;
+		font-size: 32rpx;
+	}
+	.tab-actived {
+		text-decoration: underline;
+	}
+	.swiper {
+		flex: 1;
+	}
+	.book-desc {
+		padding: 20rpx;
+		flex: 1;
+	}
+	.book-desc-text {
+		padding: 20rpx;
+		font-size: 28rpx;
+		border: 1px solid;
+	}
 	.catalog-line {
 		padding: 20rpx 20rpx;
 		flex-direction: row;
@@ -283,17 +306,27 @@
 		color: #DD524D;
 		font-size: 28rpx;
 	}
+	.catalog-list {
+		height: 110rpx;
+		justify-content: center;
+	}
 	.catalog-block {
-		width: 130rpx;
+		margin: 0 30rpx;
+		padding: 20rpx;
 		height: 80rpx;
 		border-width: 1px;
 		border-radius: 5rpx;
-		justify-content: center;
+		flex-direction: row;
+		justify-content: space-between;
 		align-items: center;
 	}
 	.catalog-text {
 		font-size: 24rpx;
 		lines: 1;
 		text-overflow: ellipsis;
+		flex: 1;
+	}
+	.readed-text {
+		font-size: 24rpx;
 	}
 </style>

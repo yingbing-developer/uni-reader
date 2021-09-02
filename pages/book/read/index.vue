@@ -47,7 +47,7 @@
 			},
 			//阅读位置
 			record () {
-				return parseInt(this.bookInfo.record.split('-')[1]);
+				return this.bookInfo.record;
 			},
 			//文件路径
 			path () {
@@ -107,12 +107,18 @@
 			uni.getSystemInfo({
 				success: (res) => {//根据状态栏高度, 进行导航栏顶部适配
 					this.barHeight = res.statusBarHeight + 4;
-					this.getContent();
+					if ( this.bookInfo.source == 'local' ) {
+						this.getLocalContent();
+					} else {
+						this.catalog = JSON.parse(decodeURIComponent(this.$Route.query.nums));
+						this.getOnlineContent(this.catalog[this.record.chapter].path);
+					}
 				}
 			})
 		},
 		methods: {
-			getContent () {
+			//获取本地小说内容
+			getLocalContent () {
 				//获取内容 正式用
 				let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
 				let readTxt = new ReadTxt();
@@ -160,7 +166,20 @@
 				// 		console.log( "Request file system failed: " + fail.message );
 				// 	});
 				// }
-				
+			},
+			//获取在线小说内容
+			getOnlineContent (href) {
+				return new Promise((resolve, reject) => {
+					this.$dom.xhr({
+						type: 'GET',
+						url: href
+					}).then((res) => {
+						console.log(res);
+						if ( res.code == 200 ) {
+							console.log(res)
+						}
+					})
+				})
 			},
 			//获取章节目录
 			setCatalog (e) {

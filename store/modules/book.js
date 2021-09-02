@@ -1,4 +1,4 @@
-import Utils from '@/common/js/util.js';
+import Utils from '@/assets/js/util.js';
 const { indexOf, suffix, dateFormat, removeSuffix, randomString } = Utils;
 
 import {
@@ -54,19 +54,21 @@ const mutations = {
 		for ( let i in books ) {
 			let time = new Date().getTime();
 			state.books.push({
-				name: removeSuffix(books[i].name),
-				image: books[i].image ? books[i].image : '/static/cover/cover_' + Math.floor(Math.random()*6 + 1) + '.png',
-				creatime: time,
-				time: dateFormat(time).split(' ')[0],
-				path: books[i].path,
-				length: books[i].length || 0,
-				record: '0-0',
-				lastReadTime: time,
-				isReaded: false,
-				//书籍类型 默认小说story
-				type: books[i].type || 'story',
-				//来源 网络或者本地
-				source: books[i].source || 'local'
+				name: removeSuffix(books[i].name),//书籍名称
+				image: books[i].image ? books[i].image : '/static/cover/cover_' + Math.floor(Math.random()*6 + 1) + '.png',//书籍封面
+				creatime: time,//书籍创建时间
+				time: dateFormat(time).split(' ')[0],//书籍创建时间格式化
+				path: books[i].path,//书籍路径
+				length: books[i].length || 0,//书籍文本长度
+				record: {
+					chapter: -1,//阅读章节序号
+					title: '',//阅读章节名称
+					position: 0//阅读章节定位
+				},//书籍阅读记录
+				lastReadTime: time,//最后阅读时间
+				isReaded: false,//是否读完
+				type: books[i].type || 'story',	//书籍类型 story小说 / comic漫画
+				source: books[i].source || 'local'//来源 网络或者本地
 			})
 		}
 		uni.setStorageSync(BOOKS, state.books);
@@ -94,6 +96,7 @@ const mutations = {
 		state.books[index].name = bookInfo.name || state.books[index].name;
 		state.books[index].image = bookInfo.image || state.books[index].image;
 		state.books[index].length = bookInfo.length || state.books[index].length;
+		state.books[index].chapter = bookInfo.chapter || state.books[index].chapter;
 		state.books[index].record = bookInfo.record || state.books[index].record;
 		state.books[index].lastReadTime = bookInfo.lastReadTime || state.books[index].lastReadTime;
 		state.books[index].isReaded = bookInfo.isReaded || state.books[index].isReaded;

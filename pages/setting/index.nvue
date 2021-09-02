@@ -57,7 +57,7 @@
 	import { skinMixin } from '@/common/mixin/index.js'
 	import musicMixin from '@/common/mixin/music.js'
 	import bookMixin from '@/common/mixin/book.js'
-	import { COMICURL, MUSICURL } from '@/common/js/config.js'
+	import { COMICURL, MUSICURL } from '@/assets/js/config.js'
 	import CSwitch from '@/components/c-switch/c-switch.nvue'
 	export default {
 		mixins:[skinMixin, bookMixin, musicMixin],

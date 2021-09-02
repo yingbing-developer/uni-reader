@@ -68,7 +68,7 @@
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
-	import { COMICURL } from '@/common/js/config.js'
+	import { COMICURL } from '@/assets/js/config.js'
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin, bookMixin],

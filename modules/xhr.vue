@@ -22,12 +22,19 @@
 			}
 		},
 		onLoad (data) {
-			this.xhrs = data.xhrs ? JSON.parse(decodeURIComponent(data.xhrs)) : {};
+			this.xhrs = data.xhrs ? JSON.parse(data.xhrs) : {};
 		},
 		methods: {
 			finish (e) {
 				uni.$emit('xhr-btn', e)
 			}
+		},
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.finish({code: 402, data: '', delta: 2});
+				return true
+			}
+			return false
 		}
 	}
 </script>
@@ -64,10 +71,10 @@
 			},
 			httpRequest ( data = {} ) {
 				return new Promise((resolve) => {
-					const http = new XMLHttpRequest();
+					let http = new XMLHttpRequest();
 					const headers = data.options?.headers || '';
 					const params = data.options?.params || '';
-					const formData = new FormData();
+					let formData = new FormData();
 					http.addEventListener('load', (e) => {
 						if ( http.status == 200 ) {
 							const args = {code: http.status, data: http.response}
@@ -76,14 +83,20 @@
 							const args = {code: http.status, data: ''}
 							resolve(args);
 						}
+						http.abort();
+						http = '';
 					});
 					http.addEventListener('error', (e) => {
-						const args = {code: http.status || 400, data: ''}
+						const args = {code: 400, data: ''};
 						resolve(args);
+						http.abort();
+						http = '';
 					});
 					http.addEventListener('timeout', (e) => {
-						const args = {code: http.status || 401, data: ''}
+						const args = {code: 401, data: ''}
 						resolve(args);
+						http.abort();
+						http = '';
 					});
 					http.open(data.type || 'GET', data.url);
 					if ( headers ) {
@@ -98,18 +111,21 @@
 					}
 					http.send(formData);
 				})
-				
 			},
 			resolve (args) {
 				// #ifndef H5
-				UniViewJSBridge.publishHandler('onWxsInvokeCallMethod', {
-					cid: this._$id,
-					method: 'finish',
-					args: args
-				})
+				setTimeout(() => {
+					UniViewJSBridge.publishHandler('onWxsInvokeCallMethod', {
+						cid: this._$id,
+						method: 'finish',
+						args: args
+					})
+				}, 1000)
 				// #endif
 				// #ifdef H5
-				this.finish(args);
+				setTimeout(() => {
+					this.finish(args);
+				}, 1000)
 				// #endif
 			},
 			bookInfoChange () {}

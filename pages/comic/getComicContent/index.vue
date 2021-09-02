@@ -4,7 +4,7 @@
 </template>
 
 <script>
-	import { COMICURL } from '@/common/js/config.js'
+	import { COMICURL } from '@/assets/js/config.js'
 	let bgBox = null;
 	let wv = null;
 	export default {
