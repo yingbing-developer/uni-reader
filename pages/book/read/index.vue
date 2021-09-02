@@ -10,7 +10,7 @@
 		:slide="40"
 		:top-gap="barHeight"
 		:bottom-gap="barHeight"
-		no-chapter
+		:no-chapter="bookInfo.source == 'local'"
 		@currentChange="savePageRecord"
 		@setCatalog="setCatalog">
 		</yingbing-ReadPage>
@@ -19,12 +19,14 @@
 		<view class="touch-box touch-menu" @tap="openSettingNvue" @longpress="openEditNvue">
 			菜单
 		</view>
+		<get-content v-for="(item, index) in xhrs" :key="index" :data="xhrs"></get-content>
 	</view>
 </template>
 
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
+	import GetContent from './geContent/index.vue';
 	export default {
 		mixins: [skinMixin, bookMixin],
 		data () {
@@ -34,7 +36,8 @@
 				//目录
 				catalog: [],
 				currentPage: '',
-				barHeight: 0
+				barHeight: 0,
+				xhrs: []
 			}
 		},
 		computed: {
@@ -174,9 +177,9 @@
 						type: 'GET',
 						url: href
 					}).then((res) => {
-						console.log(res);
 						if ( res.code == 200 ) {
-							console.log(res)
+							let str = res.data;
+							
 						}
 					})
 				})
@@ -285,6 +288,9 @@
 				}
 				uni.hideLoading();
 			}
+		},
+		components: {
+			GetContent
 		},
 		beforeDestroy () {
 			//注销监听页面监听
