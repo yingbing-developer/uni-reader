@@ -136,7 +136,7 @@
 					}
 				})
 				return arr.sort((a, b) => {
-					return b.lastReadTime - a.lastReadTime;
+					return parseInt(b.lastReadTime) - parseInt(a.lastReadTime);
 				});
 			}
 		},

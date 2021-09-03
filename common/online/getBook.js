@@ -1,21 +1,13 @@
 import http from '@/plugins/request/index.js'
+import Utils from '@/assets/js/util.js'
 import { BOOKURL, ERR_OK, ERR_FALSE } from '@/assets/js/config.js'
 import HTMLParser from '@/assets/js/html-parse.js'
 import gb2312 from '@/assets/js/gb2312.js'
 import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
 
+const { replaceStr } = Utils;
 
 const tag1 = 'baoshuu';
-
-function replaceStr (data) {
-	let str = JSON.stringify(data);//将html转化为字符
-	str = str.replace(/\\n/g,'');//去除\n
-	str = str.replace(/\\r/g,'');//去除\r
-	str = str.replace(/\\t/g,'');//去除\t
-	str = str.replace(/&nbsp;/g,'');//去除&nbsp;
-	str = str.replace(/\\/g,'');//去除掉无关的斜杠
-	return str;
-}
 
 
 //获取小说列表
@@ -189,8 +181,9 @@ function getBaoshuuChapters (href) {
 				for ( let i = 0; i <= lastChapter; i++ ) {
 					chapters.push({
 						title: '第' + (i + 1) + '页',
-						value: i + 1,
+						chapter: i + 1,
 						path: href + '&yeshu=' + i,
+						source: tag1,
 						isEnd: i == lastChapter
 					})
 				}

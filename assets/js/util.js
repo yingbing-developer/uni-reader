@@ -145,6 +145,19 @@ export default {
 		}
 		return arr;
 	},
+	/**
+	 * 去除html字符串的无关内容
+	 * @param {Number} html html字符串
+	*/
+	replaceStr (html) {
+		let str = JSON.stringify(html);//将html转化为字符
+		str = str.replace(/\\n/g,'');//去除\n
+		str = str.replace(/\\r/g,'');//去除\r
+		str = str.replace(/\\t/g,'');//去除\t
+		str = str.replace(/&nbsp;/g,'');//去除&nbsp;
+		str = str.replace(/\\/g,'');//去除掉无关的斜杠
+		return str;
+	},
 	
 	
 	// 深度克隆

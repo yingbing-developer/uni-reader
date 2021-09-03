@@ -247,6 +247,8 @@
 					() => {
 						this.preLoading = false;
 					});
+				} else {
+					this.preLoading = false;
 				}
 			},
 			//抛出阅读页面改变事件
@@ -322,15 +324,18 @@
 						let chapter = parseInt(scrollItems[i].getAttribute('chapter'));
 						let start = parseInt(scrollItems[i].getAttribute('start'));
 						let end = parseInt(scrollItems[i].getAttribute('end'));
+						let isChapterEnd = parseInt(scrollItems[i].getAttribute('isChapterEnd'));
 						if ( this.currentInfo.chapter != chapter || this.currentInfo.start != start ) {
 							this.currentInfo.chapter = chapter;
 							this.currentInfo.start = start;
 							this.currentInfo.end = end;
+							this.currentInfo.isChapterEnd = isChapterEnd;
 							this.triggerCurrentChange(this.currentInfo)
 						} else {
 							this.currentInfo.chapter = chapter;
 							this.currentInfo.start = start;
 							this.currentInfo.end = end;
+							this.currentInfo.isChapterEnd = isChapterEnd;
 						}
 					}
 				}
@@ -416,7 +421,7 @@
 						// context.fillStyle = this.pageProp.bgColor;
 						// context.fillRect(0,0,this.viewWidth,this.viewHeight);
 						//设置阅读位置前面的页面变成已经翻页的状态
-						if ( pages[i].chapter < this.currentInfo.chapter || (pages[i].chapter == this.currentInfo.chapter && this.currentInfo.start > pages[i].end) ) {
+						if ( pages[i].chapter < this.currentInfo.chapter || (pages[i].chapter == this.currentInfo.chapter && this.currentInfo.start > pages[i].end - 1) ) {
 							this.pageAnimation(-this.viewWidth, 0, el);
 						}
 						for ( let j = 0; j < pages[i].text.length; j++ ) {
@@ -428,6 +433,7 @@
 					}
 					this.resetProp();
 					if ( type == 'init' ) {
+						this.currentInfo.isChapterEnd = false;
 						if ( this.currentInfo.chapter > 1 ) {
 							if ( this.currentInfo.chapter == parent.firstChild.getAttribute('chapter') && this.currentInfo.start >= parent.firstChild.getAttribute('start') && this.currentInfo.start <= parent.firstChild.getAttribute('end') ) {
 								let args = {'chapter': this.currentInfo.chapter, 'isTop': true};
@@ -435,9 +441,11 @@
 							}
 							if ( this.currentInfo.chapter == parent.lastChild.getAttribute('chapter') && this.currentInfo.start >= parent.lastChild.getAttribute('start') && this.currentInfo.start <= parent.lastChild.getAttribute('end') ) {
 								let args = {'chapter': this.currentInfo.chapter, 'isBottom': true};
+								this.currentInfo.isChapterEnd = true;
 								this.scrollToLower(args);
 							}
 						}
+						this.triggerCurrentChange(this.currentInfo)
 						this.preloadContent(this.currentInfo.chapter);
 					} else {
 						let pageItems = parent.getElementsByClassName('page-item');
@@ -517,7 +525,7 @@
 				pageItem.style.top = 0;
 				pageItem.style.left = 0;
 				pageItem.style.zIndex = -(info.chapter * 100000 + i);
-				if ( this.currentInfo.start >= info.start && this.currentInfo.start <= info.end && this.currentInfo.chapter == info.chapter ) {
+				if ( this.currentInfo.start >= info.start && this.currentInfo.start < info.end && this.currentInfo.chapter == info.chapter ) {
 					pageItem.setAttribute('class', 'page-item page-item-actived page-item-chapter__' + (info.chapter + info.start));
 				} else {
 					pageItem.setAttribute('class', 'page-item page-item-chapter__' + (info.chapter + info.start));
@@ -525,6 +533,7 @@
 				pageItem.setAttribute('chapter', info.chapter);
 				pageItem.setAttribute('start', info.start);
 				pageItem.setAttribute('end', info.end);
+				pageItem.setAttribute('isChapterEnd', info.isChapterEnd);
 				// let canvas = document.createElement('canvas');
 				// canvas.width = this.viewWidth;
 				// canvas.height = this.viewHeight;
@@ -599,6 +608,7 @@
 				divDom.setAttribute('chapter', info.chapter);
 				divDom.setAttribute('start', info.start);
 				divDom.setAttribute('end', info.end);
+				divDom.setAttribute('isChapterEnd', info.isChapterEnd);
 				el.appendChild(divDom);
 				return document.getElementsByClassName('scroll-chapter__' + info.chapter)[value]
 			},
@@ -758,6 +768,7 @@
 				this.currentInfo.chapter = boxs[index + value].getAttribute('chapter');
 				this.currentInfo.start = boxs[index + value].getAttribute('start');
 				this.currentInfo.end = boxs[index + value].getAttribute('end');
+				this.currentInfo.isChapterEnd = boxs[index + value].getAttribute('isChapterEnd');
 				this.triggerCurrentChange(this.currentInfo);
 				if ( value < 0 && this.currentInfo.start == 0 && !boxs[index + value - 1] ) {
 					let args = {'chapter': this.currentInfo.chapter, 'isTop': true};

@@ -6,10 +6,10 @@
 		<view class="read-top" ref="readTop" @touchmove.stop.prevent="">
 			<nav-bar :title="bookInfo.name" bgColor="#333333" titleColor="#EFEFEF">
 				<view class="nav-right" slot="right">
-					<view class="nr-item" @tap="openEditNvue">
+					<view class="nr-item" @tap="openEditNvue" v-if="bookInfo.source == 'local'">
 						<c-icon name="edit" :size="42" color="#EFEFEF"></c-icon>
 					</view>
-					<view class="nr-item" @tap="addBookmark">
+					<view class="nr-item" @tap="addBookmark" v-if="bookInfo.source == 'local'">
 						<c-icon name="bookmark" :size="42" color="#EFEFEF"></c-icon>
 					</view>
 				</view>
@@ -19,7 +19,7 @@
 		<!-- 底部设置 -->
 		<view class="read-board" ref="readBottom" @touchmove.stop.prevent="">
 			<!-- 阅读进度 -->
-			<view class="percent">
+			<view class="percent" v-if="bookInfo.source == 'local'">
 				<view class="percent-box">
 					<text class="percent-text">{{progress}}%</text>
 				</view>
@@ -31,7 +31,7 @@
 			<view class="readBoardContent">
 				
 				<!-- 阅读进度 -->
-				<view class="read-board-line">
+				<view class="read-board-line" v-if="bookInfo.source == 'local'">
 					<view class="progress-btn progress-prev">
 						<view @tap="prevPages">
 							<c-icon name="arrow-left" :size="45" color="#EFEFEF"></c-icon>
@@ -144,7 +144,7 @@
 			},
 			//阅读位置
 			record () {
-				return parseInt(this.bookInfo.record.split('-')[1]);
+				return this.bookInfo.record;
 			},
 			pageIndex () {
 				return this.bookInfo.pageIndex
@@ -153,10 +153,14 @@
 				return parseFloat(this.bookReadMode.light) * 100;
 			},
 			progress () {
-				if ( this.record == 0 ) {
-					return 0
+				if ( this.bookInfo.source == 'local' ) {
+					if ( this.record.position == 0 ) {
+						return 0
+					} else {
+						return parseFloat(((this.record.position / this.bookInfo.length) * 100).toFixed(2))
+					}
 				} else {
-					return parseFloat(((this.record / this.bookInfo.length) * 100).toFixed(2))
+					return 0;
 				}
 			},
 			//当前章节
@@ -164,17 +168,17 @@
 				if ( this.bookInfo.source == 'local' ) {
 					for ( let i in this.catalog ) {
 						if ( i < this.catalog.length - 1 ) {
-							if ( this.record >= this.catalog[i].start && this.record < this.catalog[parseInt(i) + 1].start ) {
+							if ( this.record.position >= this.catalog[i].start && this.record.position < this.catalog[parseInt(i) + 1].start ) {
 								return parseInt(i)
 							}
 						} else {
-							if ( this.record >= this.catalog[i].start) {
+							if ( this.record.position >= this.catalog[i].start) {
 								return parseInt(i)
 							}
 						}
 					}
 				} else {
-					return parseInt(this.bookInfo.record.split('-')[0]);
+					return parseInt(this.bookInfo.record.chapter);
 				}
 			},
 			//书签
@@ -288,7 +292,7 @@
 			//上个章节
 			prevChapter () {
 				if ( this.catalog[this.chapterNow - 1] ) {
-					uni.$emit('change-page', this.catalog[this.chapterNow - 1].start)
+					uni.$emit('change-page', this.catalog[this.chapterNow - 1])
 				} else {
 					uni.showToast({
 						icon: 'none',
@@ -300,7 +304,7 @@
 			nextChapter () {
 				let flag = this.chapterNow >= 0 ? this.catalog[this.chapterNow + 1] : this.catalog[0];
 				if ( flag ) {
-					uni.$emit('change-page', flag.start)
+					uni.$emit('change-page', flag)
 				} else {
 					uni.showToast({
 						icon: 'none',
@@ -359,7 +363,11 @@
 					clearTimeout(this.timer);
 				}
 				this.timer = setTimeout(() => {
-					let record = parseInt((percent / 100) * this.bookInfo.length);
+					let record = {
+						chapter: 0,
+						position: parseInt((percent / 100) * this.bookInfo.length),
+						title: ''
+					};
 					uni.$emit('change-page', record)
 				}, 100)
 			},

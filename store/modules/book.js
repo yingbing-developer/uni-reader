@@ -61,7 +61,7 @@ const mutations = {
 				path: books[i].path,//书籍路径
 				length: books[i].length || 0,//书籍文本长度
 				record: {
-					chapter: -1,//阅读章节序号
+					chapter: -1,//阅读章节
 					title: '',//阅读章节名称
 					position: 0//阅读章节定位
 				},//书籍阅读记录
@@ -99,7 +99,7 @@ const mutations = {
 		state.books[index].chapter = bookInfo.chapter || state.books[index].chapter;
 		state.books[index].record = bookInfo.record || state.books[index].record;
 		state.books[index].lastReadTime = bookInfo.lastReadTime || state.books[index].lastReadTime;
-		state.books[index].isReaded = bookInfo.isReaded || state.books[index].isReaded;
+		state.books[index].isReaded = bookInfo.isReaded?.toString() ? bookInfo.isReaded : state.books[index].isReaded;
 		uni.setStorageSync(BOOKS, state.books);
 	},
 	//更新访问的小说文件夹路径

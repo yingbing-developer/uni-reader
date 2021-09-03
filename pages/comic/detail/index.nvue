@@ -84,7 +84,6 @@
 					href: this.comicInfo.path
 				})
 			}
-			console.log(this.record);
 		},
 		methods: {
 			//获取漫画详情信息
@@ -162,7 +161,7 @@
 				//更新阅读时间
 				this.updateBookInfo({
 					path: this.comicInfo.path,
-					lastReadTime: new Date()
+					lastReadTime: new Date().getTime()
 				});
 				getApp().globalData.$Router.push({
 					path: '/pages/comic/read/index',

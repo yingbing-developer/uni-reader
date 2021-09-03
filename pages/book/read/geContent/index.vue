@@ -1,129 +1,159 @@
 <template>
-	<view class="content" :id="'iframe-box' + dataId" :prop="iframeProp" :change:prop="iframe.iframePropChange">
-	</view>
+	<view class="getInfo" :id="'get-book-info' + dataId" :prop="bookInfoProp" :change:prop="bookInfo.bookInfoChange"></view>
 </template>
 
 <script>
-	import { BOOKURL } from '@/assets/js/config.js'
 	export default {
-		props: {
-			dataId: {
-				type: String,
-				default () {
-					let mydate = new Date();
-					return 'cms' + mydate.getMinutes() + mydate.getSeconds() + mydate.getMilliseconds() + Math.round(Math.random() * 10000);
-				}
-			},
-			data: {
-				type: Object,
-				default () {
-					return new Object;
-				}
+		data () {
+			return {
+				xhrs: ''
 			}
 		},
 		computed: {
-			iframeProp () {
+			bookInfoProp () {
 				return {
-					dataId: this.dataId,
-					url: this.data.url || '',
-					origin: this.data.source ? BOOKURL[this.data.source].href : '',
-					source: this.data.source || ''
+					xhrs: this.xhrs,
+					dataId: this.dataId
 				}
+			},
+			dataId () {
+				let mydate = new Date();
+				return 'cms' + mydate.getMinutes() + mydate.getSeconds() + mydate.getMilliseconds() + Math.round(Math.random() * 10000);
 			}
-		},
-		mounted () {
-			setTimeout(() => {
-				let currentWebview = this.$scope.$getAppWebview();
-				currentWebview.overrideUrlLoading({mode:"reject",match:'.*'}, (e)=>{
-					console.log(e.url,'overrideUrlLoading');
-				});
-			}, 50)
 		},
 		methods: {
+			get (data) {
+				this.xhrs = data || {};
+			},
 			finish (e) {
-				this.$emit('finish', e)
+				let data = [];
+				if ( this.xhrs[0].source == 'baoshuu' ) {
+					data = this.getBaoshuuContent(e);
+				}
+				uni.$emit('book-content-btn', data)
+			},
+			getBaoshuuContent (res) {
+				let contents = [];
+				for ( let i in res ) {
+					if ( res[i].code == 200 ) {
+						let str = this.$utils.replaceStr(res[i].data);
+						let content = str.match(/<span[^>]*id=([""]?)Content\1[^>]*>*([\s\S]*?)<\/span>/);//正则匹配所有小说内容
+						let unstr = content[2].match(/<font[^>]*>*([\s\S]*?)<\/font>/);//正则匹配所有小说内容
+						content = content[2].replace(unstr[0], '');
+						content = content.replace('</font>', '');
+						content = content.replace(/<br \/>/ig, '\n');
+						content = content.replace(/<br>/ig, '\n');
+						contents.push({
+							chapter: this.xhrs[i].chapter,
+							content: content,
+							isEnd: this.xhrs[i].isEnd
+						})
+					}
+				}
+				return contents;
 			}
+		},
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.finish({code: 402, data: '', delta: 2});
+				return true
+			}
+			return false
 		}
 	}
 </script>
-<script lang="renderjs" module="iframe" type="module">
-	let iframeDom;
+
+<script lang="renderjs" module="bookInfo" type="module">
+	let bookInfoDom;
 	export default {
 		mounted () {
 			this.initDom.bind(this);
-			setTimeout(() => {
-				if ( this.iframeProp.url ) {
-					this.createIframe();
-				}
-			}, 1000)
+			let meta = document.createElement('meta');
+			meta['http-equiv'] = 'Content-Type';
+			meta.content = 'text/html; charset=GB2312';
+			document.body.appendChild(meta);
 		},
 		methods: {
 			initDom () {
-				iframeDom = iframe.init(document.getElementById('iframe-box' + this.iframeProp.dataId));
+				bookInfoDom = bookInfo.init(document.getElementById('get-book-info' + this.bookInfoProp.dataId));
 				// 观测更新的数据在 view 层可以直接访问到
-				iframeDom.setOption(this.iframeProp);
+				bookInfoDom.setOption(this.bookInfoProp);
 			},
-			createIframe () {
-				//创建一个iframe元素加载漫画内容
-				let iframe = document.createElement("iframe");
-				let timer = null;
-				iframe.src = this.iframeProp.url;
-				iframe.id = 'myIframe' + this.iframeProp.dataId;
-				iframe.style.display = 'none';
-				iframe.style.opacity = 0;
-				iframe.sandbox = 'allow-scripts allow-same-origin';
-				//等待iframe加载完毕
-				iframe.onload = () => {
-					if ( timer ) {
-						window.clearTimeout(timer);
+			httpRequest ( data = {} ) {
+				return new Promise((resolve) => {
+					let http = new XMLHttpRequest();
+					const headers = data.options?.headers || '';
+					const params = data.options?.params || '';
+					let formData = new FormData();
+					http.addEventListener('load', (e) => {
+						if ( http.status == 200 ) {
+							const args = {code: http.status, data: http.response}
+							resolve(args);
+						} else {
+							const args = {code: http.status, data: ''}
+							resolve(args);
+						}
+						http.abort();
+						http = '';
+					});
+					http.addEventListener('error', (e) => {
+						const args = {code: 400, data: ''};
+						resolve(args);
+						http.abort();
+						http = '';
+					});
+					http.addEventListener('timeout', (e) => {
+						const args = {code: 401, data: ''}
+						resolve(args);
+						http.abort();
+						http = '';
+					});
+					http.open(data.type || 'GET', data.url);
+					if ( headers ) {
+						for ( let i in headers ) {
+							http.setRequestHeader(i, headers[i]);
+						}
 					}
-					this.loadIframe();
-				}
-				//如果25秒后iframe还没触发onload事件，直接去获取小说内容
-				timer = window.setTimeout(() => {
-					iframe.onload = null;
-					this.loadIframe();
-				}, 25000)
-				document.getElementById("iframe-box" + this.iframeProp.dataId).appendChild(iframe);
-				window.setTimeout( function () {
-					let child = document.getElementById('myIframe' + this.iframeProp.dataId).contentWindow;
-					//重构iframe的confirm alert方法，屏蔽三方网站上的弹窗行为
-					child.window.alert = function () { return false; }
-					child.window.confirm = function () { return false; }
-					child.window.onbeforeunload = function () { return false; }
-				}, 5)
+					if ( params ) {
+						for ( let i in params ) {
+							formData.append(i, params[i]);
+						}
+					}
+					http.send(formData);
+				})
 			},
-			loadIframe () {
-				window.setTimeout( () => {
-					let data = [];
-					let source = this.iframeProp.source;
-					if ( source == 'baoshuu' ) {
-						data = this.getBaoshuuContent();
-					}
-					// #ifndef H5
+			resolve (args) {
+				// #ifndef H5
+				setTimeout(() => {
 					UniViewJSBridge.publishHandler('onWxsInvokeCallMethod', {
 						cid: this._$id,
 						method: 'finish',
-						args: {'comics': data}
+						args: args
 					})
-					// #endif
 				}, 1000)
+				// #endif
+				// #ifdef H5
+				setTimeout(() => {
+					this.finish(args);
+				}, 1000)
+				// #endif
 			},
-			iframePropChange (newVal, oldVal) {
-				if ( newVal.url != oldVal.url ) {
-					if ( newVal.url ) {
-						this.createIframe();
+			bookInfoChange (newVal, oldVal) {
+				if ( newVal.xhrs != oldVal.xhrs ) {
+					if ( Object.prototype.toString.call(this.bookInfoProp.xhrs) === '[object Array]' ) {
+						let arr = [];
+						for ( let i in this.bookInfoProp.xhrs ) {
+							arr.push(this.httpRequest(this.bookInfoProp.xhrs[i]))
+						}
+						Promise.all(arr).then((res) => {
+							this.resolve(res);
+						})
+					} else {
+						this.httpRequest(this.bookInfoProp.xhrs).then((res) => {
+							this.resolve(res);
+						})
 					}
 				}
-			},
-			//获取iframe对象
-			getIframeDom () {
-			    return document.getElementById('myIframe' + this.iframeProp.dataId).contentWindow;
-			},
-			//获取mangabz漫画内容
-			getBaoshuuContent () {
-				let child = this.getIframeDom();
-				console.log(child)
 			}
 		}
 	}

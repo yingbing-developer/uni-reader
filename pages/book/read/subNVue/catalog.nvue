@@ -7,21 +7,21 @@
 			<text class="line-text" :style="{color: skinColor.titleColor}">共{{list.length}}个{{title}}</text>
 			<text class="clear" v-if="showClear" @tap="clear">清空</text>
 		</view>
-		<list v-if="list.length > 0">
-			<cell v-for="(item, index) in list" :key='item.index' >
-				<view class="actived" @click="clickItem(index)" ref="list">
-					<list-item :item="item" :color="scrollTo == index ? '#DD524D' : skinColor.menuTitleColor"></list-item>
+		<list-scroll ref="listScroll" :line-height="80" :list="list" :bounce="false" v-if="list.length > 0">
+			<template v-slot="{item}">
+				<view class="list actived" @click="clickItem(item)">
+					<text class="list-text" :style="{color: scrollTo == item.chapter - 1 ? '#DD524D' : skinColor.menuTitleColor}">{{item.title}}</text>
 				</view>
-			</cell>
-		</list>
-		<view class="nodata-view" v-else>
+			</template>
+		</list-scroll>
+		<view class="nodata-view" v-if="list.length == 0">
 			<text class="nodata" :style="{color: skinColor.menuTitleColor}">暂无{{title}}目录</text>
 		</view>
     </div>
 </template>
 
 <script>
-	import ListItem from './list-item.nvue'
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import { skinMixin } from '@/common/mixin/index.js';
 	import bookMixin from '@/common/mixin/book.js';
 	const dom = weex.requireModule('dom')
@@ -41,27 +41,38 @@
 			},
 			scrollTo () {
 				let len = this.list.length;
-				if ( this.title == '章节' ) {
-					for ( let i = 0; i < len; i++ ) {
-						if ( i < this.list.length - 1 ) {
-							if ( this.bookInfo.record >= this.list[i].start && this.bookInfo.record < this.list[parseInt(i) + 1].start ) {
-								return i
+				if ( this.bookInfo.source == 'local' ) {
+					if ( this.title == '章节' ) {
+						let position = this.bookInfo.record.position;
+						for ( let i = 0; i < len; i++ ) {
+							if ( i < this.list.length - 1 ) {
+								if ( position >= this.list[i].start && position < this.list[parseInt(i) + 1].start ) {
+									return i
+								}
+							} else {
+								if ( position >= this.list[i].start) {
+									return i
+								}
 							}
-						} else {
-							if ( this.bookInfo.record >= this.list[i].start) {
+						}
+					} 
+					if ( this.title == '书签' ) {
+						for ( let i = 0; i < len; i++ ) {
+							if ( position == this.list[i].start ) {
 								return i
 							}
 						}
 					}
-				} 
-				if ( this.title == '书签' ) {
-					for ( let i = 0; i < len; i++ ) {
-						if ( this.bookInfo.record == this.list[i].start ) {
-							return i
+				} else {
+					if ( this.title == '章节' ) {
+						let chapter = this.bookInfo.record.chapter;
+						for ( let i = 0; i < len; i++ ) {
+							if ( this.list[i].chapter == chapter ) {
+								return i
+							}
 						}
 					}
 				}
-				
 			}
 		},
 		beforeCreate() {
@@ -70,20 +81,14 @@
 				this.title = data.title;
 				this.path = data.path;
 				this.showClear = data.showClear || false
-				if ( this.list.length > 0 ) {
-					setTimeout(() => {
-						dom.scrollToElement(this.$refs['list'][this.scrollTo], {animated: false});
-					}, 50);
-				}
 			})  
 		},
 		beforeDestroy () {
 			uni.$off('page-popup');
 		},
         methods: {
-			clickItem (index) {
-				uni.$emit('change-page', this.list[index].start)
-				dom.scrollToElement(this.$refs['list'][index], {animated: false});
+			clickItem (item) {
+				uni.$emit('change-page', item);
 			},
 			clear () {
 				uni.$emit('setting', {
@@ -92,7 +97,7 @@
 			}
         },
 		components: {
-			ListItem
+			ListScroll
 		}
     }
 </script>
@@ -104,6 +109,15 @@
 		right: 0;
 		top: 0;
 		flex: 1;
+	}
+	.list {
+		justify-content: center;
+		padding: 0 20rpx;
+		height: 80rpx;
+	}
+	.list-text {
+		lines: 1;
+		font-size: 23rpx;
 	}
 	.title {
 		padding: 40rpx 0;

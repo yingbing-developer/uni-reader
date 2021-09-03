@@ -45,7 +45,7 @@
 					<no-data slot="fixed" v-if="catalog.length <= 0" title="貌似没有章节哦"></no-data>
 					<template v-slot="{item}">
 						<view class="catalog-list">
-							<view class="catalog-block" :class="skinColor.activedName" :style="{'background-color': item.path == readed.path ? skinColor.gapColor : '', 'border-color': skinColor.gapColor}" @tap="readComic(item.path)">
+							<view class="catalog-block" :class="skinColor.activedName" :style="{'background-color': item.path == readed.path ? skinColor.gapColor : '', 'border-color': skinColor.gapColor}" @tap="readBook(item.path)">
 								<text class="catalog-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
 								<text class="readed-text color-red" v-if="item.path == readed.path">阅读中</text>
 							</view>
@@ -89,11 +89,11 @@
 			},
 			//上次阅读章节
 			readed () {
-				let index = this.record.chapter;
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				if ( this.sortType == 'reverse' ) {
 					arr.reverse();
 				}
+				let index = getApp().globalData.$utils.indexOf(arr, 'chapter', this.record.chapter);
 				return index > -1 ? arr[index] : false;
 			}
 		},
@@ -165,8 +165,8 @@
 				let readIndex = getApp().globalData.$utils.indexOf(arr, 'path', path);
 				//更新阅读章节记录
 				let record = {
-					chapter: readIndex,
-					position: this.record.chapter == readIndex ? this.record.position : 0,
+					chapter: arr[readIndex].chapter,
+					position: this.record.chapter == arr[readIndex].chapter ? this.record.position : 0,
 					title: arr[readIndex].title
 				}
 				this.updateBookInfo({

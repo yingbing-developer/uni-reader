@@ -2,6 +2,9 @@ import http from '@/plugins/request/index.js'
 import { COMICURL, ERR_OK, ERR_FALSE } from '@/assets/js/config.js'
 import HTMLParser from '@/assets/js/html-parse.js'
 import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
+import Utils from '@/assets/js/util.js'
+
+const { replaceStr } = Utils;
 
 const tag1 = 'mangabz';
 const tag2 = 'loli';
@@ -9,16 +12,6 @@ const tag4 = '18comic';
 const tag5 = 'sixmh6';
 const tag6 = 'wnacg';
 const tag7 = 'dmzj';
-
-function replaceStr (data) {
-	let str = JSON.stringify(data);//将html转化为字符
-	str = str.replace(/\\n/g,'');//去除\n
-	str = str.replace(/\\r/g,'');//去除\r
-	str = str.replace(/\\t/g,'');//去除\t
-	str = str.replace(/&nbsp;/g,'');//去除&nbsp;
-	str = str.replace(/\\/g,'');//去除掉无关的斜杠
-	return str;
-}
 
 
 //获取漫画列表

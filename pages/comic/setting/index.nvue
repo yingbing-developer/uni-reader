@@ -88,11 +88,11 @@
 			},
 			//章节 第几话
 			chapter () {
-				return parseFloat(this.comicInfo.record.split('-')[0]);
+				return parseFloat(this.comicInfo.record.chapter);
 			},
 			//章节第几张图
 			pNum () {
-				return parseFloat(this.comicInfo.record.split('-')[1]);
+				return parseFloat(this.comicInfo.record.position);
 			}
 		},
 		methods: {
@@ -162,14 +162,22 @@
 				this.upChapter(chapter);
 			},
 			upChapter (chapter) {
-				let record = chapter + '-0';
+				let record = {
+					chapter: chapter,
+					position: 0,
+					title: this.chapters[chapter].name
+				}
 				this.updateBookInfo({
 					path: this.comicInfo.path,
 					record: record
 				})
 			},
 			upPNum (index) {
-				let record = this.chapter + '-' + index.toString();
+				let record = {
+					chapter: this.chapter,
+					position: index,
+					title: this.chapters[this.chapter].name
+				}
 				this.updateBookInfo({
 					path: this.comicInfo.path,
 					record: record
