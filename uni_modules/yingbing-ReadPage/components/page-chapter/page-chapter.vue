@@ -115,7 +115,6 @@
 				this.contents = data.contents || this.contents;
 				let index = this.indexOf(this.contents, 'chapter', data.current);
 				this.newChapter = data.current;
-				// this.nowContent = this.contents[index > -1 ? index : 0];
 				this.upper = this.contents[index > -1 ? index : 0].chapter == 1;
 				this.lower = this.contents[index > -1 ? index : 0].isEnd;
 				this.restart = true;
@@ -133,7 +132,6 @@
 				this.contents = this.contents.concat(arr);
 				let index = this.indexOf(this.contents, 'chapter', data.current);
 				this.newChapter = data.current;
-				// this.nowContent = this.contents[index > -1 ? index : 0];
 				this.upper = this.contents[index > -1 ? index : 0].chapter == 1;
 				this.lower = this.contents[index > -1 ? index : 0].isEnd;
 				this.restart = true;

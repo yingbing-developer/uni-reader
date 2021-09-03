@@ -37,8 +37,6 @@
 			return {
 				//文本内容
 				bookContent: '',
-				//所有在线小说章节内容
-				contents: [],
 				//目录
 				catalog: [],
 				currentPage: '',
@@ -249,7 +247,7 @@
 				const { page } = this.$refs;
 				if ( this.bookInfo.source == 'local' ) {
 					contents = [{
-						start: this.record,
+						start: this.record.position || 0,
 						content: this.bookContent
 					}]
 					page.init({
@@ -270,7 +268,7 @@
 				const { page } = this.$refs;
 				if ( this.bookInfo.source == 'local' ) {
 					page.change({
-						start: data.position
+						position: data.position
 					})
 				} else {
 					uni.showLoading({
@@ -279,9 +277,19 @@
 					})
 					this.initContent(data.chapter).then((res) => {
 						uni.hideLoading();
+						let index = this.$utils.indexOf(res, 'chapter', data.chapter);
+						for ( let i in res ) {
+							res[i].start = i == index ? this.record.position : 0
+						}
 						page.change({
 							contents: res,
 							current: data.chapter
+						})
+					}).catch(() => {
+						uni.hideLoading();
+						uni.showToast({
+							title: '加载失败',
+							icon: 'none'
 						})
 					})
 				}

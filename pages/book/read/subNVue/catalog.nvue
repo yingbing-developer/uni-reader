@@ -10,7 +10,9 @@
 		<list-scroll ref="listScroll" :line-height="80" :list="list" :bounce="false" v-if="list.length > 0">
 			<template v-slot="{item}">
 				<view class="list actived" @click="clickItem(item)">
-					<text class="list-text" :style="{color: scrollTo == item.chapter - 1 ? '#DD524D' : skinColor.menuTitleColor}">{{item.title}}</text>
+					<text class="list-text" :style="{color: list[scrollTo].chapter == item.chapter ? '#DD524D' : skinColor.menuTitleColor}" v-if="title == '章节'  && bookInfo.source != 'local'">{{item.title}}</text>
+					<text class="list-text" :style="{color: list[scrollTo].position == item.position ? '#DD524D' : skinColor.menuTitleColor}" v-if="title == '章节' && bookInfo.source == 'local'">{{item.title}}</text>
+					<text class="list-text" :style="{color: list[scrollTo].position == item.position ? '#DD524D' : skinColor.menuTitleColor}" v-if="title == '书签'">{{item.title}}</text>
 				</view>
 			</template>
 		</list-scroll>
@@ -42,26 +44,22 @@
 			scrollTo () {
 				let len = this.list.length;
 				if ( this.bookInfo.source == 'local' ) {
+					let position = this.bookInfo.record.position || 0;
 					if ( this.title == '章节' ) {
-						let position = this.bookInfo.record.position;
 						for ( let i = 0; i < len; i++ ) {
 							if ( i < this.list.length - 1 ) {
-								if ( position >= this.list[i].start && position < this.list[parseInt(i) + 1].start ) {
+								if ( position >= this.list[i].position && position < this.list[parseInt(i) + 1].position ) {
 									return i
 								}
 							} else {
-								if ( position >= this.list[i].start) {
+								if ( position >= this.list[i].position) {
 									return i
 								}
 							}
 						}
 					} 
 					if ( this.title == '书签' ) {
-						for ( let i = 0; i < len; i++ ) {
-							if ( position == this.list[i].start ) {
-								return i
-							}
-						}
+						return getApp().globalData.$utils.indexOf(this.list, 'position', position);
 					}
 				} else {
 					if ( this.title == '章节' ) {

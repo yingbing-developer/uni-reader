@@ -168,17 +168,17 @@
 				if ( this.bookInfo.source == 'local' ) {
 					for ( let i in this.catalog ) {
 						if ( i < this.catalog.length - 1 ) {
-							if ( this.record.position >= this.catalog[i].start && this.record.position < this.catalog[parseInt(i) + 1].start ) {
+							if ( this.record.position >= this.catalog[i].position && this.record.position < this.catalog[parseInt(i) + 1].position ) {
 								return parseInt(i)
 							}
 						} else {
-							if ( this.record.position >= this.catalog[i].start) {
+							if ( this.record.position >= this.catalog[i].position) {
 								return parseInt(i)
 							}
 						}
 					}
 				} else {
-					return parseInt(this.bookInfo.record.chapter);
+					return parseInt(this.bookInfo.record.chapter - 1);
 				}
 			},
 			//书签
@@ -340,7 +340,7 @@
 			addBookmark () {
 				this.saveBookmark({
 					path: this.path,
-					start: this.record,
+					position: this.record.position,
 					title: this.markTitle.substring(0, 20)
 				})
 			},

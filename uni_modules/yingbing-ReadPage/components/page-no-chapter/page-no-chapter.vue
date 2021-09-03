@@ -113,7 +113,7 @@
 			},
 			//跳转
 			change (data) {
-				this.contents[0].start = data.start;
+				this.contents[0].start = data.position;
 				this.restart = true;
 			},
 			showToast (e) {
@@ -139,7 +139,7 @@
 				while ((match = reg.exec(content)) != null) {
 					catalog.push({
 						title: match[0],
-						start: match.index
+						position: match.index
 					})
 				}
 				this.$emit('setCatalog', catalog);
