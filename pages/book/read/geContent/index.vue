@@ -159,5 +159,10 @@
 	}
 </script>
 
-<style>
+<style scoped>
+	.getInfo {
+		display: none;
+		position: relative;
+		z-index: -1;
+	}
 </style>

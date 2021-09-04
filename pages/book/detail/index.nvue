@@ -95,14 +95,6 @@
 				let index = getApp().globalData.$utils.indexOf(arr, 'chapter', this.record.chapter > -1 ? this.record.chapter : 1);
 				let list = arr.slice(index, index + 5);
 				list = arr.slice(index - 5 > 0 ? index - 5 : 0, index).concat(list);
-				// for ( let i in arr ) {
-				// 	if ( i == index || i == index - 1 || i == index + 1 || i == index - 2 || i == index + 2 ) {
-				// 		list.push(arr[i]);
-				// 	}
-				// }
-				// list.sort((a, b) => {
-				// 	return parseInt(b.chapter) - parseInt(a.chapter)
-				// })
 				return list; 
 			}
 		},
@@ -145,6 +137,9 @@
 							})
 						}
 						this.catalog = data.chapters;
+						let arr = getApp().globalData.$utils.deepClone(this.catalog);
+						let chapters = this.sortType == 'reverse' ? arr.reverse() : arr;
+						this.setBookChapters(chapters);
 					}
 				}).catch((err) => {
 					uni.showToast({
@@ -171,7 +166,6 @@
 			readBook (path) {
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
 				let nums = this.sortType == 'reverse' ? arr.reverse() : arr;
-				this.setBookChapters(nums);
 				let readIndex = getApp().globalData.$utils.indexOf(arr, 'path', path);
 				getApp().globalData.$Router.push({path: '/pages/book/read/index', query: {
 					chapter: arr[readIndex].chapter

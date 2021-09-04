@@ -19,19 +19,20 @@
 		{
 			"path": "pages/book/read/index",
 			"style": {
-				"disableScroll": false,
+				"disableScroll": false
+			}
+		},
+		//小说设置页
+		{
+			"path": "pages/book/setting/index",
+			"style": {
+				"backgroundColor": "transparent",
 				"app-plus": {
-				    "subNVues":[{
-				        "id": "setting", // 唯一标识
-				        "path": "pages/book/read/subNVue/setting", // 页面路径
-				        "style": {
-							"mask": "rgba(0,0,0,0)",
-				            "width": "750upx",
-				            "height": "100%",
-							"background": "transparent"
-				        }
-				    }],
-					"bounce":"none"
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
 				}
 			}
 		},

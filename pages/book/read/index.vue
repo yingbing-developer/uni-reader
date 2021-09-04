@@ -17,12 +17,11 @@
 		@loadmore="loadmoreContent">
 		</yingbing-ReadPage>
 		
+		<get-content ref="getContent"></get-content>
 		<!-- 触摸区域 -->
 		<view class="touch-box touch-menu" @tap="openSettingNvue" @longpress="openEditNvue">
 			菜单
 		</view>
-		
-		<get-content ref="getContent"></get-content>
 	</view>
 </template>
 
@@ -74,15 +73,6 @@
 		},
 		created () {
 			uni.$emit('musicBtn-hide');
-			//监听原生子窗体显示
-			uni.$on('setting-isShow', (data) => {
-				this.settingShow = data.show;
-				if ( this.settingShow ) {
-					uni.$emit('musicBtn-show');
-				} else {
-					uni.$emit('musicBtn-hide');
-				}
-			})
 			//监听编辑窗体修改
 			uni.$on('setting-menu', (data) => {
 				if ( data.flag == 'edit' ) {
@@ -337,9 +327,10 @@
 			},
 			//打开设置子窗体
 			openSettingNvue () {
-				const subNvue = uni.getSubNVueById('setting');
-				subNvue.show();				// 打开 nvue 子窗体 
-				uni.$emit('setting-show');
+				this.$Router.push({
+					path: '/pages/book/setting/index',
+					animationType: 'fade-in'
+				})
 			},
 			//打开编辑子窗体
 			openEditNvue () {
@@ -397,19 +388,9 @@
 		},
 		beforeDestroy () {
 			//注销监听页面监听
-			uni.$off('setting-isShow');
 			uni.$off('setting-menu')
 			uni.$off('change-page');
 			uni.$emit('musicBtn-show');
-		},
-		onBackPress (event) {
-			if ( event.from == 'backbutton' ) {
-				if ( this.settingShow ) {
-					uni.$emit('setting-hide');
-					return true;
-				}
-			}
-			return false;
 		}
 	}
 </script>

@@ -1,6 +1,6 @@
 <template>
 	<view class="catalog" @touchmove.stop.prevent="">
-		<view class="mask" ref="mask" @tap="hide"></view>
+		<view class="mask" ref="mask" @tap="hide('')"></view>
 		<view class="popup" ref="popup" :style="{'background-color': skinColor.menuBgColor}" @touchmove.stop.prevent="">
 			<view class="title">
 				<text class="title-text">{{title}}目录</text>

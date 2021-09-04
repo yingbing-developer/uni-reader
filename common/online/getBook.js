@@ -13,7 +13,7 @@ const tag1 = 'baoshuu';
 //获取小说列表
 export function getBook (data) {
 	//判断一下哪些来源被关闭了
-	let sources = store.getters['book/getComicSourcesController'];
+	let sources = store.getters['book/getBookSourcesController'];
 	let newArr = [];
 	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
 		newArr.push(getBaoshuu(data));

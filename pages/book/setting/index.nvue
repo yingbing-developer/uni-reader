@@ -1,5 +1,5 @@
 <template>
-	<view class="read-menu" @touchmove.stop.prevent="" v-if="bookInfo">
+	<view class="read-menu" @touchmove.stop.prevent="">
 		<view class="mask" @tap="hide"></view>
 		
 		<!-- 顶部 -->
@@ -187,25 +187,15 @@
 				return arr;
 			}
 		},
-		beforeCreate() {
-			uni.$on('setting-show', (data) => {
-				setTimeout(() => {
-					this.show()
-				}, 50)
-			})
-			//监听父组件通知子窗体关闭
-			uni.$on('setting-hide', (data) => {
-				this.hide()
-			})
-		},
-		created () {
+		onLoad () {
 			this.lightPercent = this.light;
+		},
+		onReady () {
+			uni.$emit('musicBtn-show');
+			this.show();
 		},
 		methods: {
 			show () {
-				uni.$emit('setting-isShow', {
-					show: true
-				});
 				animation.transition(this.$refs.readTop, {
 				    styles: {
 						transform: 'translateY(0)'
@@ -224,7 +214,6 @@
 				    needLayout:false,
 				    delay: 0 //ms
 				})
-				
 			},
 			hide () {
 				animation.transition(this.$refs.readTop, {
@@ -245,11 +234,8 @@
 				    needLayout:false,
 				    delay: 0 //ms
 				}, (res) => {
-					uni.$emit('setting-isShow', {
-						show: false
-					});
-					const subNvue = uni.getSubNVueById('setting');
-					subNvue.hide();
+					uni.$emit('musicBtn-hide');
+					getApp().globalData.$Router.back();
 				})
 			},
 			//增大字体
@@ -335,7 +321,7 @@
 				}, 100)
 			},
 			openCatalog (type) {
-				getApp().globalData.$dom.catalog('chapter').then((item) => {
+				getApp().globalData.$dom.catalog(type).then((item) => {
 					if ( item ) uni.$emit('change-page', item);
 				})
 			},
@@ -349,10 +335,6 @@
 				});
 			}
 		},
-		beforeDestroy () {
-			uni.$off('setting-hide');
-			uni.$off('setting-show');
-		},
 		watch: {
 			light (val) {
 				this.lightPercent = val;
@@ -360,6 +342,13 @@
 			lightPercent (val) {
 				this.changeBookLight((val / 100).toFixed(2));
 			}
+		},
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide();
+				return true;
+			}
+			return false;
 		},
 		components: {
 			CIcon,
@@ -373,15 +362,22 @@
 	.btn-actived:active {
 		background-color: #8A8A8A!important;
 	}
-	.mask {
+	.read-menu {
 		position: fixed;
 		top: 0;
 		left: 0;
 		right: 0;
 		bottom: 0;
 	}
+	.mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
 	.read-top {
-		position: fixed;
+		position: absolute;
 		top: 0;
 		left: 0;
 		right: 0;
@@ -398,7 +394,7 @@
 		margin-left: 10rpx;
 	}
 	.read-board {
-		position: fixed;
+		position: absolute;
 		bottom: 0;
 		left: 0;
 		right: 0;
