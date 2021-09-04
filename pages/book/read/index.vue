@@ -29,29 +29,21 @@
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
+	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import { getBookContent } from '@/common/online/getBook.js';
 	import GetContent from './geContent/index.vue'
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [skinMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				//文本内容
 				bookContent: '',
-				//目录
-				catalog: [],
 				currentPage: '',
 				barHeight: 0,
 				xhrs: []
 			}
 		},
 		computed: {
-			//书籍信息
-			bookInfo () {
-				const pages = getCurrentPages();
-				const page = pages[pages.length - 1];
-				let index =  page.options.index;
-				return this.bookList[index];
-			},
 			//阅读位置
 			record () {
 				return this.bookInfo.record;
@@ -117,11 +109,14 @@
 					if ( this.bookInfo.source == 'local' ) {
 						this.getLocalContent();
 					} else {
-						this.catalog = JSON.parse(decodeURIComponent(this.$Route.query.nums));
-						this.initContent(this.record.chapter).then((res) => {
+						this.initContent(this.$Route.query.chapter).then((res) => {
 							uni.hideLoading();
-							this.initPage(res, this.record.chapter);
+							this.initPage(res, this.$Route.query.chapter);
 						}).catch(() => {
+							uni.showToast({
+								title: '加载失败',
+								icon: 'none'
+							})
 							console.log('加载失败');
 						})
 					}
@@ -201,19 +196,18 @@
 			},
 			//获取章节目录
 			setCatalog (e) {
-				this.catalog = e;
+				this.setBookChapters(e);
 			},
 			preloadContent (chapters, next, error) {
 				let arr = [];
 				for ( let i in chapters ) {
-					let index = this.$utils.indexOf(this.catalog, 'chapter', chapters[i]);
+					let index = this.$utils.indexOf(this.bookChapters, 'chapter', chapters[i]);
 					if ( index > -1 ) {
-						arr.push(this.catalog[index]);
+						arr.push(this.bookChapters[index]);
 					}
 				}
 				this.getOnlineContent(arr).then((res) => {
 					if ( res.length > 0 ) {
-						this.contents = this.contents.concat(res);
 						next(res)
 					} else {
 						error();
@@ -227,17 +221,20 @@
 					title: '加载内容中',
 					mask: true
 				})
-				let index = this.$utils.indexOf(this.catalog, 'chapter', chapter);
-				let arr = [this.catalog[index]]
+				let index = this.$utils.indexOf(this.bookChapters, 'chapter', chapter);
+				let arr = [this.bookChapters[index]]
 				this.getOnlineContent(arr).then((res) => {
 					uni.hideLoading();
 					if ( res.length > 0 ) {
-						this.contents = this.contents.concat(res);
 						next(res[0])
 					} else {
 						error();
 					}
 				}).catch(() => {
+					uni.showToast({
+						title: '加载失败',
+						icon: 'none'
+					})
 					uni.hideLoading();
 					error();
 				})
@@ -277,9 +274,8 @@
 					})
 					this.initContent(data.chapter).then((res) => {
 						uni.hideLoading();
-						let index = this.$utils.indexOf(res, 'chapter', data.chapter);
 						for ( let i in res ) {
-							res[i].start = i == index ? this.record.position : 0
+							res[i].start = 0
 						}
 						page.change({
 							contents: res,
@@ -295,11 +291,12 @@
 				}
 			},
 			initContent (chapter) {
+				chapter = parseInt(chapter);
 				return new Promise((resolve, reject) => {
 					let arr = [];
-					for ( let i in this.catalog ) {
-						if ( this.catalog[i].chapter == chapter || this.catalog[i].chapter == chapter - 1 || this.catalog[i].chapter == chapter + 1 ) {
-							arr.push(this.catalog[i])
+					for ( let i in this.bookChapters ) {
+						if ( this.bookChapters[i].chapter == chapter || this.bookChapters[i].chapter == chapter - 1 || this.bookChapters[i].chapter == chapter + 1 ) {
+							arr.push(this.bookChapters[i])
 						}
 					}
 					this.getOnlineContent(arr).then((res) => {
@@ -312,7 +309,7 @@
 			},
 			//更新阅读记录
 			savePageRecord (e) {
-				this.currentPage = e;
+				this.setBookPageInfo(e);
 				let record = {};
 				let isReaded = false;
 				if ( this.bookInfo.source == 'local' ) {
@@ -323,13 +320,13 @@
 					}
 					isReaded =  e.end >= this.bookContent.length;
 				} else {
-					let index = this.$utils.indexOf(this.catalog, 'chapter', e.chapter);
+					let index = this.$utils.indexOf(this.bookChapters, 'chapter', e.chapter);
 					record = {
 						chapter: e.chapter,
 						position: e.start,
-						title: this.catalog[index].title
+						title: this.bookChapters[index].title
 					}
-					isReaded = this.catalog[index].isEnd && e.isChapterEnd;
+					isReaded = this.bookChapters[index].isEnd && e.isChapterEnd;
 				}
 				//更新阅读位置
 				this.updateBookInfo({
@@ -337,37 +334,19 @@
 					record: record,
 					isReaded: isReaded
 				});
-				if ( this.bookInfo.source == 'local' ) {
-					//设置当前页面的标签,用于添加标签
-					this.setMarkTitle();
-				}
-			},
-			//设置当前页面书签的前50个字
-			setMarkTitle () {
-				uni.$emit('setting-mark', {
-					markTitle: this.currentPage.text
-				})
 			},
 			//打开设置子窗体
 			openSettingNvue () {
 				const subNvue = uni.getSubNVueById('setting');
-				//向子窗体传值
-				uni.$emit('setting-popup', {  
-					path: this.path,
-					catalog: this.catalog,
-				    markTitle: this.currentPage.text,
-				    start: this.catalog
-				});
-				
-				// 打开 nvue 子窗体 
-				subNvue.show();
+				subNvue.show();				// 打开 nvue 子窗体 
+				uni.$emit('setting-show');
 			},
 			//打开编辑子窗体
 			openEditNvue () {
 				if ( this.bookInfo.source != 'local' ) {
 					return;
 				}
-				let content = this.bookContent.substr(this.currentPage.start, this.currentPage.end);
+				let content = this.bookContent.substr(this.bookPageInfo.start, this.bookPageInfo.end);
 				uni.navigateTo({
 					url: `/modules/edit?content=${encodeURIComponent(content)}&start=${this.currentPage.start}&end=${this.currentPage.end}`,
 					complete: (res) => {

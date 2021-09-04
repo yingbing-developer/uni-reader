@@ -47,5 +47,19 @@ export default {
 				}
 			});
 		})
+	},
+	catalog (type) {
+		return new Promise((resolve, reject) => {
+			uni.navigateTo({
+				url: `/modules/catalog?type=${type}`,
+				complete: (res) => {
+					uni.$on('catalog-btn', (data) => {
+						resolve(data)
+						uni.navigateBack({delta: 1});
+						uni.$off('catalog-btn');
+					})
+				}
+			});
+		})
 	}
 }

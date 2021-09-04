@@ -1,0 +1,228 @@
+<template>
+	<view class="catalog" @touchmove.stop.prevent="">
+		<view class="mask" ref="mask" @tap="hide"></view>
+		<view class="popup" ref="popup" :style="{'background-color': skinColor.menuBgColor}" @touchmove.stop.prevent="">
+			<view class="title">
+				<text class="title-text">{{title}}目录</text>
+			</view>
+			<view class="line" :style="{'background-color': skinColor.gapColor}">
+				<text class="line-text" :style="{color: skinColor.titleColor}">共{{list.length}}个{{title}}</text>
+				<text class="clear" v-if="showClear" @tap="clear">清空</text>
+			</view>
+			<list-scroll ref="listScroll" :line-height="80" :list="list" :bounce="false" v-if="list.length > 0">
+				<template v-slot="{item}">
+					<view class="list actived" @click="clickItem(item)">
+						<text class="list-text" :style="{color: list[scrollTo].chapter == item.chapter ? '#DD524D' : skinColor.menuTitleColor}" v-if="type == 'chapter'  && bookInfo.source != 'local'">{{item.title}}</text>
+						<text class="list-text" :style="{color: list[scrollTo].position == item.position ? '#DD524D' : skinColor.menuTitleColor}" v-if="type == 'chapter' && bookInfo.source == 'local'">{{item.title}}</text>
+						<text class="list-text" :style="{color: scrollTo > -1 ? list[scrollTo].position == item.position ? '#DD524D' : skinColor.menuTitleColor : skinColor.menuTitleColor}" v-if="type == 'mark'">{{item.title}}</text>
+					</view>
+				</template>
+			</list-scroll>
+			<view class="nodata-view" v-if="list.length == 0">
+				<text class="nodata" :style="{color: skinColor.menuTitleColor}">暂无{{title}}目录</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import { skinMixin } from '@/common/mixin/index.js';
+	import bookMixin from '@/common/mixin/book.js';
+	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
+	const dom = weex.requireModule('dom')
+	const animation = weex.requireModule('animation');
+    export default {
+		mixins: [skinMixin, bookMixin, bookcertifyMixin],
+		data() {
+			return {
+				list: [],
+				title: '',
+				type: '',
+				showClear: false,
+				anima: {
+					opac: 0.4,
+					duration: 200
+				}
+			}
+		},
+		computed: {
+			scrollTo () {
+				let len = this.list.length;
+				if ( this.bookInfo.source == 'local' ) {
+					let position = this.bookInfo.record.position || 0;
+					if ( this.type == 'chapter' ) {
+						for ( let i = 0; i < len; i++ ) {
+							if ( i < this.list.length - 1 ) {
+								if ( position >= this.list[i].position && position < this.list[parseInt(i) + 1].position ) {
+									return i
+								}
+							} else {
+								if ( position >= this.list[i].position) {
+									return i
+								}
+							}
+						}
+					} 
+					if ( this.type == 'mark' ) {
+						return getApp().globalData.$utils.indexOf(this.list, 'position', position);
+					}
+				} else {
+					if ( this.type == 'chapter' ) {
+						let chapter = this.bookInfo.record.chapter > -1 ? this.bookInfo.record.chapter : 1;
+						for ( let i = 0; i < len; i++ ) {
+							if ( this.list[i].chapter == chapter ) {
+								return i
+							}
+						}
+					}
+				}
+			},
+			//书签
+			bookmark () {
+				let arr = []
+				arr = this.bookmarks.filter((item) => {
+					if ( item.path == this.bookInfo.path ) {
+						return item;
+					}
+				})
+				return arr;
+			}
+		},
+		onLoad (data) {
+			this.type = data.type;
+			this.title = this.type == 'chapter' ? '章节' : '书签';
+			this.list = this.type == 'chapter' ? this.bookChapters : this.bookmark;
+		},
+		onReady () {
+			this.show();
+		},
+        methods: {
+			show () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: this.anima.opac
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateX(0)'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+			},
+			hide (item) {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateX(500rpx)'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, (res) => {
+					uni.$emit('catalog-btn', item || '');
+				})
+			},
+			clickItem (item) {
+				this.hide(item)
+			},
+			clear () {
+				getApp().globalData.$dom.confirm('清空提示', '确认要清空本书籍保存的书签吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.clearBookmark(this.bookInfo.path);
+					}
+				});
+			}
+        },
+		onBackPress(event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide();
+				return true;
+			}
+			return false
+		},
+		components: {
+			ListScroll
+		}
+    }
+</script>
+
+<style scoped>
+	.catalog {
+		position: fixed;
+		right: 0;
+		top: 0;
+		left: 0;
+		bottom: 0;
+	}
+	.mask {
+		position: absolute;
+		right: 0;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		background-color: rgba(0,0,0,0.4);
+	}
+	.popup {
+		width: 500rpx;
+		position: absolute;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		transform: translateX(500rpx);
+	}
+	.list {
+		justify-content: center;
+		padding: 0 20rpx;
+		height: 80rpx;
+	}
+	.list-text {
+		lines: 1;
+		font-size: 23rpx;
+	}
+	.title {
+		padding: 40rpx 0;
+		align-items: center;
+	}
+	.title-text {
+		font-size: 32rpx;
+		color: #DD524D;
+	}
+	.line {
+		padding: 20rpx 30rpx;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+	.line-text {
+		font-size: 25rpx;
+	}
+	.clear {
+		color: #DD524D;
+		font-size: 25rpx;
+	}
+	.nodata-view {
+		flex: 1;
+		align-items: center;
+		justify-content: center;
+	}
+	.nodata {
+		font-size: 28rpx;
+	}
+</style>

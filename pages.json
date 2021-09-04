@@ -19,19 +19,9 @@
 		{
 			"path": "pages/book/read/index",
 			"style": {
-				"disableScroll": false, // 不嵌套 scroller
+				"disableScroll": false,
 				"app-plus": {
 				    "subNVues":[{
-				        "id": "catalog", // 唯一标识
-				        "path": "pages/book/read/subNVue/catalog", // 页面路径
-				        "type": "popup",  //这里不需要
-				        "style": {
-							"mask": "rgba(0,0,0,0.3)",
-				            "width": "750upx",
-				            "height": "100%",
-							"background": "transparent"
-				        }
-				    },{
 				        "id": "setting", // 唯一标识
 				        "path": "pages/book/read/subNVue/setting", // 页面路径
 				        "style": {
@@ -63,7 +53,11 @@
 			"style": {
 				"backgroundColor": "transparent",
 				"app-plus": {
-					"bounce":"none"
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
 				}
 			}
 		},
@@ -84,14 +78,21 @@
 			"path": "pages/music/player",
 			"style": {
 				"backgroundColor": "transparent"
-			} 
+			}
 		},
 		//音乐播放列表
 		{
 			"path": "pages/music/index",
 			"style": {
-				"backgroundColor": "transparent"
-			} 
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
+				}
+			}
 		},
 		//添加音乐
 		{
@@ -113,7 +114,7 @@
 					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
 					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
 				}
-			} 
+			}
 		},
 		//选择对话框
 		{
@@ -127,7 +128,7 @@
 					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
 					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
 				}
-			} 
+			}
 		},
 		//页面请求
 		{
@@ -155,7 +156,21 @@
 					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
 					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
 				}
-			} 
+			}
+		},
+		//章节书签展示页
+		{
+			"path": "modules/catalog",
+			"style": {
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
+				}
+			}
 		}
 	],
 	"globalStyle": {

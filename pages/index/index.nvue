@@ -81,9 +81,10 @@
 	import MusicLyric from '@/components/music-lyric/music-lyric.nvue'
 	import { skinMixin, menuTouchMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
+	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin, menuTouchMixin, bookMixin],
+		mixins: [skinMixin, menuTouchMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				currentTab: 0,
@@ -199,10 +200,11 @@
 					}
 				}
 				if ( this.bookList[index].type == 'story' ) {
+					this.setBookInfo(this.bookList[index]);
 					if ( this.bookList[index].source == 'local' ) {
-						getApp().globalData.$Router.push({path: '/pages/book/read/index', query: {index: index}});
+						getApp().globalData.$Router.push({path: '/pages/book/read/index'});
 					} else {
-						getApp().globalData.$Router.push({path: '/pages/book/detail/index', query: {index: index}});
+						getApp().globalData.$Router.push({path: '/pages/book/detail/index'});
 					}
 				} else if ( this.bookList[index].type == 'comic' ) {
 					getApp().globalData.$Router.push({path: '/pages/comic/detail/index', query: {index: index}});

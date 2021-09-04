@@ -179,11 +179,13 @@
 				const GetComicList = plus.android.importClass('com.itstudy.io.GetComicList');
 				if ( GetComicList ) {
 					let getComicList = new GetComicList();
-					let comicStr = getComicList.getComic(path);
-					this.comicList = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
-					this.comicList.sort((a, b) => {
-						return b.createTime; - a.createTime
-					})
+					let comicStr = getComicList.getComic(plus.io.convertLocalFileSystemURL(path));
+					if ( comicStr ) {
+						this.comicList = JSON.parse(JSON.parse(JSON.stringify(comicStr)));
+						this.comicList.sort((a, b) => {
+							return b.createTime; - a.createTime
+						})
+					}
 				}
 				//调试用
 				// let comicList = []

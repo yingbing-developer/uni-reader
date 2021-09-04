@@ -20,10 +20,11 @@
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
+	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import FileList from '@/components/fileList/fileList.nvue';
 	import CButton from '@/components/c-button/c-button.nvue'
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [skinMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				checkList: []
@@ -61,12 +62,8 @@
 					this.$nextTick(() => {
 						bookIndex = this.isLead(obj.path);
 						if ( bookIndex > -1 ) {
-							getApp().globalData.$Router.push({
-								path: '/pages/book/read/index',
-								query: {
-									index: bookIndex
-								}
-							});
+							this.setBookInfo(this.bookList[bookIndex]);
+							getApp().globalData.$Router.push({path: '/pages/book/read/index'});
 						} else {
 							plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
 						}

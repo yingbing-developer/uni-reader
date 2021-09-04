@@ -4,7 +4,7 @@
 		
 		<!-- 顶部 -->
 		<view class="read-top" ref="readTop" @touchmove.stop.prevent="">
-			<nav-bar :title="bookInfo.name" bgColor="#333333" titleColor="#EFEFEF">
+			<nav-bar :title="title" bgColor="#333333" titleColor="#EFEFEF">
 				<view class="nav-right" slot="right">
 					<view class="nr-item" @tap="openEditNvue" v-if="bookInfo.source == 'local'">
 						<c-icon name="edit" :size="42" color="#EFEFEF"></c-icon>
@@ -84,13 +84,13 @@
 				
 				<view class="read-board-line bottom-line">
 					<view class="bottom-box">
-						<view class="bottom-item" @tap="openMenuSubNvue('catalog')">
+						<view class="bottom-item" @tap="openCatalog('chapter')">
 							<c-icon name="menu" :size="42" color="#8A8A8A"></c-icon>
 							<text class="bottom-name">目录</text>
 						</view>
 					</view>
 					<view class="bottom-box">
-						<view class="bottom-item" @tap="openMenuSubNvue('bookmark')">
+						<view class="bottom-item" @tap="openCatalog('mark')">
 							<c-icon name="pushpin-fill" :size="42" color="#8A8A8A"></c-icon>
 							<text class="bottom-name">书签</text>
 						</view>
@@ -120,28 +120,20 @@
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
+	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CProgress from '@/components/progress/progress.nvue'
 	import NavBar from '@/components/nav-bar/nav-bar.nvue'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [skinMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
-				//书签
-				markTitle: '',
-				//章节目录
-				catalog: [],
-				//文件路径
-				path: '',
 				duration: 200,
 				lightPercent: 0
 			}
 		},
 		computed: {
-			bookInfo () {
-				return this.bookList[getApp().globalData.$utils.indexOf(this.bookList, 'path', this.path)];
-			},
 			//阅读位置
 			record () {
 				return this.bookInfo.record;
@@ -166,13 +158,13 @@
 			//当前章节
 			chapterNow () {
 				if ( this.bookInfo.source == 'local' ) {
-					for ( let i in this.catalog ) {
-						if ( i < this.catalog.length - 1 ) {
-							if ( this.record.position >= this.catalog[i].position && this.record.position < this.catalog[parseInt(i) + 1].position ) {
+					for ( let i in this.bookChapters ) {
+						if ( i < this.bookChapters.length - 1 ) {
+							if ( this.record.position >= this.bookChapters[i].position && this.record.position < this.bookChapters[parseInt(i) + 1].position ) {
 								return parseInt(i)
 							}
 						} else {
-							if ( this.record.position >= this.catalog[i].position) {
+							if ( this.record.position >= this.bookChapters[i].position) {
 								return parseInt(i)
 							}
 						}
@@ -181,11 +173,14 @@
 					return parseInt(this.bookInfo.record.chapter - 1);
 				}
 			},
+			title () {
+				return this.bookInfo.source == 'local' ? this.bookInfo.name : this.bookChapters[this.chapterNow].title
+			},
 			//书签
 			bookmark () {
 				let arr = []
 				arr = this.bookmarks.filter((item) => {
-					if ( item.path == this.path ) {
+					if ( item.path == this.bookInfo.path ) {
 						return item;
 					}
 				})
@@ -193,32 +188,14 @@
 			}
 		},
 		beforeCreate() {
-			
-			//监听子窗体显示传参
-			uni.$on('setting-popup', (data) => {  
-			    this.markTitle = data.markTitle;
-				this.catalog = data.catalog;
-				this.path = data.path;
+			uni.$on('setting-show', (data) => {
 				setTimeout(() => {
-					this.show();
-				}, 200)
+					this.show()
+				}, 50)
 			})
-			
-			uni.$on('setting', (data) => {
-				//清空书签
-				if ( data.type == 'clearMark' ) {
-					this.clearMark();
-				}
-			})
-			
 			//监听父组件通知子窗体关闭
 			uni.$on('setting-hide', (data) => {
 				this.hide()
-			})
-			
-			//监听父组件传书签值
-			uni.$on('setting-mark', (data) => {
-				this.markTitle = data.markTitle;
 			})
 		},
 		created () {
@@ -291,8 +268,8 @@
 			},
 			//上个章节
 			prevChapter () {
-				if ( this.catalog[this.chapterNow - 1] ) {
-					uni.$emit('change-page', this.catalog[this.chapterNow - 1])
+				if ( this.bookChapters[this.chapterNow - 1] ) {
+					uni.$emit('change-page', this.bookChapters[this.chapterNow - 1])
 				} else {
 					uni.showToast({
 						icon: 'none',
@@ -302,7 +279,7 @@
 			},
 			//下个章节
 			nextChapter () {
-				let flag = this.chapterNow >= 0 ? this.catalog[this.chapterNow + 1] : this.catalog[0];
+				let flag = this.chapterNow >= 0 ? this.bookChapters[this.chapterNow + 1] : this.bookChapters[0];
 				if ( flag ) {
 					uni.$emit('change-page', flag)
 				} else {
@@ -339,24 +316,10 @@
 			//添加书签
 			addBookmark () {
 				this.saveBookmark({
-					path: this.path,
+					path: this.bookInfo.path,
 					position: this.record.position,
-					title: this.markTitle.substring(0, 20)
+					title: this.bookPageInfo.text.substring(0, 20)
 				})
-			},
-			//清空书签
-			clearMark () {
-				getApp().globalData.$dom.confirm('清空提示', '确认要清空本书籍保存的书签吗？').then((res) => {
-					if ( res == 'confirm' ) {
-						this.clearBookmark(this.path);
-						uni.$emit('page-popup', {
-							path: this.path,
-						    title: '书签',
-						    list: this.bookmark,
-							showClear: this.bookmark.length > 0 ? true : false
-						});
-					}
-				});
 			},
 			upRecord (percent) {
 				if ( this.timer ) {
@@ -371,18 +334,10 @@
 					uni.$emit('change-page', record)
 				}, 100)
 			},
-			//打开章节/书签目录子窗体
-			openMenuSubNvue (type) {
-				const subNvue = uni.getSubNVueById('catalog');
-				//向子窗体传值
-				uni.$emit('page-popup', {  
-					path: this.path,
-				    title: type == 'catalog' ? '章节' : type == 'bookmark' ? '书签' : '',
-				    list: type == 'catalog' ? this.catalog : type == 'bookmark' ? this.bookmark : [],
-					showClear: type == 'bookmark' && this.bookmark.length > 0 ? true : false
-				});
-				// 打开 nvue 子窗体 
-				subNvue.show('slide-in-right', 400);
+			openCatalog (type) {
+				getApp().globalData.$dom.catalog('chapter').then((item) => {
+					if ( item ) uni.$emit('change-page', item);
+				})
 			},
 			//打开编辑窗口
 			openEditNvue () {
@@ -395,10 +350,8 @@
 			}
 		},
 		beforeDestroy () {
-			uni.$off('setting-popup');
 			uni.$off('setting-hide');
-			uni.$off('setting-mark');
-			uni.$off('setting');
+			uni.$off('setting-show');
 		},
 		watch: {
 			light (val) {
@@ -419,7 +372,6 @@
 <style scoped>
 	.btn-actived:active {
 		background-color: #8A8A8A!important;
-		
 	}
 	.mask {
 		position: fixed;

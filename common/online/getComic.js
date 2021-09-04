@@ -332,11 +332,11 @@ function get18comic (data) {
 			let comic = [];
 			let str = replaceStr(res.data);//解析html字符
 			let arr = str.match(/<div[^>]*class=([""]?)well well-sm\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画列表内容
-			let tags = str.match(/<div[^>]*class=([""]?)title-truncate\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画标签内容
+			let tags = str.match(/<div[^>]*class=([""]?)title-truncate tags\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有漫画标签内容
 			if ( arr ) {
 				for ( let i = 1; i < arr.length; i++ ) {
 					let a = arr[i].match(/<a[^>]*([\s\S]*?)<\/a>/ig);
-					let img = arr[i].match(/<img[^>]*class=([""]?)lazy_img img-responsive \1[^>]*>/ig);
+					let img = a[0].match(/<img[^>]*class=([""]?)lazy_img img-responsive img-rounded \1[^>]*>/ig);
 					let tag = tags[i - 1].match(/<a[^>]*([\s\S]*?)<\/a>/ig);
 					let tagStr = '';
 					for ( let i in tag ) {
@@ -363,7 +363,6 @@ function get18comic (data) {
 				}
 			})
 		}).catch((err) => {
-			console.log(err);
 			resolve({
 				code: ERR_FALSE,
 				data: {

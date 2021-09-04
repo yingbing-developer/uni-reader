@@ -1,60 +1,58 @@
 <template>
 	<view class="detail" :style="{'background-color': skinColor.bgColor}">
 		<nav-bar title="小说详情" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor"></nav-bar>
-		<view class="book-info">
-			<c-image class="book-img" :src="bookInfo.image" mode="aspectFill"></c-image>
-			<view class="book-info-right">
-				<text class="book-name" :style="{'color': skinColor.titleColor}">{{bookInfo.name}}</text>
-				<text class="book-intro-title" :style="{'color': skinColor.menuTitleColor}">作者：{{bookInfo.source == 'local' ? '佚名' : author}}</text>
-				<view class="book-intro">
-					<text class="book-intro-title" :style="{'color': skinColor.titleColor}">内容简介</text>
-					<text class="book-intro-text" :style="{'color': skinColor.menuTitleColor}">{{bookInfo.source == 'local' ? '暂无介绍' : desc}}</text>
+		<list-scroll :line-height="80" :list="chapterSync" :bounce="false">
+			<view slot="listTop">
+				<view class="book-info">
+					<c-image class="book-img" :src="bookInfo.image" mode="aspectFill"></c-image>
+					<view class="book-info-right">
+						<text class="book-name" :style="{'color': skinColor.titleColor}">{{bookInfo.name}}</text>
+						<text class="book-intro-title" :style="{'color': skinColor.menuTitleColor}">作者：{{bookInfo.source == 'local' ? '佚名' : author}}</text>
+						<view class="book-intro">
+							<text class="book-intro-title" :style="{'color': skinColor.titleColor}">内容简介</text>
+							<text class="book-intro-text" :style="{'color': skinColor.menuTitleColor}">{{bookInfo.source == 'local' ? '暂无介绍' : desc}}</text>
+						</view>
+					</view>
 				</view>
-			</view>
-		</view>
-		<view class="btns">
-			<view class="old-btn btn" @tap="readRecord">
-				<text class="btn-text" :style="{'color': skinColor.bgColor}">{{readed ? '上次读到 ' + record.title : '未阅读'}}</text>
-			</view>
-			<view class="new-btn btn" @tap="startRead">
-				<text class="btn-text new-btn-text">开始阅读</text>
-			</view>
-		</view>
-		
-		<view class="tabs">
-			<view class="tab" @tap="tabIndex = 0">
-				<text class="tab-text" :class="{'tab-actived': tabIndex == 0}" :style="{'color': tabIndex == 0 ? '#21C088' : skinColor.titleColor}">简介</text>
-			</view>
-			<view class="tab" @tap="tabIndex = 1">
-				<text class="tab-text" :class="{'tab-actived': tabIndex == 1}" :style="{'color': tabIndex == 1 ? '#21C088' : skinColor.titleColor}">章节</text>
-			</view>
-		</view>
-		<swiper class="swiper" :duration="500" :current="tabIndex" @change="currentChange" >
-			<swiper-item>
-				<scroll-view scroll-y class="book-desc">
-					<text class="book-desc-text" :style="{'color': skinColor.menuTitleColor, 'border-color': skinColor.gapColor, 'background-color': skinColor.gapColor}">{{bookInfo.source == 'local' ? '暂无介绍' : desc}}</text>
-				</scroll-view>
-			</swiper-item>
-			<swiper-item>
-				<view class="catalog-line">
+				<view class="btns">
+					<view class="old-btn btn" @tap="readRecord">
+						<text class="btn-text" :style="{'color': skinColor.bgColor}">{{readed ? '上次读到 ' + record.title : '未阅读'}}</text>
+					</view>
+					<view class="new-btn btn" @tap="startRead">
+						<text class="btn-text new-btn-text">开始阅读</text>
+					</view>
+				</view>
+				<view class="gap"></view>
+				<view class="tab-line" :style="{'background-color': skinColor.navColor}">
+					<text class="tab-text" :style="{'color': skinColor.iconColor}">内容简介</text>
+				</view>
+				<view class="book-desc">
+					<text class="book-desc-text" :class="{'book-lines-5': descHide}" :style="{'color': skinColor.menuTitleColor, 'border-color': skinColor.gapColor}">{{bookInfo.source == 'local' ? '暂无介绍' : desc}}</text>
+					<text class="desc-btn-text" :style="{'color': skinColor.navColor}" @tap="descHide = false" v-if="descHide">显示全部</text>
+					<text class="desc-btn-text" :style="{'color': skinColor.navColor}" @tap="descHide = true" v-if="!descHide">隐藏内容</text>
+				</view>
+				<view class="gap"></view>
+				<view class="tab-line" :style="{'background-color': skinColor.navColor}">
+					<text class="tab-text" :style="{'color': skinColor.iconColor}">正文</text>
+					<text class="tab-text" :style="{'color': skinColor.iconColor}">共{{catalog.length}}章</text>
+				</view>
+				<!-- <view class="catalog-line" :style="{'border-color': skinColor.gapColor}">
 					<text class="catalog-title" :style="{'color': skinColor.titleColor}">小说章节</text>
 					<text class="sort-title" @tap="changeSortType">{{sortType == 'reverse' ? '倒序' : '正序'}}</text>
+				</view> -->
+			</view>
+			<template v-slot="{item}">
+				<view class="catalog-list">
+					<view class="catalog-block" :class="skinColor.activedName" :style="{'border-color': skinColor.gapColor}" @tap="readBook(item.path)">
+						<text class="catalog-text" :style="{'color': item.path == readed.path ? '#FF3B30' : skinColor.menuTitleColor}">{{item.title}}</text>
+						<text class="readed-text color-red" v-if="item.path == readed.path">阅读中</text>
+					</view>
 				</view>
-				<!-- 章节列表 -->
-				<list-scroll :line-height="110" :list="catalog" :bounce="false" v-if="showList">
-					<no-data slot="fixed" v-if="catalog.length <= 0" title="貌似没有章节哦"></no-data>
-					<template v-slot="{item}">
-						<view class="catalog-list">
-							<view class="catalog-block" :class="skinColor.activedName" :style="{'background-color': item.path == readed.path ? skinColor.gapColor : '', 'border-color': skinColor.gapColor}" @tap="readBook(item.path)">
-								<text class="catalog-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
-								<text class="readed-text color-red" v-if="item.path == readed.path">阅读中</text>
-							</view>
-						</view>
-					</template>
-				</list-scroll>
-			</swiper-item>
-		</swiper>
-		
+			</template>
+			<view slot="listBottom">
+				<text class="chapter-btn-text" :style="{'color': skinColor.navColor}" v-if="catalog.length > 0" @tap="showCatalog">更多章节</text>
+			</view>
+		</list-scroll>
 	</view>
 </template>
 
@@ -63,27 +61,20 @@
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
+	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import { getBookInfo } from '@/common/online/getBook.js'
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [skinMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				catalog: [],
 				author: '',
 				desc: '',
-				tabIndex: 0,
-				showList: false,
+				descHide: true,
 				sortType: 'reverse'
 			}
 		},
 		computed: {
-			//书籍信息
-			bookInfo () {
-				const pages = getCurrentPages();
-				const page = pages[pages.length - 1];
-				let index =  page.options.index;
-				return this.bookList[index];
-			},
 			record () {
 				return this.bookInfo.record;
 			},
@@ -95,6 +86,24 @@
 				}
 				let index = getApp().globalData.$utils.indexOf(arr, 'chapter', this.record.chapter);
 				return index > -1 ? arr[index] : false;
+			},
+			chapterSync () {
+				let arr = getApp().globalData.$utils.deepClone(this.catalog);
+				if ( this.sortType == 'reverse' ) {
+					arr.reverse();
+				}
+				let index = getApp().globalData.$utils.indexOf(arr, 'chapter', this.record.chapter > -1 ? this.record.chapter : 1);
+				let list = arr.slice(index, index + 5);
+				list = arr.slice(index - 5 > 0 ? index - 5 : 0, index).concat(list);
+				// for ( let i in arr ) {
+				// 	if ( i == index || i == index - 1 || i == index + 1 || i == index - 2 || i == index + 2 ) {
+				// 		list.push(arr[i]);
+				// 	}
+				// }
+				// list.sort((a, b) => {
+				// 	return parseInt(b.chapter) - parseInt(a.chapter)
+				// })
+				return list; 
 			}
 		},
 		onReady () {
@@ -161,38 +170,22 @@
 			//阅读
 			readBook (path) {
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
-				let nums = this.sortType == 'reverse' ? JSON.stringify(arr.reverse()) : JSON.stringify(arr);
+				let nums = this.sortType == 'reverse' ? arr.reverse() : arr;
+				this.setBookChapters(nums);
 				let readIndex = getApp().globalData.$utils.indexOf(arr, 'path', path);
-				//更新阅读章节记录
-				let record = {
-					chapter: arr[readIndex].chapter,
-					position: this.record.chapter == arr[readIndex].chapter ? this.record.position : 0,
-					title: arr[readIndex].title
-				}
-				this.updateBookInfo({
-					path: this.bookInfo.path,
-					record: record
-				})
-				let index = getApp().globalData.$utils.indexOf(this.bookList, 'path', this.bookInfo.path);
-				getApp().globalData.$Router.push({
-					path: '/pages/book/read/index',
-					query: {
-						index: index,
-						nums: encodeURIComponent(nums),
-						readIndex: readIndex
-					}
-				});
+				getApp().globalData.$Router.push({path: '/pages/book/read/index', query: {
+					chapter: arr[readIndex].chapter
+				}});
 			},
 			//改变排序方式
 			changeSortType () {
 				this.sortType = this.sortType == 'reverse' ? 'positive' : 'reverse';
 				this.catalog.reverse();
 			},
-			currentChange (e) {
-				this.tabIndex = e.detail.current;
-				if ( this.tabIndex == 1 && !this.showList ) {
-					this.showList = true;
-				}
+			showCatalog () {
+				getApp().globalData.$dom.catalog('chapter').then((item) => {
+					if ( item ) this.readBook(item.path);
+				})
 			}
 		},
 		components: {
@@ -266,36 +259,38 @@
 		margin-right: 10rpx;
 		background-color: #21C088;
 	}
-	.tabs {
-		flex-direction: row;
+	.tab-line {
 		padding: 20rpx;
-	}
-	.tab {
-		margin-right: 30rpx;
+		flex-direction: row;
+		justify-content: space-between;
 	}
 	.tab-text {
-		text-align: center;
-		font-size: 32rpx;
+		font-size: 28rpx;
 	}
-	.tab-actived {
-		text-decoration: underline;
-	}
-	.swiper {
-		flex: 1;
+	.gap {
+		height: 20rpx;
 	}
 	.book-desc {
 		padding: 20rpx;
-		flex: 1;
 	}
 	.book-desc-text {
-		padding: 20rpx;
 		font-size: 28rpx;
-		border: 1px solid;
+	}
+	.desc-btn-text {
+		font-size: 28rpx;
+	}
+	.book-lines-5 {
+		lines: 5;
+		text-overflow: ellipsis;
+	}
+	.listscroll {
+		height: 600rpx;
 	}
 	.catalog-line {
 		padding: 20rpx 20rpx;
 		flex-direction: row;
 		justify-content: space-between;
+		border-width: 1px;
 	}
 	.catalog-title {
 		font-size: 28rpx;
@@ -307,14 +302,13 @@
 		font-size: 28rpx;
 	}
 	.catalog-list {
-		height: 110rpx;
+		height: 80rpx;
 		justify-content: center;
 	}
 	.catalog-block {
-		margin: 0 30rpx;
 		padding: 20rpx;
 		height: 80rpx;
-		border-width: 1px;
+		border-bottom-width: 1px;
 		border-radius: 5rpx;
 		flex-direction: row;
 		justify-content: space-between;
@@ -328,5 +322,9 @@
 	}
 	.readed-text {
 		font-size: 24rpx;
+	}
+	.chapter-btn-text {
+		font-size: 28rpx;
+		padding: 20rpx;
 	}
 </style>

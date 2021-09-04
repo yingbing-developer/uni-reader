@@ -58,6 +58,7 @@
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
+	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import { getBook } from '@/common/online/getBook.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
@@ -69,7 +70,7 @@
 	import { BOOKURL } from '@/assets/js/config.js'
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [skinMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				//漫画列表
@@ -256,12 +257,8 @@
 				let bookIndex = this.isLead(path);
 				//导入过直接阅读
 				if ( bookIndex > -1 ) {
-					getApp().globalData.$Router.push({
-						path: '/pages/book/detail/index',
-						query: {
-							index: bookIndex
-						}
-					});
+					this.setBookInfo(this.bookList[bookIndex]);
+					getApp().globalData.$Router.push({path: '/pages/book/detail/index'});
 				} else {
 					//未导入，则先导入再进行阅读
 					this.leadBook(path, true);
@@ -284,12 +281,8 @@
 					this.$nextTick(() => {
 						let bookIndex = this.isLead(path);
 						if ( bookIndex > -1 ) {
-							getApp().globalData.$Router.push({
-								path: '/pages/book/detail/index',
-								query: {
-									index: bookIndex
-								}
-							});
+							this.setBookInfo(this.bookList[bookIndex]);
+							getApp().globalData.$Router.push({path: '/pages/book/detail/index'});
 						} else {
 							uni.showToast({
 								title: '小说导入失败',
