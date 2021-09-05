@@ -170,7 +170,9 @@
 						}
 					}
 				} else {
-					return parseInt(this.bookInfo.record.chapter - 1);
+					let chapter = this.bookInfo.record.chapter > -1 ? this.bookInfo.record.chapter : 1;
+					let index = getApp().globalData.$utils.indexOf(this.bookChapters, 'chapter', chapter);
+					return parseInt(index);
 				}
 			},
 			title () {

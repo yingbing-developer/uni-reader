@@ -1,5 +1,5 @@
 <template>
-	<view class="read" :style="{filter: 'brightness(' + light + '%)'}">
+	<view class="read" :style="{filter: 'brightness(' + light + '%)', 'background-color': skinColor.readBackColor}">
 		<yingbing-ReadPage
 		ref="page"
 		:page-type="pageType"
@@ -308,7 +308,7 @@
 						position: e.start,
 						title: ''
 					}
-					isReaded =  e.end >= this.bookContent.length;
+					isReaded =  e.end >= this.bookContent.length - 1;
 				} else {
 					let index = this.$utils.indexOf(this.bookChapters, 'chapter', e.chapter);
 					record = {

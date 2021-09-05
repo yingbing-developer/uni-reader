@@ -19,7 +19,10 @@
 		{
 			"path": "pages/book/read/index",
 			"style": {
-				"disableScroll": false
+				"disableScroll": false,
+				"app-plus": {
+					"bounce":"none"
+				}
 			}
 		},
 		//小说设置页

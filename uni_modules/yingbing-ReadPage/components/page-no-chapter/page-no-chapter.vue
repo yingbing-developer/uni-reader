@@ -258,6 +258,7 @@
 						lineWidth += context.measureText(contentSync[i]).width;
 						if ( JSON.stringify(contentSync[i]) == JSON.stringify('\r') || JSON.stringify(contentSync[i]) == JSON.stringify('\n') ) {
 							length += 1
+							page.end = page.start + length;
 							lastIndex = i + 1;
 							break;
 						} else if ( lineWidth >= this.viewWidth - (2 * this.pageProp.slide) ) {

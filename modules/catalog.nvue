@@ -50,7 +50,7 @@
 			scrollTo () {
 				let len = this.list.length;
 				if ( this.bookInfo.source == 'local' ) {
-					let position = this.bookInfo.record.position || 0;
+					let position = this.bookInfo.record.position;
 					if ( this.type == 'chapter' ) {
 						for ( let i = 0; i < len; i++ ) {
 							if ( i < this.list.length - 1 ) {
@@ -63,6 +63,7 @@
 								}
 							}
 						}
+						return 0;
 					} 
 					if ( this.type == 'mark' ) {
 						return getApp().globalData.$utils.indexOf(this.list, 'position', position);
