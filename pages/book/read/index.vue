@@ -117,52 +117,65 @@
 			//获取本地小说内容
 			getLocalContent () {
 				//获取内容 正式用
-				let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
-				let readTxt = new ReadTxt();
-				this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
-				uni.hideLoading();
-				//更新文本总长度
-				this.updateBookInfo({
-					path: this.path,
-					length: this.bookContent.length
-				})
-				//初始化页面
-				this.initPage();
-				readTxt = '';
+				// let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
+				// let readTxt = new ReadTxt();
+				// this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
+				// uni.hideLoading();
+				// //更新文本总长度
+				// this.updateBookInfo({
+				// 	path: this.path,
+				// 	length: this.bookContent.length
+				// })
+				// //初始化页面
+				// this.initPage();
+				// readTxt = '';
 				
 				// 获取内容 调试用
-				// let file = plus.android.newObject("java.io.File", this.path);
-				// let stream = plus.android.newObject("java.io.FileInputStream", file);
-				// let reader = plus.android.newObject("java.io.InputStreamReader", stream, 'GBK');
-				// let bufferedReader = plus.android.newObject("java.io.bufferedReader", reader);
-				// let lineTxt = plus.android.invoke(bufferedReader, 'readLine');
-				// plus.android.invoke(reader, 'close');
-				// uni.hideLoading();
-				// if ( lineTxt ) {
-				// 	plus.io.resolveLocalFileSystemURL('file://' + this.path, ( entry ) => {
-				// 		entry.file( ( file ) => {
-				// 			let reader = new plus.io.FileReader();
-				// 			reader.onloadend = ( e ) => {
-				// 				uni.hideLoading();
-				// 				plus.android.invoke(bufferedReader, 'close');
-				// 				plus.android.invoke(reader, 'close');
-				// 				this.bookContent = e.target.result;
-				// 				//更新文本总长度
-				// 				this.updateBookInfo({
-				// 					path: this.path,
-				// 					length: this.bookContent.length
-				// 				})
-				// 				//初始化页面
-				// 				this.initPage();
-				// 			};
-				// 			reader.readAsText( file, 'gb2312' );
-				// 		}, ( fail ) => {
-				// 			console.log("Request file system failed: " + fail.message);
-				// 		});
-				// 	}, ( fail ) => {
-				// 		console.log( "Request file system failed: " + fail.message );
-				// 	});
-				// }
+				let encoding = this.getFileCharset(this.path);
+				let file = plus.android.newObject("java.io.File", this.path);
+				// let fs = plus.android.newObject("java.io.FileInputStream", file);
+				// let isr = plus.android.newObject("java.io.InputStreamReader", fs, encoding);
+				// let br = plus.android.newObject("java.io.BufferedReader", isr);
+				// let s = plus.android.invoke(br, 'readLine');
+				// plus.android.invoke(br, 'close');
+				let Charset = plus.android.importClass("java.nio.charset.Charset");
+				let ByteBuffer = plus.android.importClass("java.nio.ByteBuffer");
+				let FileChannel = plus.android.importClass("java.nio.channels.FileChannel");
+				let FileInputStream = plus.android.importClass("java.io.FileInputStream");
+				let String = plus.android.importClass("java.lang.String");
+				let bf = ByteBuffer.allocate(plus.android.invoke(file, 'length'));
+				let bytes = bf.array();
+				let fs = new FileInputStream(file);
+				fs.read(bytes);
+				uni.hideLoading();
+			},
+			//判断txt文件编码格式
+			getFileCharset (path) {
+				let Charset = plus.android.importClass('java.nio.charset.Charset');
+				let charset = Charset.defaultCharset().displayName();
+				let charsets = ["UTF-8", "GBK", "US-ASCII", "GB2312", "BIG5", "GB18030", "UTF-16BE", "UTF-16LE", "UTF-16", "UNICODE"];
+				for (let i = 0; i < charsets.length; i++) {
+					let decoder = Charset.forName(charsets[i]).newDecoder();
+					let fs = plus.android.newObject("java.io.FileInputStream", path);
+					let isr = plus.android.newObject("java.io.InputStreamReader", fs, decoder);
+					let br = plus.android.newObject("java.io.BufferedReader", isr);
+					let line = 0;
+					let s = null;
+					while (line < 20){
+						s = plus.android.invoke(br, 'readLine');
+						if ( s ) break;
+						line += 1;
+					}
+					if ( s ) {
+						charset = charsets[i];
+						console.log("getTextFileCharset: is " + charsets[i] + ",break");
+						break;
+					} else {
+						console.log("getTextFileCharset: not " + charsets[i] + ",continue");
+						continue;
+					}
+				}
+				return charset;
 			},
 			//获取在线小说内容
 			getOnlineContent (data) {
