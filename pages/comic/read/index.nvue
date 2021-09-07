@@ -463,7 +463,7 @@
 				this.scrollTo();
 			},
 			chapter () {
-				this.getComicSync();
+				this.getComics();
 			},
 			comicOrien () {
 				this.changeOrien()
