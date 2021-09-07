@@ -129,6 +129,8 @@
 				this.comicSync = [];
 				this.nextShow = false;
 				this.prevShow = false;
+				this.isLastPage = false;
+				this.currentPage = 1;
 				this.direction = 'up';
 				this.nowIndex = 0;
 				clearTimeout(this.timer);
@@ -210,7 +212,7 @@
 							uni.$off('comicContent');
 							resolve(res.data)
 						})
-					}).catch((err) => {
+					}).catch(() => {
 						clearTimeout(this.timeout);
 						getApp().globalData.$Router.back(2);
 						uni.$off('comicContent');
@@ -412,9 +414,12 @@
 			//更新章节
 			upChapter (chapter) {
 				this.updateBookInfo({
-					chapter: chapter,
-					position: 0,
-					title: this.chapters[chapter].name
+					path: this.comicInfo.path,
+					record: {
+						chapter: chapter,
+						position: 0,
+						title: this.chapters[chapter].name
+					}
 				})
 			},
 			//获取屏幕宽度
