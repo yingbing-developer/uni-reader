@@ -85,7 +85,29 @@
                 "androidStyle" : "default"
             }
         },
-        "nativePlugins" : {},
+        "nativePlugins" : {
+            "Reader" : {
+                "android_appid" : "TM123456",
+                "__plugin_info__" : {
+                    "name" : "Reader",
+                    "description" : "读取txt文本的内容",
+                    "platforms" : "Android",
+                    "url" : "",
+                    "android_package_name" : "",
+                    "ios_bundle_id" : "",
+                    "isCloud" : false,
+                    "bought" : -1,
+                    "pid" : "",
+                    "parameters" : {
+                        "android_appid" : {
+                            "des" : "请填写appid",
+                            "key" : "TM123456",
+                            "value" : ""
+                        }
+                    }
+                }
+            }
+        },
         "nvueLaunchMode" : ""
     },
     /* 快应用特有相关 */

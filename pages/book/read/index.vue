@@ -116,38 +116,52 @@
 		methods: {
 			//获取本地小说内容
 			getLocalContent () {
-				//获取内容 正式用
+				//获取内容 原生插件
 				// let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
 				// let readTxt = new ReadTxt();
 				// this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
-				// uni.hideLoading();
-				// //更新文本总长度
-				// this.updateBookInfo({
-				// 	path: this.path,
-				// 	length: this.bookContent.length
-				// })
-				// //初始化页面
-				// this.initPage();
-				// readTxt = '';
+				let Reader = uni.requireNativePlugin('Reader');
+				this.bookContent = Reader.readAllLines(this.path);
+				//更新文本总长度
+				this.updateBookInfo({
+					path: this.path,
+					length: this.bookContent.length
+				})
+				//初始化页面
+				this.initPage();
+				Reader = '';
+				uni.hideLoading();
 				
-				// 获取内容 调试用
-				let encoding = this.getFileCharset(this.path);
-				let file = plus.android.newObject("java.io.File", this.path);
-				// let fs = plus.android.newObject("java.io.FileInputStream", file);
+				// 获取内容 还不能使用
+				// let encoding = this.getFileCharset(this.path);
+				// let file = plus.android.newObject("java.io.File", this.path, 'r');
+				// let fs = plus.android.newObject("java.io.FileInputStream", this.path);
+				// plus.android.invoke(fs, 'skip', 3);
 				// let isr = plus.android.newObject("java.io.InputStreamReader", fs, encoding);
 				// let br = plus.android.newObject("java.io.BufferedReader", isr);
 				// let s = plus.android.invoke(br, 'readLine');
 				// plus.android.invoke(br, 'close');
-				let Charset = plus.android.importClass("java.nio.charset.Charset");
-				let ByteBuffer = plus.android.importClass("java.nio.ByteBuffer");
-				let FileChannel = plus.android.importClass("java.nio.channels.FileChannel");
-				let FileInputStream = plus.android.importClass("java.io.FileInputStream");
-				let String = plus.android.importClass("java.lang.String");
-				let bf = ByteBuffer.allocate(plus.android.invoke(file, 'length'));
-				let bytes = bf.array();
-				let fs = new FileInputStream(file);
-				fs.read(bytes);
-				uni.hideLoading();
+				// console.log(s);
+				// let Charset = plus.android.importClass("java.nio.charset.Charset");
+				// let ByteBuffer = plus.android.importClass("java.nio.ByteBuffer");
+				// let FileChannel = plus.android.importClass("java.nio.channels.FileChannel");
+				// let FileInputStream = plus.android.importClass("java.io.FileInputStream");
+				// let String = plus.android.importClass("java.lang.String");
+				// let bf = ByteBuffer.allocate(1024);
+				// let bytes = bf.array();
+				// try { 
+				// 	let r = new RandomAccessFile(file);
+				// 	let byteread = r.read(bytes);
+				// 	// let charread = r.readchar();
+				// 	// let intread = r.readint();
+				// 	console.log(bytes, 0, byteread);
+				// 	// console.log(bytes, 0, charread);
+				// 	// console.log(bytes, 0, intread);
+				// 	fs.close();
+				// } catch (e){ 
+				// 	console.log("File read error:"+e);
+				// }
+				// uni.hideLoading();
 			},
 			//判断txt文件编码格式
 			getFileCharset (path) {

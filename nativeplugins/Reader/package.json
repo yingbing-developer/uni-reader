@@ -1,0 +1,40 @@
+{
+    "name": "Reader",
+    "id": "Reader",
+    "version": "1.0",
+    "description": "读取txt文本的内容",
+    "_dp_type":"nativeplugin",
+    "_dp_nativeplugin":{
+        "android": {
+            "plugins": [
+                {
+                    "type": "module",
+                    "name": "Reader",
+                    "class": "com.yingbing.nativeplugin.Reader"
+                }
+            ],
+			"hooksClass": "",
+			"integrateType": "aar",
+			"dependencies": [
+			],
+			"compileOptions": {
+			    "sourceCompatibility": "1.8",
+			    "targetCompatibility": "1.8"
+			},
+			"abis": [
+				"armeabi-v7a",
+				"x86"
+			],
+			"minSdkVersion": "22",
+			"permissions": [
+			],
+			"parameters": {
+				"android_appid": {
+				    "des": "请填写appid",
+				    "key": "TM123456",
+				    "placeholder": ""
+				}
+			}
+        }
+    }
+}
