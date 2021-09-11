@@ -203,7 +203,7 @@
 				let child = this.getIframeDom();
 				let head = child.document.getElementsByTagName('head')[0];
 				let scripts = head.getElementsByTagName('script');
-				let str = scripts[4].innerHTML.match(/var imglist = *([\s\S]*?)}]/ig)[0].replace('var imglist = ', '');
+				let str = scripts[scripts.length - 1].innerHTML.match(/var imglist = *([\s\S]*?)}]/ig)[0].replace('var imglist = ', '');
 				let arr = str.split('},{');
 				let images = new Array(arr.length - 1);
 				for ( let i = 0; i < images.length; i++ ) {

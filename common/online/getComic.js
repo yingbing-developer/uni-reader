@@ -722,7 +722,7 @@ function getWnacgNum (href) {
 			resolve({
 				code: ERR_OK,
 				data: [{
-					path: COMICURL[tag6].href + numObj.attrs.href,
+					path: COMICURL[tag6].href + numObj.attrs.href.replace('list', 'slide'),
 					name: '全本'
 				}]
 			})
