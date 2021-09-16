@@ -5,6 +5,7 @@ function xhrRequest (type = 'GET', url, options) {
 	let xhrHttp = new plus.net.XMLHttpRequest();
 	return new Promise((resolve,reject) => {
 		xhrHttp.onreadystatechange = function () {
+			console.log(xhrHttp.readyState);
 			if ( xhrHttp.readyState == 4 ) {
 				if ( xhrHttp.status == 200 ) {
 					resolve({code: xhrHttp.status, data: xhrHttp.responseText})
@@ -12,8 +13,6 @@ function xhrRequest (type = 'GET', url, options) {
 					plus.nativeUI.toast("网络错误！", {verticalAlign: 'bottom'});
 					reject({code: xhrHttp.status, data: ''});
 				}
-				xhrHttp.abort();
-				xhrHttp = '';
 			}
 		}
 		xhrHttp.open(type, url);

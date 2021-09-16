@@ -123,7 +123,11 @@ function getBaoshuuInfo (href) {
 function getBaoshuuDetails (href) {
 	return new Promise((resolve, reject) => {
 		getApp().globalData.$xhr.get(href, {
-			mimeType: 'text/html;charset=gb2312'
+			mimeType: 'text/html;charset=gb2312',
+			headers: {
+				Referer: 'https://m.baoshuu.com/',
+				Host: 'm.baoshuu.com'
+			}
 		}).then((res) => {
 			if ( res.code == 200 ) {
 				let str = replaceStr(res.data);//解析html字符
@@ -165,7 +169,11 @@ function getBaoshuuDetails (href) {
 function getBaoshuuChapters (href) {
 	return new Promise((resolve, reject) => {
 		getApp().globalData.$xhr.get(href, {
-			mimeType: 'text/html;charset=gb2312'
+			mimeType: 'text/html;charset=gb2312',
+			headers: {
+				Referer: 'https://m.baoshuu.com/',
+				Host: 'm.baoshuu.com'
+			}
 		}).then((res) => {
 			if ( res.code == 200 ) {
 				let str = replaceStr(res.data);//解析html字符
@@ -198,9 +206,16 @@ function getBaoshuuContent (data) {
 	return new Promise((resolve, reject) => {
 		let arr = [];
 		for ( let i in data ) {
-			arr.push(getApp().globalData.$xhr.get(data[i].url, {mimeType: 'text/html;charset=gb2312'}))
+			arr.push(getApp().globalData.$xhr.get(data[i].url, {
+				mimeType: 'text/html;charset=gb2312',
+				headers: {
+					Referer: 'https://m.baoshuu.com/',
+					Host: 'm.baoshuu.com'
+				}
+			}))
 		}
 		Promise.all(arr).then((res) => {
+			console.log(res);
 			let contents = [];
 			for ( let i in res ) {
 				if ( res[i].code == 200 ) {
