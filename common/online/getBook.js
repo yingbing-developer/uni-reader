@@ -215,7 +215,6 @@ function getBaoshuuContent (data) {
 			}))
 		}
 		Promise.all(arr).then((res) => {
-			console.log(res);
 			let contents = [];
 			for ( let i in res ) {
 				if ( res[i].code == 200 ) {
