@@ -134,20 +134,6 @@
 				}
 			}
 		},
-		//页面请求
-		{
-			"path": "modules/xhr",
-			"style": {
-				"backgroundColor": "transparent",
-				"app-plus": {
-					"bounce":"none",
-					"animationType": "fade-in",
-					"background": "transparent", // 背景透明
-					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
-					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
-				}
-			}
-		},
 		//文本编辑框
 		{
 			"path": "modules/edit",

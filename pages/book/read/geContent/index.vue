@@ -21,6 +21,19 @@
 				return 'cms' + mydate.getMinutes() + mydate.getSeconds() + mydate.getMilliseconds() + Math.round(Math.random() * 10000);
 			}
 		},
+		created () {
+			getApp().globalData.$http.get('https://images.dmzj.com/img/webpic/0/1051440001626095757.jpg', {
+				// responseType: 'arraybuffer',
+				headers: {
+					'Referer': 'https://www.dmzj.com/',
+					'Host': 'images.dmzj.com',
+					'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML,like Gecko) Chrome/65.0.3325.181 Safari/537.36',
+					'Content-Type': 'Charset=gbk'
+				}
+			}).then((res) => {
+				console.log(res);
+			})
+		},
 		methods: {
 			get (data) {
 				this.xhrs = data || {};
@@ -72,6 +85,47 @@
 			meta['http-equiv'] = 'Content-Type';
 			meta.content = 'text/html; charset=GB2312';
 			document.body.appendChild(meta);
+			// let xhr = new plus.net.XMLHttpRequest();
+			// xhr.onreadystatechange = function () {
+			// 	switch ( xhr.readyState ) {
+			// 		case 0:
+			// 			console.log( "xhr请求已初始化" );
+			// 		break;
+			// 		case 1:
+			// 			console.log( "xhr请求已打开" );
+			// 		break;
+			// 		case 2:
+			// 			console.log( "xhr请求已发送" );
+			// 		break;
+			// 		case 3:
+			// 			console.log( "xhr请求已响应");
+			// 			break;
+			// 		case 4:
+			// 			if ( xhr.status == 200 ) {
+			// 				console.log(xhr.responseText);
+			// 				console.log(new Uint8Array(xhr.response).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+			// 				console.log('data:image/png;base64,' + btoa(new Uint8Array(xhr.responseText).reduce((data, byte) => data + String.fromCharCode(byte), '')));
+			// 				// console.log( "xhr请求成功："+ window.URL.createObjectURL(xhr.responseText));
+			// 				// console.log(xhr.getAllResponseHeaders());
+			// 				// let reader = new FileReader();
+			// 				// reader.readAsDataURL(xhr.response)
+			// 				// let dataURL = reader.result
+			// 			} else {
+			// 				console.log( "xhr请求失败："+xhr.readyState );
+			// 			}
+			// 			break;
+			// 		default :
+			// 			break;
+			// 	}
+			// }
+			// xhr.responseType = 'arraybuffer';
+			// xhr.open( "GET", "https://images.dmzj.com/img/webpic/0/1051440001626095757.jpg");
+			// xhr.responseType = 'arraybuffer';
+			// xhr.setRequestHeader('Referer', 'https://www.dmzj.com/');
+			// xhr.setRequestHeader('Host', 'images.dmzj.com');
+			// xhr.setRequestHeader('Content-Type', 'application/json');
+			// xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML,like Gecko) Chrome/65.0.3325.181 Safari/537.36');
+			// xhr.send();
 		},
 		methods: {
 			initDom () {

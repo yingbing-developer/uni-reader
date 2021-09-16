@@ -33,21 +33,6 @@ export default {
 			});
 		})
 	},
-	xhr (xhrs) {
-		return new Promise((resolve, reject) => {
-			// xhrs = xhrs ? xhrs.options?.Charset == 'gb2312' ? JSON.stringify(xhrs)
-			uni.navigateTo({
-				url: `/modules/xhr?xhrs=${xhrs ? encodeURIComponent(JSON.stringify(xhrs)) : ''}`,
-				complete: (res) => {
-					uni.$on('xhr-btn', (data) => {
-						resolve(data)
-						uni.navigateBack({delta: data.delta || 1});
-						uni.$off('xhr-btn');
-					})
-				}
-			});
-		})
-	},
 	catalog (type) {
 		return new Promise((resolve, reject) => {
 			uni.navigateTo({

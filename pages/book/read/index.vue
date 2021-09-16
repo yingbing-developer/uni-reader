@@ -17,7 +17,6 @@
 		@loadmore="loadmoreContent">
 		</yingbing-ReadPage>
 		
-		<get-content ref="getContent"></get-content>
 		<!-- 触摸区域 -->
 		<view class="touch-box touch-menu" @tap="openSettingNvue" @longpress="openEditNvue">
 			菜单
@@ -30,7 +29,6 @@
 	import bookMixin from '@/common/mixin/book.js';
 	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import { getBookContent } from '@/common/online/getBook.js';
-	import GetContent from './geContent/index.vue'
 	export default {
 		mixins: [skinMixin, bookMixin, bookcertifyMixin],
 		data () {
@@ -196,7 +194,6 @@
 				let xhrs = [];
 				for ( let i = 0; i < data.length; i++ ) {
 					xhrs.push({
-						type: 'GET',
 						url: data[i].path,
 						chapter: data[i].chapter,
 						isEnd: data[i].isEnd,
@@ -204,11 +201,11 @@
 					})
 				}
 				return new Promise((resolve, reject) => {
-					uni.$on('book-content-btn', res => {
+					getBookContent(xhrs).then((res) => {
 						resolve(res);
-						uni.$off('book-content-btn');
+					}).catch(() => {
+						reject('')
 					})
-					this.$refs.getContent.get(xhrs)
 				})
 			},
 			//获取章节目录
@@ -409,9 +406,6 @@
 				}
 				uni.hideLoading();
 			}
-		},
-		components: {
-			GetContent
 		},
 		beforeDestroy () {
 			//注销监听页面监听

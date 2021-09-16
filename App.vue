@@ -2,6 +2,7 @@
 	import { Route } from '@/plugins/router/router.js';
 	import Router from '@/plugins/router';
 	import Http from '@/plugins/request'
+	import Xhr from '@/plugins/xhr'
 	import Dom from '@/plugins/dom'
 	import Utils from '@/assets/js/util.js'
 	import Config from '@/assets/js/config.js'
@@ -10,6 +11,7 @@
 			$Router: Router,
 			$Route: new Route(),
 			$http: Http,
+			$xhr: Xhr,
 			$dom: Dom,
 			$utils: Utils,
 			$config: Config

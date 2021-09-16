@@ -27,6 +27,13 @@ export function getBookInfo (data) {
 	}
 }
 
+//获取小说内容
+export function getBookContent (data) {
+	if ( data[0].source == tag1 ) {
+		return getBaoshuuContent(data);
+	}
+}
+
 
 //获取手机宝书网站的小说列表
 function getBaoshuu (data) {
@@ -115,15 +122,10 @@ function getBaoshuuInfo (href) {
 //获取手机宝书网站的小说详情
 function getBaoshuuDetails (href) {
 	return new Promise((resolve, reject) => {
-		getApp().globalData.$dom.xhr({
-			type: 'GET',
-			url: href
+		getApp().globalData.$xhr.get(href, {
+			mimeType: 'text/html;charset=gb2312'
 		}).then((res) => {
 			if ( res.code == 200 ) {
-				uni.showLoading({
-					title: '解析中',
-					mask: true
-				})
 				let str = replaceStr(res.data);//解析html字符
 				let subtilte = str.match(/<div[^>]*class=([""]?)mlist\1[^>]*>*([\s\S]*?)<\/div>/);
 				let name = subtilte[0].match(/<h1[^\s]>*([\s\S]*?)<\/h1>/);//正则匹配小说详情信息
@@ -152,9 +154,9 @@ function getBaoshuuDetails (href) {
 					chapters: []
 				}
 				resolve(data)
-			} else {
-				resolve({})
 			}
+		}).catch(() => {
+			resolve({})
 		})
 	})
 }
@@ -162,14 +164,8 @@ function getBaoshuuDetails (href) {
 //获取手机宝书网站的小说章节
 function getBaoshuuChapters (href) {
 	return new Promise((resolve, reject) => {
-		getApp().globalData.$dom.xhr({
-			type: 'GET',
-			url: href,
-			options: {
-				headers: {
-					Charset: 'gb2312'//自定义字符格式
-				}
-			}
+		getApp().globalData.$xhr.get(href, {
+			mimeType: 'text/html;charset=gb2312'
 		}).then((res) => {
 			if ( res.code == 200 ) {
 				let str = replaceStr(res.data);//解析html字符
@@ -190,9 +186,41 @@ function getBaoshuuChapters (href) {
 				}
 				chapters.reverse();
 				resolve(chapters)
-			} else {
-				resolve([])
 			}
+		}).catch(() => {
+			resolve([])
+		})
+	})
+}
+
+//获取手机宝书网站的小说内容
+function getBaoshuuContent (data) {
+	return new Promise((resolve, reject) => {
+		let arr = [];
+		for ( let i in data ) {
+			arr.push(getApp().globalData.$xhr.get(data[i].url, {mimeType: 'text/html;charset=gb2312'}))
+		}
+		Promise.all(arr).then((res) => {
+			let contents = [];
+			for ( let i in res ) {
+				if ( res[i].code == 200 ) {
+					let str = getApp().globalData.$utils.replaceStr(res[i].data);
+					let content = str.match(/<span[^>]*id=([""]?)Content\1[^>]*>*([\s\S]*?)<\/span>/);//正则匹配所有小说内容
+					let unstr = content[2].match(/<font[^>]*>*([\s\S]*?)<\/font>/);//正则匹配所有小说内容
+					content = content[2].replace(unstr[0], '');
+					content = content.replace('</font>', '');
+					content = content.replace(/<br \/>/ig, '\n');
+					content = content.replace(/<br>/ig, '\n');
+					contents.push({
+						chapter: data[i].chapter,
+						content: content,
+						isEnd: data[i].isEnd
+					})
+				}
+			}
+			resolve(contents)
+		}).catch(() => {
+			reject('')
 		})
 	})
 }
