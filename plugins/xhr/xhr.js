@@ -23,6 +23,7 @@ function xhrRequest (type = 'GET', url, options) {
 		for ( let i in options.headers || {} ) {
 			xhrHttp.setRequestHeader(i, options.headers[i]);
 		}
+		xhrHttp.timeout = TIMEOUT;
 		xhrHttp.send(options.params || {});
 	})
 }
