@@ -187,7 +187,6 @@
 							href: this.chapters[this.chapter].path
 						}).then((res) => {
 							this.comics = res;
-							console.log(res);
 							this.getComicSync();
 							this.$nextTick(() => {
 								setTimeout(() => {
