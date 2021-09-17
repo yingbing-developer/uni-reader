@@ -12,13 +12,13 @@ export const COMICURL = {
 		title: 'mangaBz',
 		href: 'http://www.mangabz.com'
 	},
-	'18comic': {
-		title: '禁漫天堂',
-		href: 'https://18comic2.art'
-	},
-	'sixmh6': {
+	// '18comic': {
+	// 	title: '禁漫天堂',
+	// 	href: 'https://18comic2.art'
+	// },
+	'sixmh': {
 		title: '6漫画',
-		href: 'http://m.sixmh6.com'
+		href: 'http://m.sixmh7.com'
 	},
 	'dmzj': {
 		title: '动漫之家',

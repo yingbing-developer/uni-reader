@@ -221,7 +221,7 @@
 				let images = new Array(doms.length);
 				for ( let i = 0; i < doms.length; i++ ) {
 					images[i] = {
-						path: doms[i].getAttribute('data-original').replace('dmzj', 'dmzj1') || doms[i].src.replace('dmzj', 'dmzj1')
+						path: doms[i].getAttribute('data-original') || doms[i].src
 					}
 				};
 				return images;

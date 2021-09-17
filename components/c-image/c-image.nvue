@@ -108,6 +108,7 @@
 				}
 			},
 			getImageInfo (e) {
+				this.isError = false;
 				this.$emit('load', e);
 				if ( !this.width && !this.height && this.mode == 'widthFix' ) {
 					this.timer = setTimeout(() => {
@@ -119,8 +120,17 @@
 				}
 			},
 			error (e) {
-				this.isError = true;
-				this.$emit('error', e)
+				this.getBaseImage(e);
+			},
+			getBaseImage (e) {
+				let BaseImage = uni.requireNativePlugin('YingBingNativePlugin-BaseImage');
+				let base64 = BaseImage.getImgStr(encodeURI(this.url));
+				if ( base64 ) {
+					this.url = base64;
+				} else {
+					this.isError = true;
+					this.$emit('error', e);
+				}
 			}
 		},
 		beforeDestroy() {

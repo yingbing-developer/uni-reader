@@ -1,17 +1,22 @@
 {
-    "name": "Reader",
-    "id": "Reader",
+    "name": "YingBingNativePlugin",
+    "id": "YingBingNativePlugin",
     "version": "1.0",
-    "description": "读取txt文本的内容",
+    "description": "个人原生插件集合（获取txt文件内容，处理防盗链图片）",
     "_dp_type":"nativeplugin",
     "_dp_nativeplugin":{
         "android": {
             "plugins": [
                 {
                     "type": "module",
-                    "name": "Reader",
+                    "name": "YingBingNativePlugin-Reader",
                     "class": "com.yingbing.nativeplugin.Reader"
-                }
+                },
+				{
+				    "type": "module",
+				    "name": "YingBingNativePlugin-BaseImage",
+				    "class": "com.yingbing.nativeplugin.BaseImage"
+				}
             ],
 			"hooksClass": "",
 			"integrateType": "aar",

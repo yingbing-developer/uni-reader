@@ -61,7 +61,6 @@
 			</template>
 		</list-scroll>
 		
-		
 		<!-- 抽屉菜单 -->
 		<c-menu v-model="currentTab" :translate="menuLate" :opacity="menuOpac" ref="leftMenu"></c-menu>
 		
@@ -141,16 +140,6 @@
 					return parseInt(b.lastReadTime) - parseInt(a.lastReadTime);
 				});
 			}
-		},
-		onLoad() {
-			// getApp().globalData.$http.get('https://pic2.zhimg.com/v2-98b9386f49d3f298804c693360014a89_540x450.jpeg', {
-			// 	headers: {
-			// 		'Referer': 'https://www.zhihu.com/',
-			// 		'Host': 'pic3.zhimg.com'
-			// 	}
-			// }).then((res) => {
-			// 	console.log(res);
-			// })
 		},
 		methods: {
 			scroll (e) {

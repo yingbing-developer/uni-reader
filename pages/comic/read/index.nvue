@@ -38,6 +38,7 @@
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import { TIMEOUT } from '@/assets/js/config.js'
+	import { getComicContent } from '@/common/online/getComic.js'
 	import ComicSetting from '../setting/index.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import ComicImage from '@/components/comic-image/comic-image.nvue'
@@ -111,12 +112,18 @@
 			this.changeOrien();
 		},
 		onReady () {
-			setTimeout(() => {
-				this.getSystemWidth().then((res) => {
-					this.windowWidth = res;
-					this.getComics();
-				});
-			}, 300)
+			// setTimeout(() => {
+			// 	this.getSystemWidth().then((res) => {
+			// 		this.windowWidth = res;
+			// 		this.getComics();
+			// 	});
+			// }, 300)
+			getComicContent({
+				source: this.comicInfo.source,
+				href: this.chapters[this.chapter].path
+			}).then((res) => {
+				console.log(res);
+			})
 		},
 		methods: {
 			//读取漫画内容

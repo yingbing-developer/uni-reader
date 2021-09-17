@@ -51,7 +51,7 @@
             },
             "icons" : {
                 "android" : {
-                    "hdpi" : "unpackage/res/icons/1024x1024.png",
+                    "hdpi" : "unpackage/res/icons/72x72.png",
                     "xhdpi" : "unpackage/res/icons/96x96.png",
                     "xxhdpi" : "unpackage/res/icons/144x144.png",
                     "xxxhdpi" : "unpackage/res/icons/192x192.png"
@@ -86,11 +86,11 @@
             }
         },
         "nativePlugins" : {
-            "Reader" : {
+            "YingBingNativePlugin" : {
                 "android_appid" : "TM123456",
                 "__plugin_info__" : {
-                    "name" : "Reader",
-                    "description" : "读取txt文本的内容",
+                    "name" : "YingBingNativePlugin",
+                    "description" : "个人原生插件集合（获取txt文件内容，处理防盗链图片）",
                     "platforms" : "Android",
                     "url" : "",
                     "android_package_name" : "",

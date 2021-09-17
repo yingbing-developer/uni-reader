@@ -118,7 +118,7 @@
 				// let ReadTxt = plus.android.importClass('com.itstudy.io.GetText');
 				// let readTxt = new ReadTxt();
 				// this.bookContent = readTxt.getTextFromText(plus.io.convertLocalFileSystemURL(this.path));
-				let Reader = uni.requireNativePlugin('Reader');
+				let Reader = uni.requireNativePlugin('YingBingNativePlugin-Reader');
 				this.bookContent = Reader.readAllLines(this.path);
 				//更新文本总长度
 				this.updateBookInfo({
