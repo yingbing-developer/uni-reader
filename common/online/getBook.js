@@ -72,7 +72,7 @@ function getBaoshuu (data) {
 						author: '暂无',
 						desc: desc[1] || '暂无介绍',
 						status: '已完结',
-						path: BOOKURL[tag1].href + nameObj.attrs.href,
+						path: nameObj.attrs.href,
 						source: tag1
 					})
 				}
@@ -99,7 +99,7 @@ function getBaoshuu (data) {
 //获取手机宝书网站的小说信息
 function getBaoshuuInfo (href) {
 	return new Promise(async(resolve, reject) => {
-		let data = await getBaoshuuDetails(href);
+		let data = await getBaoshuuDetails(BOOKURL[tag1].href + href);
 		data.chapters = await getBaoshuuChapters(data.href);
 		resolve({
 			code: ERR_OK,
@@ -149,12 +149,14 @@ function getBaoshuuDetails (href) {
 				desc = hr[1] + '\n' + desc;
 				let lastIndex = readUrlObj.attrs.href.lastIndexOf('/');
 				let allLength = readUrlObj.attrs.href.length;
+				let urlTxt = gb2312(readUrlObj.attrs.href.substring(lastIndex + 1, allLength)).replace('%5b', '');
+				urlTxt = urlTxt.replace('%5d', '');
 				let data = {
 					name: name[1],
 					author: author[1],
 					cover: cover,
 					desc: desc,
-					href: BOOKURL[tag1].href + readUrlObj.attrs.href.substr(0, lastIndex + 1) + gb2312(readUrlObj.attrs.href.substring(lastIndex + 1, allLength)),
+					href: BOOKURL[tag1].href + readUrlObj.attrs.href.substr(0, lastIndex + 1) + urlTxt,
 					chapters: []
 				}
 				resolve(data)
