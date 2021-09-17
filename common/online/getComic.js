@@ -365,6 +365,27 @@ function getLoliNum (href) {
 	return p;
 }
 
+//获取写真网的漫画内容
+function getLoliContent (href) {
+	return new Promise((resolve, reject) => {
+		http.get(href).then((res) => {
+			let str = replaceStr(res.data);//解析html字符
+			let div = str.match(/<div[^>]*class=([""]?)adace-slot-wrapper adace-before-content  adace-slot-wrapper-main\1[^>]*>*([\s\S]*?)<\/p>/);
+			let imgs = div[0].match(/<img[^>]*>/ig)
+			let images = [];
+			for ( let i in imgs ) {
+				let imgObj = HTMLParser(imgs[i])[0]
+				images.push({
+					path: imgObj.attrs.src
+				})
+			}
+			resolve(images)
+		}).catch((err) => {
+			reject([])
+		})
+	})
+}
+
 
 //获取禁漫天堂漫画网站的漫画列表
 function get18comic (data) {
@@ -786,14 +807,16 @@ function getWnacg (data) {
 function getWnacgNum (href) {
 	let abort;
 	let p1 = new Promise((resolve, reject) => {
-		http.get(COMICURL[tag7].href + href).then((res) => {
+		http.get(COMICURL[tag6].href + href).then((res) => {
 			let str = replaceStr(res.data);//解析html字符
 			let num = str.match(/<a[^>]*class=([""]?)Btn right\1[^>]*>*([\s\S]*?)<\/a>/ig);
 			let numObj = HTMLParser(num[1])[0];//将html字符串转化为html数组
+			let url = numObj.attrs.href.replace('slide', 'gallery');
+			url = url.replace('list', 'gallery');
 			resolve({
 				code: ERR_OK,
 				data: [{
-					path: COMICURL[tag6].href + numObj.attrs.href.replace('list', 'slide'),
+					path: COMICURL[tag6].href +url,
 					name: '全本'
 				}]
 			})
@@ -813,7 +836,7 @@ function getWnacgNum (href) {
 //获取绅士漫画网站的漫画性情
 function getWnacgDetail (href) {
 	return new Promise((resolve, reject) => {
-		http.get(COMICURL[tag7].href + href).then((res) => {
+		http.get(COMICURL[tag6].href + href).then((res) => {
 			let str = replaceStr(res.data);//解析html字符
 			let data = {
 				name: '',
@@ -837,6 +860,28 @@ function getWnacgDetail (href) {
 				code: ERR_FALSE,
 				data: {}
 			})
+		})
+	})
+}
+
+//获取绅士漫画网的漫画内容
+function getWnacgContent (href) {
+	return new Promise((resolve, reject) => {
+		http.get(href).then((res) => {
+			let str = replaceStr(res.data);
+			let write = str.match(/document.writeln\("*([\s\S]*?)"\);/ig);
+			let imgStr = write[10].match(/document.writeln\(\"var imglist = \[\{*([\s\S]*?)\}\];\"\);/)[1];
+			let arr = imgStr.split('},{');
+			let images = [];
+			for ( let i in arr ) {
+				let img = arr[i].match(/fast_img_host\+\"*([\s\S]*?)\",/)[1];
+				images.push({
+					path: 'https://' + img.replace('//', '')
+				})
+			}
+			resolve(images)
+		}).catch((err) => {
+			reject([])
 		})
 	})
 }
@@ -965,7 +1010,7 @@ function getDmzjDetail (href) {
 function getDmzjContent (href) {
 	return new Promise((resolve, reject) => {
 		http.get(href).then((res) => {
-			let str = replaceStr(res.data);//解析html字符
+			let str = res.data;//解析html字符
 			let body = str.match(/<body[^>]*([\s\S]*?)<\/body>/);
 			let scripts = body[0].match(/<script[^>]*([\s\S]*?)<\/script>/ig)
 			let jsonStr = scripts[5].match(/\"page_url\":*([\s\S]*?)],/);

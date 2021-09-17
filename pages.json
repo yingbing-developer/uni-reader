@@ -51,20 +51,6 @@
 		{
 			"path": "pages/comic/detail/index"
 		},
-		//在线漫画内容获取页
-		{
-			"path": "pages/comic/getComicContent/index",
-			"style": {
-				"backgroundColor": "transparent",
-				"app-plus": {
-					"bounce":"none",
-					"animationType": "fade-in",
-					"background": "transparent", // 背景透明
-					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
-					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
-				}
-			}
-		},
 		//漫画阅读页
 		{
 			"path": "pages/comic/read/index"
