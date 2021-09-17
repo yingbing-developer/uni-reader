@@ -23,7 +23,7 @@
 		<view class="read-board" ref="readBottom" @touchmove.stop.prevent="">
 			<view class="read-board-line chapter-line">
 				<text class="chapter-text" @tap="changeChapter(-1)">上一话</text>
-				<text class="chapter-text" @tap="changeImageType">图片修复</text>
+				<!-- <text class="chapter-text" @tap="changeImageType">图片修复</text> -->
 				<text class="chapter-text" @tap="changeChapter(1)">下一话</text>
 			</view>
 			<!-- <view class="read-board-line img-line">

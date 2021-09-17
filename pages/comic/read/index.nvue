@@ -6,9 +6,9 @@
 			<cell><view style="height: 1px;" @appear="prevShow = true" @disappear="prevShow = false" v-if="comicSync.length"></view></cell>
 			
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
-				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}" @longpress="preview(item.path)">
+				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}">
 					<!-- <c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="widthFix"></c-image> -->
-					<c-image error-size="40" :enable-mask="false" enable-hidden :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix" v-if="imageType"></c-image>
+					<c-image enable-preview error-size="40" :enable-mask="false" enable-hidden :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix" v-if="imageType"></c-image>
 					<comic-image :windowWidth="windowWidth" :src="item.path" v-if="!imageType"></comic-image>
 				</view>
 			</cell>
@@ -45,9 +45,6 @@
 	import GapBar from '@/components/gap-bar/gap-bar.nvue'
 	const dom = weex.requireModule('dom');
 	const GetComicContent = plus.android.importClass('com.itstudy.io.GetComicContent');
-	const main = plus.android.runtimeMainActivity();
-	const Intent = plus.android.importClass("android.content.Intent");
-	const Uri = plus.android.importClass("android.net.Uri");
 	const suffixs = 'jpg,png,gif,JPG,PNG,GIF';
 	const options = 'name,path';
 	const pageSize = 50;
@@ -224,114 +221,6 @@
 					this.$refs["list"].resetLoadmore();
 				}
 				this.comicSync = this.comicSync.concat(comics);
-			},
-			//预览图片
-			preview (path) {
-				let index = getApp().globalData.$utils.indexOf(this.comicSync, 'path', path);
-				let imgs = [];
-				if ( this.comicInfo.source == 'local' ) {
-					for ( let i = 0 ; i < this.comicSync.length; i++ ) {
-						imgs.push('file://' + this.comicSync[i].path);
-					}
-				} else {
-					for ( let i = 0 ; i < this.comicSync.length; i++ ) {
-						imgs.push(this.comicSync[i].path);
-					}
-				}
-				uni.previewImage({
-					current: index,
-					urls: imgs,
-					longPressActions: {
-					    itemList: ['分享', '保存相册'],
-					    success: (data) => {
-							//选择分享
-							if ( data.tapIndex == 0 ) {
-								this.shareImage(imgs[data.index], data.tapIndex);
-							}
-							//保存图片
-							if ( data.tapIndex == 1 ) {
-								this.saveImage(imgs[data.index], data.tapIndex);
-							}
-					    },
-					    fail: function(err) {
-					        console.log(err.errMsg);
-					    }
-					}
-				});
-			},
-			//分享图片
-			shareImage (url, flag) {
-				if ( this.comicInfo.source == 'local' ) {
-					//本地图片直接分享
-					this.intentImage(url);
-				} else {
-					//网络图片先下载
-					this.downloadImage(url, flag);
-				}
-			},
-			//分享图片
-			intentImage (path) {
-				let shareIntent = new Intent(Intent.ACTION_SEND);
-				let filePath = plus.io.convertLocalFileSystemURL(path);
-				let file = plus.android.newObject("java.io.File", filePath);
-				shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
-				shareIntent.setType("image/*");//此处可发送image图片
-				main.startActivity(Intent.createChooser(shareIntent,"分享图片"));
-			},
-			//保存图片
-			saveImage (url, flag) {
-				if ( this.comicInfo.source == 'local' ) {
-					//本地图片直接保存
-					this.photoImage(url);
-				} else {
-					//网络图片先下载
-					this.downloadImage(url, flag);
-				}
-			},
-			//将图片保存到相册
-			photoImage (path) {
-				uni.saveImageToPhotosAlbum({
-					filePath: path,
-					success: function() {
-						uni.showToast({
-							title: '保存成功'
-						})
-					},
-					fail: function() {
-						uni.showToast({
-							title: '保存失败',
-							icon: 'none'
-						})
-					}
-				});
-			},
-			//下载图片
-			downloadImage (url, flag) {
-				//网络图片先下载
-				uni.downloadFile({
-					url,
-					success: (res) => {
-						if (res.statusCode === 200) {
-							if ( flag == 0 ) {
-								this.intentImage(res.tempFilePath);
-							}
-							if ( flag == 1 ) {
-								this.photoImage(res.tempFilePath);
-							}
-						} else {
-							uni.showToast({
-								title: '图片下载失败',
-								icon: 'none'
-							})
-						}
-					},
-					fail: (err) => {
-						uni.showToast({
-							title: '网络错误',
-							icon: 'none'
-						})
-					}
-				});
 			},
 			//打开设置窗口
 			showSetting () {

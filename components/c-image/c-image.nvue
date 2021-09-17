@@ -1,19 +1,33 @@
 <template>
-	<view class="c-image" @appear="appear" @disappear="disappear" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}">
-		<image referrerPolicy="origin" @load="getImageInfo" @error="error" ref="image" :class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}"></image>
-		<view class="img-mask" :style="{opacity: skinColor.imgMask, borderRadius: borderRadius + 'rpx'}" v-if="enableMask"></view>
+	<view class="c-image" @appear="appear" @disappear="disappear"
+		:style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}">
+		<image referrerPolicy="origin" @load="getImageInfo" @error="error" ref="image"
+			:class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden"
+			:style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}"></image>
+		<view class="img-mask" :style="{opacity: skinColor.imgMask, borderRadius: borderRadius + 'rpx'}"
+			v-if="enableMask"></view>
 		<view class="error" v-if="isError">
-			<text class="error-text" :style="{'color': skinColor.menuTitleColor, 'font-size': errorSize + 'rpx'}">加载失败!</text>
+			<text class="error-text"
+				:style="{'color': skinColor.menuTitleColor, 'font-size': errorSize + 'rpx'}">加载失败!</text>
 		</view>
+		<view class="longpress" @longpress="preview" v-if="enablePreview"></view>
 	</view>
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import {
+		skinMixin
+	} from '@/common/mixin/index.js'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import {
+		base64ToPath
+	} from '@/js_sdk/mmmm-image-tools/index.js'
+	const main = plus.android.runtimeMainActivity();
+	const Intent = plus.android.importClass("android.content.Intent");
+	const Uri = plus.android.importClass("android.net.Uri");
 	// #ifdef APP-NVUE
 	const dom = weex.requireModule('dom');
 	// #endif
-	import CIcon from '@/components/c-icon/c-icon.nvue'
 	export default {
 		mixins: [skinMixin],
 		props: {
@@ -64,14 +78,19 @@
 			errorSize: {
 				type: String | Number,
 				default: 22
+			},
+			enablePreview: {
+				type: Boolean,
+				default: false
 			}
 		},
 		computed: {
-			imageHeight () {
-				return (this.windowWidth / this.width * this.height) > 0 ? this.windowWidth / this.width * this.height : 400
+			imageHeight() {
+				return (this.windowWidth / this.width * this.height) > 0 ? this.windowWidth / this.width * this.height :
+					400
 			}
 		},
-		data () {
+		data() {
 			return {
 				url: '',
 				hidden: false,
@@ -81,36 +100,36 @@
 			}
 		},
 		created() {
-			if ( this.src ) {
+			if (this.src) {
 				this.url = this.src.replace('@', '');
 			}
 		},
 		watch: {
-			src (newVal) {
+			src(newVal) {
 				this.url = newVal.replace('@', '');
 			},
-			isError (newVal) {
-				if ( newVal && this.defaultSrc ) {
+			isError(newVal) {
+				if (newVal && this.defaultSrc) {
 					this.url = this.defaultSrc.replace('@', '');
 					this.isError = false;
 				}
 			}
 		},
 		methods: {
-			appear () {
-				if ( this.enableHidden ) {
+			appear() {
+				if (this.enableHidden) {
 					this.hidden = false;
 				}
 			},
-			disappear () {
-				if ( this.enableHidden ) {
+			disappear() {
+				if (this.enableHidden) {
 					this.hidden = true;
 				}
 			},
-			getImageInfo (e) {
+			getImageInfo(e) {
 				this.isError = false;
 				this.$emit('load', e);
-				if ( !this.width && !this.height && this.mode == 'widthFix' ) {
+				if (!this.width && !this.height && this.mode == 'widthFix') {
 					this.timer = setTimeout(() => {
 						dom.getComponentRect(this.$refs.image, (res) => {
 							this.width = res.size.width;
@@ -119,18 +138,149 @@
 					}, 100)
 				}
 			},
-			error (e) {
+			error(e) {
 				this.getBaseImage(e);
 			},
-			getBaseImage (e) {
+			getBaseImage(e) {
 				let BaseImage = uni.requireNativePlugin('YingBingNativePlugin-BaseImage');
 				let base64 = BaseImage.getImgStr(encodeURI(this.url));
-				if ( base64 ) {
+				if (base64) {
 					this.url = base64;
 				} else {
 					this.isError = true;
 					this.$emit('error', e);
 				}
+			},
+			//预览图片
+			preview() {
+				if (!this.enablePreview) {
+					return;
+				}
+				uni.previewImage({
+					current: 0,
+					urls: [this.url],
+					longPressActions: {
+						itemList: ['分享', '保存相册'],
+						success: (data) => {
+							console.log(data);
+							//选择分享
+							if (data.tapIndex == 0) {
+								this.shareImage(this.url, data.tapIndex);
+							}
+							//保存图片
+							if (data.tapIndex == 1) {
+								this.saveImage(this.url, data.tapIndex);
+							}
+						},
+						fail: function(err) {
+							console.log(err.errMsg);
+						}
+					}
+				});
+			},
+			//分享图片
+			shareImage(url, flag) {
+				if (url.indexOf('http') == -1) {
+					if (url.indexOf('base64') > -1) {
+						//base64先转为本地文件
+						this.base64ToFilePath(url, flag)
+					} else {
+						//本地图片直接分享
+						this.intentImage(url);
+					}
+				} else {
+					//网络图片先下载
+					this.downloadImage(url, flag);
+				}
+			},
+			//分享图片
+			intentImage(path) {
+				let shareIntent = new Intent(Intent.ACTION_SEND);
+				let filePath = plus.io.convertLocalFileSystemURL(path);
+				let file = plus.android.newObject("java.io.File", filePath);
+				shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+				shareIntent.setType("image/*"); //此处可发送image图片
+				main.startActivity(Intent.createChooser(shareIntent, "分享图片"));
+			},
+			//保存图片
+			saveImage(url, flag) {
+				if (url.indexOf('http') == -1) {
+					if (url.indexOf('base64') > -1) {
+						//base64先转为本地文件
+						this.base64ToFilePath(url, flag)
+					} else {
+						//本地图片直接保存
+						this.photoImage(url);
+					}
+				} else {
+					//网络图片先下载
+					this.downloadImage(url, flag);
+				}
+			},
+			//将图片保存到相册
+			photoImage(path) {
+				uni.saveImageToPhotosAlbum({
+					filePath: path,
+					success: function() {
+						uni.showToast({
+							title: '保存成功'
+						})
+					},
+					fail: function() {
+						uni.showToast({
+							title: '保存失败',
+							icon: 'none'
+						})
+					}
+				});
+			},
+			//下载图片
+			downloadImage(url, flag) {
+				uni.showLoading({
+					title: '图片下载中',
+					icon: 'none'
+				})
+				//网络图片先下载
+				uni.downloadFile({
+					url,
+					success: (res) => {
+						uni.hideLoading();
+						if (res.statusCode === 200) {
+							if (flag == 0) {
+								this.intentImage(res.tempFilePath);
+							}
+							if (flag == 1) {
+								this.photoImage(res.tempFilePath);
+							}
+						} else {
+							uni.showToast({
+								title: '图片下载失败',
+								icon: 'none'
+							})
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading();
+						uni.showToast({
+							title: '网络错误',
+							icon: 'none'
+						})
+					}
+				});
+			},
+			base64ToFilePath(base64Code, flag) {
+				// let decodedString = Base64.decode(base64Code, Base64.DEFAULT);
+				base64ToPath(base64Code)
+					.then(path => {
+						if (flag == 0) {
+							this.intentImage(path);
+						} else {
+							this.photoImage(path);
+						}
+					})
+					.catch(error => {
+						console.error(error)
+					})
 			}
 		},
 		beforeDestroy() {
@@ -146,6 +296,7 @@
 	.c-image {
 		position: relative;
 	}
+
 	.c-img {
 		position: absolute;
 		top: 0;
@@ -153,6 +304,15 @@
 		right: 0;
 		bottom: 0;
 	}
+
+	.longpress {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+
 	.img-mask {
 		position: absolute;
 		top: 0;
@@ -161,6 +321,7 @@
 		bottom: 0;
 		background-color: #000000;
 	}
+
 	.error {
 		position: absolute;
 		top: 0;
