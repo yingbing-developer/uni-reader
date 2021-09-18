@@ -2,23 +2,26 @@
 	<view class="music">
 		<view class="mask" ref="mask" @tap="hide"></view>
 		<view class="popup" ref="popup" @touchmove.stop.prevent="" :style="{'background-color': skinColor.bgColor }">
-			<view class="top">
+			<view class="top" :style="{'border-color': skinColor.gapColor}">
 				<view class="mode" @tap="changeMode">
-					<c-icon name="loop" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'loop'"></c-icon>
-					<c-icon name="once" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'once'"></c-icon>
-					<c-icon name="random" size="55" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'random'"></c-icon>
+					<c-icon name="loop" size="40" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'loop'"></c-icon>
+					<c-icon name="once" size="40" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'once'"></c-icon>
+					<c-icon name="random" size="40" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'random'"></c-icon>
 					<text class="modeName" :style="{color: skinColor.menuIconColor}">{{modeName}}</text>
 				</view>
 				<view class="top-right">
 					<view class="tr-icon" @tap="routePush('/pages/music/online')">
-						<c-icon name="network" size="42" :color="skinColor.menuIconColor"></c-icon>
+						<c-icon name="network" size="38" :color="skinColor.menuIconColor"></c-icon>
 					</view>
-					<view class="tr-icon" @tap="clear" v-if="playList.length > 0">
-						<c-icon name="waste-fill" size="42" :color="skinColor.menuIconColor"></c-icon>
+					<view class="tr-icon" @tap="routePush('/pages/music/search')" v-if="playList.length > 0">
+						<c-icon name="search" size="38" :color="skinColor.menuIconColor"></c-icon>
+					</view>
+					<view class="tr-icon" @tap="hide">
+						<c-icon name="delete" size="28" :color="skinColor.menuTitleColor"></c-icon>
 					</view>
 				</view>
 			</view>
-			<list-scroll :list="listSync" :lineHeight="80" ref="musicList">
+			<list-scroll column-width="680" :list="listSync" :lineHeight="80" ref="musicList">
 				<template v-slot="{item}">
 					<view class="list" :class="skinColor.activedName" @tap="goPlayer(item.path)">
 						<text class="list-name" :style="{color: playRecord == item.path ? '#d43c33' : skinColor.menuTitleColor}">{{item.name}}</text>
@@ -28,7 +31,7 @@
 								<c-icon name="play" size="35" color="#d43c33" v-else></c-icon>
 							</view>
 							<view class="list-icon" @tap.stop="deleteItem(item.path)">
-								<c-icon name="delete" size="30" color="#d43c33"></c-icon>
+								<c-icon name="waste-fill" size="28" color="#d43c33"></c-icon>
 							</view>
 						</view>	
 					</view>
@@ -36,12 +39,9 @@
 			</list-scroll>
 			<no-data position="absolute" title="没有导入的歌曲哦!" v-if="listSync.length <= 0"></no-data>
 			<view class="add" @touchmove.stop.prevent="">
-				<view class="add-btn" :style="{'border-color': skinColor.menuTitleColor}" @tap="routePush('/pages/music/search')">
-					<text class="add-text" :style="{color: skinColor.menuTitleColor}">添加本地歌曲</text>
+				<view class="add-btn" :style="{'border-color': skinColor.menuTitleColor}" @tap="clear">
+					<text class="add-text" :style="{color: skinColor.menuTitleColor}">清除全部歌曲</text>
 				</view>
-			</view>
-			<view class="close" @tap="hide" :style="{'background-color': skinColor.navColor}">
-				<text class="close-text" :style="{color: skinColor.activeColor}">关闭</text>
 			</view>
 		</view>
 	</view>
@@ -63,7 +63,7 @@
 					opac: 0.4,
 					duration: 400
 				},
-				height: 900
+				height: 800
 			}
 		},
 		onReady() {
@@ -194,9 +194,14 @@
 				})
 			},
 			routePush (url) {
-				getApp().globalData.$Router.push({
-					path: url
-				});
+				const pages = getCurrentPages();
+				let bol = pages.some((item) => {
+					return item.$page.path == url;
+				})
+				if ( bol ) {
+					return;
+				}
+				getApp().globalData.$Router.push({ path: url });
 			}
 		},
 		onBackPress (event) {
@@ -227,21 +232,24 @@
 	}
 	.popup {
 		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 900rpx;
-		transform: translateY(900rpx);
+		bottom: 180rpx;
+		left: 35rpx;
+		right: 35rpx;
+		height: 800rpx;
+		transform: translateY(800rpx);
 		opacity: 0;
+		border-radius: 20rpx;
 	}
 	.top {
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
-		padding: 40rpx 30rpx;
+		padding: 20rpx 30rpx;
+		border-bottom-width: 1px;
 	}
 	.top-right {
 		flex-direction: row;
+		align-items: center;
 	}
 	.tr-icon {
 		margin-left: 20rpx;
@@ -251,7 +259,7 @@
 		align-items: center;
 	}
 	.modeName {
-		font-size: 32rpx;
+		font-size: 28rpx;
 		margin-left: 15rpx;
 	}
 	.list {
@@ -264,13 +272,13 @@
 	.list-right {
 		flex-direction: row;
 		align-items: center;
-		justify-content: space-between;
-		width: 100rpx;
+	}
+	.list-icon {
+		margin-left: 20rpx;
 	}
 	.list-name {
 		flex: 1;
 		font-size: 28rpx;
-		margin-left: 15rpx;
 		lines: 1;
 		text-overflow: ellipsis;
 	}
@@ -289,11 +297,6 @@
 	}
 	.add-text {
 		font-size: 28rpx;
-	}
-	.close {
-		height: 85rpx;
-		align-items: center;
-		justify-content: center;
 	}
 	.close-text {
 		font-size: 25rpx;

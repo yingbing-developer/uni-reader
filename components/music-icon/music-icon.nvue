@@ -37,7 +37,9 @@
 					'next': '\ue913',
 					'play': '\ue90c',
 					'pause': '\ue90b',
-					'playlist': '\ue904'
+					'playlist': '\ue904',
+					'collection': '\ue90A',
+					'collection-fill': '\ue909'
 				}
 			}
 		},

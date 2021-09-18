@@ -12,6 +12,11 @@
 					<text class="subtitle music-name" :style="{color: skinColor.iconColor}">{{playInfo ? playInfo.name : '暂无歌曲'}}</text>
 					<text class="subtitle singer-name" :style="{color: skinColor.iconColor}">{{playInfo ? playInfo.singer : '暂无歌曲'}}</text>
 				</view>
+				<view class="right">
+					<view class="tr-icon">
+						<music-icon name="collection" size="38" :color="skinColor.iconColor"></music-icon>
+					</view>
+				</view>
 			</view>
 			<swiper class="swiper" :indicator-dots="true" :indicator-active-color="skinColor.iconColor" :duration="500">
 				
@@ -293,6 +298,12 @@
 			//停止旋转cd封面
 			stopRotate () {
 				this.cdStart = 1;
+			},
+			showPlayList () {
+				getApp().globalData.$Router.push({
+					animationType: 'fade-in',
+					path: '/pages/music/index',
+				});
 			}
 		},
 		watch: {
@@ -369,6 +380,17 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 0 100rpx;
+	}
+	.right {
+		position: absolute;
+		right: 15rpx;
+		top: 0;
+		flex-direction: row;
+		height: 40rpx;
+		align-items: flex-end;
+	}
+	.tr-icon {
+		margin-left: 20rpx;
 	}
 	.subtitle {
 		lines: 1;

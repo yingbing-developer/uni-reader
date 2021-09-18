@@ -1,5 +1,5 @@
 <template>
-	<view class="list-scroll">
+	<view class="list-scroll" ref="listBox">
 		<list ref="list" :offset-accuracy="offsetAccuracy" @scroll="scroll" :scrollable="scrollable" :loadmoreoffset="loadmoreoffset" :bounce="bounce" @loadmore="loadmore">
 			<cell>
 				<slot name="listTop"></slot>
@@ -132,7 +132,7 @@
 			},
 			//计算数据
 			getListSync() {
-				dom.getComponentRect(this.$refs.list, (res) => {
+				dom.getComponentRect(this.$refs.listBox, (res) => {
 					this.windowHeight = res.size.height;
 					this.columnGap = this.columnCount > 1 ? ((res.size.width - (this.columnCount * uni.upx2px(this.columnWidth))) / (this.columnCount + 1)) : 0;
 					let maxCount = parseInt(this.columnCount * Math.ceil(res.size.height / (uni.upx2px(this.lineHeight) + this.columnGap)));
