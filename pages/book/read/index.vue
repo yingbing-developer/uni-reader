@@ -70,7 +70,6 @@
 			}
 		},
 		created () {
-			uni.$emit('musicBtn-hide');
 			//监听编辑窗体修改
 			uni.$on('setting-menu', (data) => {
 				if ( data.flag == 'edit' ) {
@@ -84,6 +83,9 @@
 			uni.showLoading({
 				title: '读取文本中..'
 			})
+		},
+		onShow () {
+			uni.$emit('musicBtn-down');
 		},
 		onReady () {
 			//更新阅读时间
@@ -411,7 +413,7 @@
 			//注销监听页面监听
 			uni.$off('setting-menu')
 			uni.$off('change-page');
-			uni.$emit('musicBtn-show');
+			uni.$emit('musicBtn-open');
 		}
 	}
 </script>

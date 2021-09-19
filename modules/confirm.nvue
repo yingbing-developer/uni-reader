@@ -38,12 +38,11 @@
 			}
 		},
 		onLoad (data) {
-			uni.$emit('musicBtn-hide');
+			uni.$emit('musicBtn-down');
 			this.title = data.title;
 			this.message = decodeURIComponent(data.message);
 		},
 		onReady() {
-			const pages = getCurrentPages();
 			this.show();
 		},
 		methods: {
@@ -95,7 +94,7 @@
 			}
 		},
 		beforeDestroy () {
-			uni.$emit('musicBtn-show');
+			uni.$emit('musicBtn-open');
 		},
 		onBackPress(event) {
 			if ( event.from == 'backbutton' ) {

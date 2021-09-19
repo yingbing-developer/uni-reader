@@ -4,6 +4,7 @@
 	import { getPlayUrl, getLyric } from '@/common/online/getMusic.js'
 	import { skinMixin } from '@/common/mixin/index.js'
 	import musicMixin from '@/common/mixin/music.js'
+	import musiccertifyMixin from '@/common/mixin/musiccertify.js'
 	let audio = null;
 	let musicBox = null;
 	let musicControl = null;
@@ -18,7 +19,7 @@
 	const iconSize = uni.upx2px(40);
 	const iconGap = uni.upx2px(10);
 	export default {
-		mixins: [skinMixin, musicMixin],
+		mixins: [skinMixin, musicMixin, musiccertifyMixin],
 		data () {
 			return {
 				//鼠标按下时间，避免移动时触发点击事件
@@ -55,18 +56,36 @@
 			//是否显示歌词
 			lyricShow () {
 				return this.getMusicLyricShow;
+			},
+			//音乐时长
+			musicDuration () {
+				return this.getMusicPlayDuration;
+			},
+			//已播放时长
+			playTime () {
+				return this.getMusicPlayTime;
 			}
 		},
 		beforeCreate () {
 			uni.$on('musicBtn-hide', (data) => {
+				this.btnHide();
+			})
+			uni.$on('musicBtn-show', (data) => {
+				this.btnShow();
+			})
+			uni.$on('musicBtn-down', (data) => {
 				if ( this.showBox ) {
 					this.control()
 				}
 			})
-			uni.$on('musicBtn-show', (data) => {
-				if ( !this.showBox && !this.isClickHide ) {
-					this.isClickHide = false;
-					this.control()
+			uni.$on('musicBtn-open', (data) => {
+				if ( data == 'real' ) {
+					this.btnShow();
+				} else {
+					if ( !this.showBox && !this.isClickHide ) {
+						this.isClickHide = false;
+						this.control()
+					}
 				}
 			})
 		},
@@ -88,7 +107,7 @@
 				this.seekTimer = setTimeout(() => {
 					if ( audio ) {
 						audio.seek(data.time);
-						this.changeMusicPlayTime(data.time);
+						this.setMusicPlayTime(data.time);
 					}
 				}, 200)
 			})
@@ -109,6 +128,9 @@
 			},
 			setBoxTouch () {
 				musicBox.addEventListener("click", (e) => {
+					if ( !this.isAllowClick() ) {
+						return;
+					}
 					const list = {
 						left: uni.upx2px(35),
 						right: uni.upx2px(35) + uni.upx2px(50),
@@ -136,11 +158,11 @@
 					if ( e.clientX >= list.left && e.clientX <= list.right && e.clientY >= list.top && e.clientY <= list.bottom ) {
 						this.goPlayList();
 					} else if ( e.clientX >= next.left && e.clientX <= next.right && e.clientY >= next.top && e.clientY <= next.bottom ) {
-						console.log('下一曲');
+						this.changeMusic(1)
 					} else if ( e.clientX >= play.left && e.clientX <= play.right && e.clientY >= play.top && e.clientY <= play.bottom ) {
-						console.log('播放');
+						if ( this.playStatus ) { this.pause(); } else { this.play(); }
 					} else if ( e.clientX >= prev.left && e.clientX <= prev.right && e.clientY >= prev.top && e.clientY <= prev.bottom ) {
-						console.log('上一曲');
+						this.changeMusic(-1)
 					} else {
 						getApp().globalData.$Router.push({
 							animationType: 'fade-in',
@@ -151,6 +173,9 @@
 			},
 			setControlTouch () {
 				musicControl.addEventListener("click", (e) => {
+					if ( !this.isAllowClick() ) {
+						return;
+					}
 					if ( this.showBox ) {
 						this.isClickHide = true;
 					} else {
@@ -245,69 +270,6 @@
 				musicBox.draw([{
 					tag:'rect', id:'bg', rectStyles: {color: this.skinColor.bgColor, radius: '8px', borderColor: this.skinColor.gapColor, borderWidth: '1px'}, position:{top:'0', left: '0', width:'100%',height: '100%'}
 				},{
-			 		tag:'img', id:'music-img', src: '/static/music/music-bg.jpg', position:{top:'0.5%', left: '0', width: height + 'px', height: '99%'}
-			 	},{
-			 		tag:'img',
-					id:'music-list',
-					src: '/static/music/music-list.png',
-					position:{
-						top: uni.upx2px(35) + 'px',
-						left: uni.upx2px(35) + 'px',
-						width: uni.upx2px(50) + 'px',
-						height: uni.upx2px(50) + 'px',
-					}
-			 	},{
-					tag:'rect', id:'music-mask', rectStyles: {color: 'rgba(0,0,0,0.2)', radius: height + 'px'}, position:{top:0, left: 0, width: height + 'px',height: height + 'px'}
-				},{
-			 		tag:'img', id:'music-border', src: '/static/music/border-' + this.skinMode + '.png', position:{top:'0.5%', left: '0', width: height + 'px', height: '99%'}
-			 	},{
-			 		tag:'font',
-					id:'music-name',
-					text: '在你死去的昨日在你死去的昨日在你死去的昨日在你死去的昨日在你死去的昨日',
-					position: {
-						top: uni.upx2px(20) + 'px',
-						left: (height + uni.upx2px(20)) + 'px',
-						width: '50%',
-					},
-					textStyles: {
-						size: uni.upx2px(28) + 'px',
-						color: this.skinColor.menuTitleColor,
-						verticalAlign: 'top',
-						align: 'left',
-						weight: 'bold',
-						overflow: 'ellipsis'
-					}
-			 	},{
-			 		tag:'font',
-					id:'singer-name',
-					text: '洛天依 乐正绫 crezuer洛天依 乐正绫 crezuer洛天依 乐正绫 crezuer洛天依 乐正绫 crezuer',
-					position: {
-						top: uni.upx2px(75) + 'px',
-						left: (height + uni.upx2px(20)) + 'px',
-						width: '35%',
-					},
-					textStyles: {
-						size: uni.upx2px(20) + 'px',
-						color: this.skinColor.menuTitleColor,
-						verticalAlign: 'top',
-						align: 'left',
-						overflow: 'ellipsis'
-					}
-			 	},{
-			 		tag:'font',
-					id:'music-progress',
-					text: '00:00 / 00:00',
-					position: {
-						top: uni.upx2px(26) + 'px',
-						right: uni.upx2px(5) + 'px',
-					},
-					textStyles: {
-						size: uni.upx2px(20) + 'px',
-						color: this.skinColor.menuTitleColor,
-						verticalAlign: 'top',
-						align: 'right'
-					}
-			 	},{
 			 		tag:'img',
 					id:'music-next',
 					src: '/static/music/next.png',
@@ -338,6 +300,9 @@
 						height: iconSize + 'px',
 					}
 			 	}])
+				this.drawCover();
+				this.drawMusicInfo();
+				this.drawProgress();
 				musicControl.draw([{
 					tag:'rect', id:'bg', rectStyles: {color: this.skinColor.navColor, radius: height + 'px', borderColor: this.skinColor.gapColor, borderWidth: '1px'}, position:{top:'0', left: '0', width:'100%',height: '100%'}
 				},{
@@ -358,30 +323,111 @@
 			},
 			changeStatusIcon () {
 				let playImg = this.playStatus ? '/static/music/pause.png' : '/static/music/play.png';
-				musicLine.draw([{
-					tag:'img', id:'play', src: playImg, position:{top:'auto', left: height + (2 * iconGap) + iconSize + 'px', width: iconSize + 'px',height: iconSize + 'px'}
-				}])
+				musicBox.draw([{
+			 		tag:'img',
+					id:'music-play',
+					src: playImg,
+					position:{
+						bottom: uni.upx2px(15) + 'px',
+						right: (iconSize + iconGap) + 'px',
+						width: iconSize + 'px',
+						height: iconSize + 'px',
+					}
+			 	}])
+			},
+			drawCover () {
+				let bg = this.musicInfo?.image || '/static/music/music-bg.jpg';
+				musicBox.draw([{
+			 		tag:'img', id:'music-img', src: bg, position:{top:'0.5%', left: '0', width: height + 'px', height: '99%'}
+			 	},{
+			 		tag:'img',
+					id:'music-list',
+					src: '/static/music/music-list.png',
+					position:{
+						top: uni.upx2px(35) + 'px',
+						left: uni.upx2px(35) + 'px',
+						width: uni.upx2px(50) + 'px',
+						height: uni.upx2px(50) + 'px',
+					}
+			 	},{
+					tag:'rect', id:'music-mask', rectStyles: {color: 'rgba(0,0,0,0.2)', radius: height + 'px'}, position:{top:0, left: 0, width: height + 'px',height: height + 'px'}
+				},{
+			 		tag:'img', id:'music-border', src: '/static/music/border-' + this.skinMode + '.png', position:{top:'0.5%', left: '0', width: height + 'px', height: '99%'}
+			 	}])
+			},
+			drawProgress () {
+				musicBox.draw([{
+			 		tag:'font',
+					id:'music-progress',
+					text: `${getApp().globalData.$utils.minutesFormat(this.playTime)} / ${getApp().globalData.$utils.minutesFormat(this.musicDuration)}`,
+					position: {
+						top: uni.upx2px(26) + 'px',
+						right: uni.upx2px(5) + 'px',
+					},
+					textStyles: {
+						size: uni.upx2px(20) + 'px',
+						color: this.skinColor.menuTitleColor,
+						verticalAlign: 'top',
+						align: 'right'
+					}
+			 	}])
+			},
+			drawMusicInfo () {
+				musicBox.draw([{
+			 		tag:'font',
+					id:'music-name',
+					text: this.musicInfo?.name || '暂无歌名',
+					position: {
+						top: uni.upx2px(20) + 'px',
+						left: (height + uni.upx2px(20)) + 'px',
+						width: '50%',
+					},
+					textStyles: {
+						size: uni.upx2px(28) + 'px',
+						color: this.skinColor.menuTitleColor,
+						verticalAlign: 'top',
+						align: 'left',
+						weight: 'bold',
+						overflow: 'ellipsis'
+					}
+			 	},{
+			 		tag:'font',
+					id:'singer-name',
+					text: this.musicInfo?.singer || '未知歌手',
+					position: {
+						top: uni.upx2px(75) + 'px',
+						left: (height + uni.upx2px(20)) + 'px',
+						width: '35%',
+					},
+					textStyles: {
+						size: uni.upx2px(20) + 'px',
+						color: this.skinColor.menuTitleColor,
+						verticalAlign: 'top',
+						align: 'left',
+						overflow: 'ellipsis'
+					}
+			 	}])
 			},
 			//改变播放模式
-			changeMode () {
-				switch(this.playMode) {
-				    case 'loop':
-				        this.changeMusicPlayMode('once');
-				        break;
-				    case 'once':
-				        this.changeMusicPlayMode('random');
-				        break;
-				    default:
-				        this.changeMusicPlayMode('loop');
-				}
-			},
-			//改变播放模式图标
-			chageModeIcon () {
-				let loopImage = '/static/music/' + this.playMode  + '.png';
-				musicLine.draw([{
-					tag:'img', id:'loop', src: loopImage, position:{top:'auto', left: height + (4 * iconGap) + (3 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'}
-				}])
-			},
+			// changeMode () {
+			// 	switch(this.playMode) {
+			// 	    case 'loop':
+			// 	        this.changeMusicPlayMode('once');
+			// 	        break;
+			// 	    case 'once':
+			// 	        this.changeMusicPlayMode('random');
+			// 	        break;
+			// 	    default:
+			// 	        this.changeMusicPlayMode('loop');
+			// 	}
+			// },
+			// //改变播放模式图标
+			// chageModeIcon () {
+			// 	let loopImage = '/static/music/' + this.playMode  + '.png';
+			// 	musicLine.draw([{
+			// 		tag:'img', id:'loop', src: loopImage, position:{top:'auto', left: height + (4 * iconGap) + (3 * iconSize) + 'px', width: iconSize + 'px',height: iconSize + 'px'}
+			// 	}])
+			// },
 			goPlayList () {
 				let size = plus.screen.getCurrentSize();
 				//如果是横屏不能打开，因为横屏可能会打不开，不知道是不是官方的bug
@@ -412,14 +458,14 @@
 					audio.destroy();
 					audio = null;
 				}
-				this.changeMusicPlayStatus(false);
+				this.setMusicPlayStatus(false);
 				clearTimeout(this.musicTimer);
 				this.musicTimer = setTimeout(() => {
 					this.initMusic().then(() => {
 						setTimeout(() => {
 							if ( audio.src ) {
 								audio.play();
-								this.changeMusicPlayStatus(true);
+								this.setMusicPlayStatus(true);
 							}
 						}, 100)
 					});
@@ -452,19 +498,23 @@
 								return;
 							}
 							if ( src ) {
+								this.setMusicInfo(this.playList[nowIndex]);
+								this.drawCover();
+								this.drawMusicInfo();
 								audio.src = src
 								audio.volume = 1;
 								audio.onCanplay(() => {
-									this.changeMusicPlayDuration(audio.duration || 0);
+									this.setMusicPlayDuration(audio.duration || 0);
+									this.drawProgress();
 								})
 								audio.onPlay(() => {
-									this.changeMusicPlayStatus(true);
+									this.setMusicPlayStatus(true);
 								});
 								audio.onPause(() => {
-									this.changeMusicPlayStatus(false);
+									this.setMusicPlayStatus(false);
 								});
 								audio.onError(() => {
-									this.changeMusicPlayStatus(false);
+									this.setMusicPlayStatus(false);
 									uni.showToast({
 										title: "播放错误!",
 										icon: 'none'
@@ -475,7 +525,8 @@
 								});
 								audio.onTimeUpdate(() => {
 									if ( audio ) {
-										this.changeMusicPlayTime(audio.currentTime || 0);
+										this.setMusicPlayTime(audio.currentTime || 0);
+										this.drawProgress();
 									}
 								})
 								resolve('')
@@ -582,10 +633,12 @@
 			},
 			btnHide () {
 				musicBox.hide();
+				musicControl.hide();
 			},
 			btnShow () {
 				if ( !this.isPlayer() ) {
 					musicBox.show();
+					musicControl.show();
 				}
 			},
 			//判断播放页面是否打开
@@ -601,6 +654,17 @@
 					}
 				}
 				return false;
+			},
+			//是否允许点击
+			isAllowClick () {
+				const routes = ['pages/music/player']
+				if ( getApp().globalData.$Route.meta.path.indexOf('modules') > -1 ) {
+					return false;
+				}
+				if ( routes.indexOf(getApp().globalData.$Route.meta.path) > -1 ) {
+					return false;
+				}
+				return true
 			}
 		},
 		watch: {
@@ -625,14 +689,16 @@
 						this.updateMusicPlayRecord(this.playList[0].path);
 					} else {
 						this.updateMusicPlayRecord('');
-						this.changeMusicPlayTime(0);
-						this.changeMusicPlayDuration(0);
+						this.setMusicPlayTime(0);
+						this.setMusicPlayDuration(0);
+						this.drawProgress();
 					}
 				} 
 			}
 		},
 		beforeDestroy() {
 			musicBox.close();
+			musicControl.close();
 			if ( audio ) {
 				audio.destroy();
 			}
@@ -640,6 +706,8 @@
 			uni.$off('change-status');
 			uni.$off('musicBtn-show');
 			uni.$off('musicBtn-hide');
+			uni.$off('musicBtn-open');
+			uni.$off('musicBtn-down');
 			uni.$off('change-music');
 		}
 	}

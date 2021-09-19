@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import Router, { Route } from './router.js';
+import Router from './router.js';
 
 const guard = new Router();
 /**
@@ -23,7 +23,4 @@ guard.afterEach((to, from) => {
 guard.onError((errMsg) => {
     console.log('my route-guards error: ' + errMsg);
 });
-
-Vue.prototype.$Router = guard;
-Vue.prototype.$Route = new Route();
 export default guard;

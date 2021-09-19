@@ -4,7 +4,6 @@ const { indexOf, suffix, dateFormat, removeSuffix, randomString } = Utils;
 import {
 MUSICPATH,
 PLAYLIST,
-PLAYSTATUS,
 PLAYMODE,
 PLAYRECORD,
 MUSICSOURCES,
@@ -13,10 +12,6 @@ MUSICLYRICSHOW } from '../config.js'
 const state = {
 	musicPath: uni.getStorageSync(MUSICPATH) || '', //默认访问的本地音乐资源路径
 	musicPlayList: uni.getStorageSync(PLAYLIST) || [], //音乐播放列表
-	musicPlayStatus: uni.getStorageSync(PLAYSTATUS) || false, //音乐播放状态
-	musicPlayTime: 0,//当前音乐播放位置
-	musicPlayDuration: 0,//当前音乐总时长
-	musicLyric: [],//当前音乐歌词
 	musicPlayMode: uni.getStorageSync(PLAYMODE) || 'loop', //音乐播放模式 loop => 循环播放 once => 单曲循环 random => 乱序播放
 	musicPlayRecord: uni.getStorageSync(PLAYRECORD) || '', //音乐播放记录
 	musicLyricShow: uni.getStorageSync(MUSICLYRICSHOW) || false, //控制歌词显示
@@ -29,18 +24,6 @@ const getters = {
 	},
 	playList (state) {
 		return state.musicPlayList
-	},
-	getMusicPlayStatus (state) {
-		return state.musicPlayStatus
-	},
-	getMusicPlayTime (state) {
-		return state.musicPlayTime
-	},
-	getMusicPlayDuration (state) {
-		return state.musicPlayDuration
-	},
-	getMusicLyric (state) {
-		return state.musicLyric
 	},
 	getMusicPlayMode (state) {
 		return state.musicPlayMode
@@ -93,22 +76,6 @@ const mutations = {
 		state.musicPlayRecord = record;
 		uni.setStorageSync(PLAYRECORD, state.musicPlayRecord);
 	},
-	//改变音乐播放状态
-	changeMusicPlayStatus (state, status) {
-		state.musicPlayStatus = status;
-	},
-	//改变音乐播放时长
-	changeMusicPlayTime (state, time) {
-		state.musicPlayTime = time;
-	},
-	//改变音乐总时长
-	changeMusicPlayDuration (state, duration) {
-		state.musicPlayDuration = duration;
-	},
-	//设置音乐歌词
-	setMusicLyric (state, lyric) {
-		state.musicLyric = lyric;
-	},
 	//改变音乐播放模式
 	changeMusicPlayMode (state, mode) {
 		state.musicPlayMode = mode;
@@ -119,7 +86,7 @@ const mutations = {
 		state.musicPath = path;
 		uni.setStorageSync(MUSICPATH, state.musicPath);
 	},
-	//改变音乐播放模式
+	//设置歌词是否展示
 	setMusicLyricShow (state, bool) {
 		state.musicLyricShow = bool;
 		uni.setStorageSync(MUSICLYRICSHOW, state.musicLyricShow);

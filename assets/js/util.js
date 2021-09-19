@@ -15,7 +15,15 @@ export default {
 		const d = new Date(time);
 		return d.getFullYear() + '-' + zeroize(d.getMonth() + 1) + '-' + zeroize(d.getDate()) + ' ' + zeroize(d.getHours()) + ':' + zeroize(d.getMinutes())
 	},
-	
+	/* *
+	 * 秒数转化为分秒
+	 * @param {String} value 秒数
+	 * */
+	minutesFormat (value) {
+		let minutes = Math.floor(value / 60 % 60) >= 10 ? Math.floor(value / 60 % 60) : '0' + Math.floor(value / 60 % 60);
+		let seconds = Math.floor(value % 60) >= 10 ? Math.floor(value % 60) : '0' + Math.floor(value % 60);
+		return minutes + ':' + seconds;
+	},
 	/* *
 	 * 移除url地址域名
 	 * @param {String} str http地址

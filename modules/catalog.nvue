@@ -91,6 +91,7 @@
 			}
 		},
 		onLoad (data) {
+			uni.$emit('musicBtn-down');
 			this.type = data.type;
 			this.title = this.type == 'chapter' ? '章节' : '书签';
 			this.list = this.type == 'chapter' ? this.bookChapters : this.bookmark;
@@ -152,6 +153,9 @@
 				});
 			}
         },
+		beforeDestroy () {
+			uni.$emit('musicBtn-open');
+		},
 		onBackPress(event) {
 			if ( event.from == 'backbutton' ) {
 				this.hide();

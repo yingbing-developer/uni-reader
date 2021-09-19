@@ -42,7 +42,7 @@
 		onLoad (data) {
 			this.list = JSON.parse(decodeURIComponent(data.list));
 			this.current = data.current || -1;
-			uni.$emit('musicBtn-hide');
+			uni.$emit('musicBtn-down');
 		},
 		onReady () {
 			this.show();
@@ -96,7 +96,7 @@
 			}
 		},
 		beforeDestroy () {
-			uni.$emit('musicBtn-show');
+			uni.$emit('musicBtn-open');
 		},
 		onBackPress(event) {
 			if ( event.from == 'backbutton' ) {

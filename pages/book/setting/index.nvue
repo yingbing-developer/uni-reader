@@ -193,7 +193,6 @@
 			this.lightPercent = this.light;
 		},
 		onReady () {
-			uni.$emit('musicBtn-show');
 			this.show();
 		},
 		methods: {
@@ -236,7 +235,6 @@
 				    needLayout:false,
 				    delay: 0 //ms
 				}, (res) => {
-					uni.$emit('musicBtn-hide');
 					getApp().globalData.$Router.back();
 				})
 			},

@@ -13,7 +13,7 @@
 					<view class="tr-icon" @tap="routePush('/pages/music/online')">
 						<c-icon name="network" size="38" :color="skinColor.menuIconColor"></c-icon>
 					</view>
-					<view class="tr-icon" @tap="routePush('/pages/music/search')" v-if="playList.length > 0">
+					<view class="tr-icon" @tap="routePush('/pages/music/search')">
 						<c-icon name="search" size="38" :color="skinColor.menuIconColor"></c-icon>
 					</view>
 					<view class="tr-icon" @tap="hide">
@@ -54,9 +54,10 @@
 	import NoData from '@/components/no-data/no-data.nvue'
 	import { skinMixin } from '@/common/mixin/index.js';
 	import musicMixin from '@/common/mixin/music.js'
+	import musiccertifyMixin from '@/common/mixin/musiccertify.js'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin, musicMixin],
+		mixins: [skinMixin, musicMixin, musiccertifyMixin],
 		data () {
 			return {
 				anima: {
@@ -232,7 +233,7 @@
 	}
 	.popup {
 		position: fixed;
-		bottom: 180rpx;
+		bottom: 200rpx;
 		left: 35rpx;
 		right: 35rpx;
 		height: 800rpx;

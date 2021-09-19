@@ -1,17 +1,8 @@
-import { mapGetters } from 'vuex'
+import musicMixin from '@/common/mixin/music.js'
+import musiccertifyMixin from '@/common/mixin/musiccertify.js'
 const lyricMixin = {
+	mixins: [musicMixin, musiccertifyMixin],
 	computed: {
-		...mapGetters({
-			playList: 'music/playList',
-			getMusicPlayRecord: 'music/getMusicPlayRecord',
-			getMusicPlayTime: 'music/getMusicPlayTime',
-			getMusicLyricShow: 'music/getMusicLyricShow',
-			getMusicLyric: 'music/getMusicLyric'
-		}),
-		playInfo () {
-			let index = getApp().globalData.$utils.indexOf(this.playList, 'path', this.playRecord);
-			return this.playList[index];
-		},
 		//播放记录
 		playRecord () {
 			return this.getMusicPlayRecord;
@@ -29,7 +20,7 @@ const lyricMixin = {
 		},
 		//当前歌词字符串
 		lyricNowTitle () {
-			return this.playLyric.length > 0 && this.lyricNowIndex > -1 ? this.playLyric[this.lyricNowIndex].title : this.playInfo ? this.playInfo.name : '暂无歌曲';
+			return this.playLyric.length > 0 && this.lyricNowIndex > -1 ? this.playLyric[this.lyricNowIndex].title : this.musicInfo ? this.musicInfo.name : '暂无歌曲';
 		},
 		//当前歌词位置索引
 		lyricNowIndex () {

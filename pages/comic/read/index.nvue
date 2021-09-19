@@ -104,10 +104,8 @@
 				this.upReadStatus();
 			})
 		},
-		onLoad () {
-			uni.$emit('musicBtn-hide');
-		},
 		onShow () {
+			uni.$emit('musicBtn-down');
 			this.changeOrien();
 		},
 		onReady () {
@@ -349,7 +347,7 @@
 			}
 		},
 		beforeDestroy() {
-			uni.$emit('musicBtn-show');
+			uni.$emit('musicBtn-open');
 			uni.$off('app-hide');
 		},
 		onUnload () {

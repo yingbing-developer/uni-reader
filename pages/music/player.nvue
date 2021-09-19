@@ -1,6 +1,6 @@
 <template>
 	<view class="player" :style="{'background-color': skinColor.menuBgColor}" @touchmove.stop.prevent="">
-		<c-image class="background" defaultSrc="@/static/music/music-bg.jpg" :enableMask="false" :src="playInfo ? playInfo.image : '@/static/music/music-bg.jpg'" mode="aspectFill"></c-image>
+		<c-image class="background" defaultSrc="@/static/music/music-bg.jpg" :enableMask="false" :src="musicInfo ? musicInfo.image : '@/static/music/music-bg.jpg'" mode="aspectFill"></c-image>
 		<view class="bg-mask"></view>
 		<view class="wrapper">
 			<gap-bar></gap-bar>
@@ -9,8 +9,8 @@
 					<music-icon class="back-icon" name="back" size="40" :color="skinColor.iconColor"></music-icon>
 				</view>
 				<view class="title">
-					<text class="subtitle music-name" :style="{color: skinColor.iconColor}">{{playInfo ? playInfo.name : '暂无歌曲'}}</text>
-					<text class="subtitle singer-name" :style="{color: skinColor.iconColor}">{{playInfo ? playInfo.singer : '暂无歌曲'}}</text>
+					<text class="subtitle music-name" :style="{color: skinColor.iconColor}">{{musicInfo ? musicInfo.name : '暂无歌曲'}}</text>
+					<text class="subtitle singer-name" :style="{color: skinColor.iconColor}">{{musicInfo ? musicInfo.singer : '未知歌手'}}</text>
 				</view>
 				<view class="right">
 					<view class="tr-icon">
@@ -25,7 +25,7 @@
 					<view class="swiper-item">
 						<view class="cd-wrapper">
 							<view class="cd" ref="cd">
-								<c-image :style="{transform: 'rotateZ(' + this.cdRotate + 'deg)'}" class="cd-img" borderRadius="500" defaultSrc="@/static/music/music-bg.jpg" :src="playInfo ? playInfo.image : '@/static/music/music-bg.jpg'" mode="aspectFill"></c-image>
+								<c-image :style="{transform: 'rotateZ(' + this.cdRotate + 'deg)'}" class="cd-img" borderRadius="500" defaultSrc="@/static/music/music-bg.jpg" :src="musicInfo ? musicInfo.image : '@/static/music/music-bg.jpg'" mode="aspectFill"></c-image>
 							</view>
 						</view>
 						<view class="lyric-lines" ref="lyricLines">
@@ -45,7 +45,7 @@
 							:style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{item.title}}</text>
 						</scroll-view>
 						<view class="no-lyric" v-else>
-							<text class="lyric-line-text" :style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{playInfo ? playInfo.name : '暂无歌曲'}}</text>
+							<text class="lyric-line-text" :style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{musicInfo ? musicInfo.name : '暂无歌曲'}}</text>
 						</view>
 					</view>
 				</swiper-item>
@@ -91,9 +91,10 @@
 	import { skinMixin } from '@/common/mixin/index.js';
 	import musicMixin from '@/common/mixin/music.js'
 	import lyricMixin from '@/common/mixin/lyric.js';
+	import musiccertifyMixin from '@/common/mixin/musiccertify.js'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin, lyricMixin, musicMixin],
+		mixins: [skinMixin, lyricMixin, musicMixin, musiccertifyMixin],
 		data () {
 			return {
 				duration: 400,
@@ -121,19 +122,17 @@
 			}
 		},
 		onLoad () {
-			uni.$emit('musicBtn-hide');
+			uni.$emit('musicBtn-down');
 		},
 		onReady() {
 			this.show();
 		},
-		onUnload () {
-			uni.$emit('musicBtn-show');
+		beforeDestroy () {
+			uni.$emit('musicBtn-open');
 		},
 		filters: {
 			minutesFormat (value) {
-				let minutes = Math.floor(value / 60 % 60) >= 10 ? Math.floor(value / 60 % 60) : '0' + Math.floor(value / 60 % 60);
-				let seconds = Math.floor(value % 60) >= 10 ? Math.floor(value % 60) : '0' + Math.floor(value % 60);
-				return minutes + ':' + seconds;
+				return getApp().globalData.$utils.minutesFormat(value);
 			}
 		},
 		methods: {

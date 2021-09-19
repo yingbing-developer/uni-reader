@@ -45,7 +45,7 @@
 			})
 		},
 		onLoad (data) {
-			uni.$emit('musicBtn-hide');
+			uni.$emit('musicBtn-down');
 			this.content = decodeURIComponent(data.content);
 			this.start = data.start;
 			this.end = data.end;
@@ -118,7 +118,7 @@
 			}
 		},
 		beforeDestroy () {
-			uni.$emit('musicBtn-show');
+			uni.$emit('musicBtn-open');
 			uni.offKeyboardHeightChange(res => {
 				console.log(res);
 			});
