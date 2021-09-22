@@ -267,9 +267,8 @@
 						contents: contents
 					})
 				} else {
-					let index = this.$utils.indexOf(contents, 'chapter', current);
 					for ( let i in contents ) {
-						contents[i].start = i == index ? this.record.position : 0
+						contents[i].start = current == this.record.chapter ? parseInt(this.record.position) : 0
 					}
 					page.init({
 						contents: contents,

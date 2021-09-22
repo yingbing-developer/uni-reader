@@ -165,7 +165,6 @@
 			//阅读
 			readBook (path) {
 				let arr = getApp().globalData.$utils.deepClone(this.catalog);
-				let nums = this.sortType == 'reverse' ? arr.reverse() : arr;
 				let readIndex = getApp().globalData.$utils.indexOf(arr, 'path', path);
 				getApp().globalData.$Router.push({path: '/pages/book/read/index', query: {
 					chapter: arr[readIndex].chapter

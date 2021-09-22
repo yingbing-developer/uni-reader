@@ -515,6 +515,7 @@
 			},
 			//创建翻页的文章盒子
 			createPageItem (el, info, type, i) {
+				let classIndex = info.chapter * 100000 + i;
 				let pageItem = document.createElement('div');
 				pageItem.style.width = '100%';
 				pageItem.style.height = '100%';
@@ -522,11 +523,11 @@
 				pageItem.style.position = 'absolute';
 				pageItem.style.top = 0;
 				pageItem.style.left = 0;
-				pageItem.style.zIndex = -(info.chapter * 100000 + i);
+				pageItem.style.zIndex = -classIndex;
 				if ( this.currentInfo.start >= info.start && this.currentInfo.start < info.end && this.currentInfo.chapter == info.chapter ) {
-					pageItem.setAttribute('class', 'page-item page-item-actived page-item-chapter__' + (info.chapter * 100000 + i));
+					pageItem.setAttribute('class', 'page-item page-item-actived page-item-chapter__' + classIndex);
 				} else {
-					pageItem.setAttribute('class', 'page-item page-item-chapter__' + (info.chapter * 100000 + i));
+					pageItem.setAttribute('class', 'page-item page-item-chapter__' + classIndex);
 				}
 				pageItem.setAttribute('chapter', info.chapter);
 				pageItem.setAttribute('start', info.start);
@@ -577,10 +578,10 @@
 				if ( type == 'init' || type == 'next' ) {
 					el.appendChild(pageItem);
 				} else {
-					let node = document.getElementsByClassName('page-item-chapter__' + (info.chapter + 1))[0];
+					let node = document.getElementsByClassName('page-item-chapter__' + (( info.chapter + 1) * 100000))[0];
 					el.insertBefore(pageItem, node);
 				}
-				return document.getElementsByClassName('page-item-chapter__' + (info.chapter * 100000 + i))[0];
+				return document.getElementsByClassName('page-item-chapter__' + classIndex)[0];
 			},
 			//创建滚动布局下的章节盒子
 			createScrollChapter (el, chapter) {
