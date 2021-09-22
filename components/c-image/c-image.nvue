@@ -143,7 +143,7 @@
 			},
 			getBaseImage(e) {
 				let BaseImage = uni.requireNativePlugin('YingBingNativePlugin-BaseImage');
-				let base64 = BaseImage.getImgStr(encodeURI(this.url));
+				let base64 = BaseImage ? BaseImage.getImgStr(encodeURI(this.url)) : null;
 				if (base64) {
 					this.url = base64;
 				} else {
