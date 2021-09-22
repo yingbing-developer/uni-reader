@@ -423,7 +423,7 @@
 							this.pageAnimation(-this.viewWidth, 0, el);
 						}
 						for ( let j = 0; j < pages[i].text.length; j++ ) {
-							this.insetScrollText(pageItem.getElementsByClassName('page-item-canvas')[0], pages[i].text[j], this.pageProp.fontSize);
+							this.insetScrollText(el.content, pages[i].text[j], this.pageProp.fontSize);
 							// context.font = this.pageProp.fontSize + 'px 微软雅黑';
 							// context.fillStyle = this.pageProp.color;
 							// context.fillText(pages[i].text[j], this.pageProp.slide, ((j + 1) * (this.pageProp.fontSize + this.pageProp.lineHeight)) + this.pageProp.topGap);
@@ -524,9 +524,9 @@
 				pageItem.style.left = 0;
 				pageItem.style.zIndex = -(info.chapter * 100000 + i);
 				if ( this.currentInfo.start >= info.start && this.currentInfo.start < info.end && this.currentInfo.chapter == info.chapter ) {
-					pageItem.setAttribute('class', 'page-item page-item-actived page-item-chapter__' + (info.chapter + info.start));
+					pageItem.setAttribute('class', 'page-item page-item-actived page-item-chapter__' + (info.chapter * 100000 + i));
 				} else {
-					pageItem.setAttribute('class', 'page-item page-item-chapter__' + (info.chapter + info.start));
+					pageItem.setAttribute('class', 'page-item page-item-chapter__' + (info.chapter * 100000 + i));
 				}
 				pageItem.setAttribute('chapter', info.chapter);
 				pageItem.setAttribute('start', info.start);
@@ -574,15 +574,13 @@
 				pageShadow.style.zIndex = '9';
 				pageShadow.setAttribute('class', 'page-item-shadow');
 				pageItem.appendChild(pageShadow);
-				if ( type == 'init' ) {
-					el.appendChild(pageItem);
-				} else if ( type == 'next' ) {
+				if ( type == 'init' || type == 'next' ) {
 					el.appendChild(pageItem);
 				} else {
 					let node = document.getElementsByClassName('page-item-chapter__' + (info.chapter + 1))[0];
 					el.insertBefore(pageItem, node);
 				}
-				return document.getElementsByClassName('page-item-chapter__' + (info.chapter + info.start))[0];
+				return document.getElementsByClassName('page-item-chapter__' + (info.chapter * 100000 + i))[0];
 			},
 			//创建滚动布局下的章节盒子
 			createScrollChapter (el, chapter) {
