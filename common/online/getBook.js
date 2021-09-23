@@ -149,8 +149,7 @@ function getBaoshuuDetails (href) {
 				desc = hr[1] + '\n' + desc;
 				let lastIndex = readUrlObj.attrs.href.lastIndexOf('/');
 				let allLength = readUrlObj.attrs.href.length;
-				let urlTxt = gb2312(readUrlObj.attrs.href.substring(lastIndex + 1, allLength)).replace('%5b', '');
-				urlTxt = urlTxt.replace('%5d', '');
+				let urlTxt = gb2312(readUrlObj.attrs.href.substring(lastIndex + 1, allLength));
 				let data = {
 					name: name[1],
 					author: author[1],

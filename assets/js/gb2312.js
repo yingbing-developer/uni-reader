@@ -9,7 +9,7 @@ export default function UrlEncode(str) {
 			ret += "+";
 		else if (strSpecial.indexOf(c) != -1)
 			ret += "%" + str.charCodeAt(i).toString(16);
-		if (z[str.charCodeAt(i)] != null) {
+		else if (z[str.charCodeAt(i)] != null) {
 			let d = z[str.charCodeAt(i)];
 			try {
 				ret += "%" + d.slice(0, 2) + "%" + d.slice(-2);
