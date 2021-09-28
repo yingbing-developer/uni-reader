@@ -81,7 +81,8 @@
 				this.changePage(data);
 			})
 			uni.showLoading({
-				title: '读取文本中..'
+				title: '读取文本中..',
+				mask: true
 			})
 		},
 		onShow () {
