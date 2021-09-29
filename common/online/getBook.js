@@ -144,9 +144,10 @@ function getBaoshuuDetails (href) {
 				let readUrlObj = HTMLParser(readUrl[1])[0];//将html字符串转化为html数组
 				let desc = content[0].match(/<p[^>]*>*([\s\S]*?)<\/p>/)[1];
 				let hr = desc.match(/<span[^>]*>*([\s\S]*?)<\/span>/);
-				desc = desc.replace(hr[0], '');
+				if ( hr ) {
+					desc = desc.replace(hr[0], '');
+				}
 				desc = desc.replace(/<br\/>/ig, '\n');
-				desc = hr[1] + '\n' + desc;
 				let lastIndex = readUrlObj.attrs.href.lastIndexOf('/');
 				let allLength = readUrlObj.attrs.href.length;
 				let urlTxt = gb2312(readUrlObj.attrs.href.substring(lastIndex + 1, allLength));
