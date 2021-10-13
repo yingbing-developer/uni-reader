@@ -176,7 +176,7 @@
 				}
 			},
 			title () {
-				return this.bookInfo.source == 'local' ? this.bookInfo.name : this.bookChapters[this.chapterNow].title
+				return this.bookInfo.source == 'local' ? this.bookInfo.name : this.bookInfo.record.title ? this.bookInfo.record.title : this.bookInfo.name
 			},
 			//书签
 			bookmark () {

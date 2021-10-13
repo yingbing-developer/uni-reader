@@ -191,6 +191,7 @@ function getBaoshuuChapters (href) {
 						chapter: i + 1,
 						path: href + '&yeshu=' + i,
 						source: tag1,
+						isStart: i == 0,
 						isEnd: i == lastChapter
 					})
 				}

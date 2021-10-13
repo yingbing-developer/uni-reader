@@ -27,7 +27,7 @@ const mutations = {
 		state.bookChapters = chapters
 	},
 	setBookPageInfo (state, pageInfo) {
-		state.bookPageInfo = pageInfo
+		state.bookPageInfo = JSON.parse(JSON.stringify(pageInfo))
 	}
 }
 

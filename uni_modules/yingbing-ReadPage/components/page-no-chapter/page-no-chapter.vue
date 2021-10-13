@@ -79,7 +79,8 @@
 		},
 		data () {
 			return {
-				contents: [],
+				content: '',
+				start: 0,
 				loading: false,//等待内容请求
 				upper: false,//文章是否到最前面
 				lower: false,//文章是否到最后面
@@ -90,16 +91,17 @@
 		computed: {
 			pageProp () {
 				return {
-					contents: this.contents,
+					content: this.content,
+					start: this.start,
 					dataId: this.dataId,
 					color: this.color,
 					bgColor: this.bgColor,
-					slide: this.slide > 0 ? parseInt(this.slide) : 0,
-					topGap: this.topGap > 0 ? parseInt(this.topGap) : 0,
-					bottomGap: this.bottomGap > 0 ? parseInt(this.bottomGap) : 0,
-					fontSize: this.fontSize >= 12 ? parseInt(this.fontSize) : 12,//字体大小最小只能到12px，因为谷歌浏览器最小只支持12px
-					pageType: this.pageType || 'none',
-					lineHeight: this.lineHeight >= 5 ? parseInt(this.lineHeight) : 5,
+					slide: this.slide,
+					topGap: this.topGap,
+					bottomGap: this.bottomGap,
+					fontSize: this.fontSize,
+					pageType: this.pageType,
+					lineHeight: this.lineHeight,
 					restart: this.restart
 				};
 			}
@@ -107,13 +109,14 @@
 		methods: {
 			//初始化
 			init (data) {
-				this.contents = data.contents || this.contents;
+				this.content = data.content;
+				this.start = data.start
 				this.restart = true;
-				this.getCatalog(this.contents[0].content);
+				this.getCatalog(this.content);
 			},
 			//跳转
 			change (data) {
-				this.contents[0].start = data.position;
+				this.start = data.start;
 				this.restart = true;
 			},
 			showToast (e) {
@@ -208,7 +211,7 @@
 							}
 							this.updownloading = true;
 							let end = parseInt(scrollBox.lastChild.getAttribute('end'));
-							if ( end < this.pageProp.contents[0].content.length - 1 ) {
+							if ( end < this.pageProp.content.length - 1 ) {
 								this.drawText(end, 'next');
 							} else {
 								this.triggerShowToast('后面已经没有了')
@@ -249,7 +252,7 @@
 					text: []
 				}
 				let length = 0;
-				let contentSync = this.pageProp.contents[0].content.substr(start);
+				const contentSync = this.pageProp.content.substr(start);
 				let lastIndex = 0;
 				while ( pageHeight <= this.viewHeight - this.pageProp.topGap - this.pageProp.bottomGap ) {
 					strs.push('');
@@ -271,7 +274,7 @@
 						}
 					}
 					pageHeight += this.pageProp.fontSize + this.pageProp.lineHeight;
-					if ( page.end >= this.pageProp.contents[0].content.length - 1 ) break;
+					if ( page.end >= this.pageProp.content.length - 1 ) break;
 				}
 				page.text = strs;
 				return page;
@@ -300,7 +303,7 @@
 					if ( end - length > 0 ) {
 						strs.unshift('');
 						let lineWidth = 0;
-						let contentSync = this.pageProp.contents[0].content.substring(0, end);
+						let contentSync = this.pageProp.content.substring(0, end);
 						for ( let i = lastIndex1 || contentSync.length - 1; i >= 0; i-- ) {
 							lineWidth += context.measureText(contentSync[i]).width;
 							if ( JSON.stringify(contentSync[i]) == JSON.stringify('\r') || JSON.stringify(contentSync[i]) == JSON.stringify('\n') ) {
@@ -322,7 +325,7 @@
 						if ( this.pageProp.pageType != 'scroll' ) {
 							strs.push('');
 							let lineWidth = 0;
-							let contentSync = this.pageProp.contents[0].content.substr(end);
+							let contentSync = this.pageProp.content.substr(end);
 							for ( let i = lastIndex2; i < contentSync.length; i++ ) {
 								lineWidth += context.measureText(contentSync[i]).width;
 								if ( JSON.stringify(contentSync[i]) == JSON.stringify('\r') || JSON.stringify(contentSync[i]) == JSON.stringify('\n') ) {
@@ -339,7 +342,7 @@
 								}
 							}
 							pageHeight += this.pageProp.fontSize + this.pageProp.lineHeight;
-							if ( page.end >= this.pageProp.contents[0].content.length - 1 ) break;
+							if ( page.end >= this.pageProp.content.length - 1 ) break;
 						} else {
 							break;
 						}
@@ -371,7 +374,7 @@
 						if ( page.start > 0 ) {
 							this.drawText(page.start, 'prev')
 						}
-						if ( page.end < this.pageProp.contents[0].content.length - 1 ) {
+						if ( page.end < this.pageProp.content.length - 1 ) {
 							this.drawText(page.end, 'next')
 						}
 						this.currentInfo.start = parseInt(el.el.getAttribute('start'));
@@ -396,7 +399,7 @@
 						if ( page.start > 0 ) {
 							this.drawText(page.start, 'prev')
 						}
-						if ( page.end < this.pageProp.contents[0].content.length - 1 ) {
+						if ( page.end < this.pageProp.content.length - 1 ) {
 							this.drawText(page.end, 'next')
 						}
 						let scrollItems = scrollBox.getElementsByClassName('scroll-item')
@@ -690,7 +693,7 @@
 					}
 					this.updownloading = true;
 					let end = parseInt(content.lastChild.getAttribute('end'));
-					if ( end < this.pageProp.contents[0].content.length - 1 ) {
+					if ( end < this.pageProp.content.length - 1 ) {
 						this.drawText(end, 'next');
 					} else {
 						this.triggerShowToast('后面已经没有了')
@@ -736,7 +739,7 @@
 			},
 			restartChange (newValue) {
 				if ( newValue ) {
-					this.currentInfo.start = this.pageProp.contents[0].start;
+					this.currentInfo.start = this.pageProp.start;
 					this.restartDrawText();
 				}
 			},

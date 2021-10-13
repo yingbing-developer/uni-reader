@@ -11,6 +11,7 @@
 		:top-gap="barHeight"
 		:bottom-gap="barHeight"
 		:no-chapter="bookInfo.source == 'local'"
+		enablePreload
 		@currentChange="savePageRecord"
 		@setCatalog="setCatalog"
 		@preload="preloadContent"
@@ -199,6 +200,7 @@
 					xhrs.push({
 						url: data[i].path,
 						chapter: data[i].chapter,
+						isStart: data[i].isStart,
 						isEnd: data[i].isEnd,
 						source: this.bookInfo.source
 					})
@@ -216,64 +218,45 @@
 				this.setBookChapters(e);
 			},
 			preloadContent (chapters, next, error) {
-				let arr = [];
-				for ( let i in chapters ) {
-					let index = this.$utils.indexOf(this.bookChapters, 'chapter', chapters[i]);
-					if ( index > -1 ) {
-						arr.push(this.bookChapters[index]);
-					}
-				}
-				this.getOnlineContent(arr).then((res) => {
-					if ( res.length > 0 ) {
-						next(res)
+				const arr = this.bookChapters.filter(item => {
+					return item.chapter == chapter || item.chapter == chapter - 1 || item.chapter == chapter + 1
+				});
+				this.getOnlineContent(arr).then((contents) => {
+					if ( contents.length > 0 ) {
+						callback('success', contents)
 					} else {
-						error();
+						callback('fail');
 					}
 				}).catch(() => {
-					error();
+					callback('fail');
 				})
 			},
-			loadmoreContent (chapter, next, error) {
-				uni.showLoading({
-					title: '加载内容中',
-					mask: true
-				})
-				let index = this.$utils.indexOf(this.bookChapters, 'chapter', chapter);
-				let arr = [this.bookChapters[index]]
-				this.getOnlineContent(arr).then((res) => {
-					uni.hideLoading();
-					if ( res.length > 0 ) {
-						next(res[0])
+			loadmoreContent (chapter, callback) {
+				const index = this.$utils.indexOf(this.bookChapters, 'chapter', chapter);
+				const arr = [this.bookChapters[index]]
+				this.getOnlineContent(arr).then((contents) => {
+					if ( contents.length > 0 ) {
+						callback('success', contents[0])
 					} else {
-						error();
+						callback('fail');
 					}
 				}).catch(() => {
-					uni.showToast({
-						title: '加载失败',
-						icon: 'none'
-					})
-					uni.hideLoading();
-					error();
+					callback('fail');
 				})
 			},
 			//初始化页面
 			initPage (contents, current) {
 				const { page } = this.$refs;
 				if ( this.bookInfo.source == 'local' ) {
-					contents = [{
-						start: this.record.position || 0,
-						content: this.bookContent
-					}]
 					page.init({
-						contents: contents
+						content: this.bookContent,
+						start: this.record.position || 0
 					})
 				} else {
-					for ( let i in contents ) {
-						contents[i].start = current == this.record.chapter ? parseInt(this.record.position) : 0
-					}
 					page.init({
 						contents: contents,
-						current: current
+						currentChapter: current,
+						start: current == this.record.chapter ? parseInt(this.record.position) : 0
 					})
 				}
 			},
@@ -288,14 +271,12 @@
 						title: '加载内容中',
 						mask: true
 					})
-					this.initContent(data.chapter).then((res) => {
+					this.initContent(data.chapter).then((contents) => {
 						uni.hideLoading();
-						for ( let i in res ) {
-							res[i].start = 0
-						}
 						page.change({
-							contents: res,
-							current: data.chapter
+							contents: contents,
+							currentChapter: data.chapter,
+							start: 0
 						})
 					}).catch(() => {
 						uni.hideLoading();
@@ -309,12 +290,9 @@
 			initContent (chapter) {
 				chapter = parseInt(chapter);
 				return new Promise((resolve, reject) => {
-					let arr = [];
-					for ( let i in this.bookChapters ) {
-						if ( this.bookChapters[i].chapter == chapter || this.bookChapters[i].chapter == chapter - 1 || this.bookChapters[i].chapter == chapter + 1 ) {
-							arr.push(this.bookChapters[i])
-						}
-					}
+					const arr = this.bookChapters.filter(item => {
+						return item.chapter == chapter || item.chapter == chapter - 1 || item.chapter == chapter + 1
+					});
 					this.getOnlineContent(arr).then((res) => {
 						resolve(res);
 					}).catch(() => {
@@ -438,6 +416,7 @@
 		background-color: rgba(255,255,255,0.4);
 		font-weight: bold;
 		opacity: 0;
+		z-index: 10;
 	}
 	.touch-menu {
 		left: 50%;
