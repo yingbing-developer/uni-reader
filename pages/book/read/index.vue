@@ -217,9 +217,9 @@
 			setCatalog (e) {
 				this.setBookChapters(e);
 			},
-			preloadContent (chapters, next, error) {
+			preloadContent (chapters, callback) {
 				const arr = this.bookChapters.filter(item => {
-					return item.chapter == chapter || item.chapter == chapter - 1 || item.chapter == chapter + 1
+					return chapters.indexOf(item.chapter) > -1
 				});
 				this.getOnlineContent(arr).then((contents) => {
 					if ( contents.length > 0 ) {

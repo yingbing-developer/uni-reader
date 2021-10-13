@@ -189,7 +189,7 @@
 						this.$refs.filpPage.init(dataSync)
 					}
 				} else {
-					this.$refs.pageNoChapter.init(dataSync);
+					this.$refs.pageNoChapter.init(data);
 				}
 			},
 			//重计算
@@ -225,22 +225,24 @@
 		},
 		watch: {
 			pageType (newVal, oldVal) {
-				setTimeout(() => {
-					if ( pageTypes.indexOf(newVal) > -1 && oldVal == 'scroll' ) {
-						this.init({
-							contents: this.contents,
-							start: this.pageInfo.start,
-							currentChapter: this.pageInfo.chapter
-						});
-					}
-					if ( pageTypes.indexOf(oldVal) > -1 && newVal == 'scroll' ) {
-						this.init({
-							contents: this.contents,
-							start: this.pageInfo.start,
-							currentChapter: this.pageInfo.chapter
-						});
-					}
-				}, 50)
+				if ( !this.noChapter ) {
+					setTimeout(() => {
+						if ( pageTypes.indexOf(newVal) > -1 && oldVal == 'scroll' ) {
+							this.init({
+								contents: this.contents,
+								start: this.pageInfo.start,
+								currentChapter: this.pageInfo.chapter
+							});
+						}
+						if ( pageTypes.indexOf(oldVal) > -1 && newVal == 'scroll' ) {
+							this.init({
+								contents: this.contents,
+								start: this.pageInfo.start,
+								currentChapter: this.pageInfo.chapter
+							});
+						}
+					}, 50)
+				}
 			}
 		}
 	}

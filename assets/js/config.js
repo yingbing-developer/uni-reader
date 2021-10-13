@@ -3,6 +3,10 @@ export const BOOKURL = {
 	'baoshuu': {
 		title: '手机宝书',
 		href: 'http://m.baoshuu.com'
+	},
+	'bamxs': {
+		title: '八毛小说',
+		href: 'http://m.bamxs.com'
 	}
 };
 
