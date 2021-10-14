@@ -58,7 +58,7 @@ function getBaoshuu (data) {
 			params: dataSync,
 			headers: {
 				Referer: BOOKURL[tag1].href,
-				Host: BOOKURL[tag1].href.replace('https://', ''),
+				Host: BOOKURL[tag1].href.replace('http://', ''),
 				Charset: 'gb2312',//自定义字符格式
 				Cookie: 'UM_distinctid=1783b0d7fe43f8-0224fcecd87da9-376b4502-1fa400-1783b0d7fe59f7; READHISTORY=1; Hm_lvt_fed71f7d1edb5bacb3fe60e703a761aa=1629376402,1629415930,1629810834,1629845299; CNZZDATA1276437823=1507837864-1615895385-%7C1630353326',
 			}
@@ -136,7 +136,7 @@ function getBaoshuuDetails (href) {
 			mimeType: 'text/html;charset=gb2312',
 			headers: {
 				Referer: BOOKURL[tag1].href,
-				Host: BOOKURL[tag1].href.replace('https://', '')
+				Host: BOOKURL[tag1].href.replace('http://', '')
 			}
 		}).then((res) => {
 			if ( res.code == 200 ) {
@@ -184,7 +184,7 @@ function getBaoshuuChapters (href) {
 			mimeType: 'text/html;charset=gb2312',
 			headers: {
 				Referer: BOOKURL[tag1].href,
-				Host: BOOKURL[tag1].href.replace('https://', '')
+				Host: BOOKURL[tag1].href.replace('http://', '')
 			}
 		}).then((res) => {
 			if ( res.code == 200 ) {
@@ -222,8 +222,8 @@ function getBaoshuuContent (data) {
 			arr.push(getApp().globalData.$xhr.get(data[i].url, {
 				mimeType: 'text/html;charset=gb2312',
 				headers: {
-					Referer: 'https://m.baoshuu.com/',
-					Host: 'm.baoshuu.com'
+					Referer: BOOKURL[tag1].href,
+					Host: BOOKURL[tag1].href.replace('http://', '')
 				}
 			}))
 		}
