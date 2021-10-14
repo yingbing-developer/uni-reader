@@ -1,4 +1,5 @@
-import { TIMEOUT } from '@/assets/js/config.js'
+import Config from '@/assets/js/config.js'
+const { TIMEOUT } = Config
 
 
 //request封装

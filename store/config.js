@@ -1,4 +1,6 @@
 export const SKIN = 'UNI_READER_SKIN'//皮肤
+export const ADULT = 'UNI_READER_ADULT'//青壮年模式
+export const ADULTPWD = 'UNI_READER_ADULT_PWD'//青壮年模式密码
 export const BOOKS = 'UNI_READER_BOOK_LIST'//书籍列表
 export const BOOKPATH = 'UNI_READER_BOOK_PATH'//上次访问小说存放路径
 export const BOOKREAD = 'UNI_READER_BOOK_READ'//小说阅读模式

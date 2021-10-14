@@ -1,0 +1,345 @@
+<template>
+	<view class="security" @touchmove.stop.prevent="">
+		<view class="mask" ref="mask" @tap="hide(false)"></view>
+		<view class="popup" ref="popup" @touchmove.stop.prevent="" :style="{'height': anima.lateY + 'rpx', transform: 'translateY(' + anima.lateY + 'rpx)'}">
+			<view class="title bgColor-theme">
+				<text class="title-text">{{title}}</text>
+			</view>
+			<text class="tip-text color-text">{{tipText}}</text>
+			<view class="pwds">
+				<view class="pwd" v-for="(item, index) in pwds" :key="index">
+					<text class="pwd-text">{{item > -1 ? '●' : ''}}</text>
+					<view class="cursor" :style="{opacity: cursorOpac}" v-if="cursorIndex == index"></view>
+				</view>
+			</view>
+			<view class="keyboard">
+				<view class="key" :class="item.type" v-for="(item, index) in keys" :key="index" @tap="selectNum(index)">
+					<text class="key-text" v-if="item.type == 'num'">{{item.value}}</text>
+					<c-icon v-if="item.value == 'delete'" name="clear-fill" size="40"></c-icon>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const animation = weex.requireModule('animation');
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	export default {
+		data () {
+			return {
+				anima: {
+					opac: 1,
+					duration: 500,
+					lateY: 700
+				},
+				pwds: [-1,-1,-1,-1,-1,-1],
+				password: '',
+				cursorIndex: 0,
+				cursorOpac: 1,
+				cursorDuration: 600,
+				keys: [{
+					type: 'num',
+					value: 1
+				},{
+					type: 'num',
+					value: 2
+				},{
+					type: 'num',
+					value: 3
+				},{
+					type: 'num',
+					value: 4
+				},{
+					type: 'num',
+					value: 5
+				},{
+					type: 'num',
+					value: 6
+				},{
+					type: 'num',
+					value: 7
+				},{
+					type: 'num',
+					value: 8
+				},{
+					type: 'num',
+					value: 9
+				},{
+					type: 'other',
+					value: ''
+				},{
+					type: 'num',
+					value: 0
+				},{
+					type: 'other',
+					value: 'delete'
+				}],
+				isShow: true,
+				step: 0,
+				oldPwd: '',
+				newPwd: '',
+				type: '',
+				title: ''
+			}
+		},
+		computed: {
+			tipText () {
+				if ( this.type == 'input' ) {
+					return '请输入密码'
+				} else if ( this.type == 'init' ) {
+					return this.step == 0 ? '请输入新密码' : '再次输入新密码'
+				} else {
+					return this.step == 0 ? '请输入旧密码' : this.step == 1 ? '请输入新密码' : '再次输入新密码'
+				}
+			}
+		},
+		onLoad (data) {
+			this.type = data.type;
+			this.title = data.title;
+		},
+		onReady () {
+			this.cursorAnimation();
+			this.show();
+		},
+		methods: {
+			show () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: this.anima.opac
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateY(0)'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+			},
+			hide (bol) {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateY(' + this.anima.lateY + 'px)'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				},(res) => {
+					if ( this.type == 'input' || this.type == 'init' ) {
+						uni.$emit('security-btn', {
+							confirm: bol,
+							password: this.password
+						});
+					} else {
+						uni.$emit('security-btn', {
+							confirm: bol,
+							oldPassword: this.oldPwd,
+							newPassword: this.newPwd
+						});
+					}
+				})
+			},
+			cursorAnimation () {
+				this.cursorOpac = this.cursorOpac > 0 ? 0 : 1;
+				clearTimeout(this.timer);
+				this.timer = setTimeout(() => {
+					if ( this.isShow ) {
+						this.cursorAnimation();
+					}
+				}, this.cursorDuration);
+			},
+			selectNum (index) {
+				if ( this.keys[index].type == 'num' ) {
+					if ( this.cursorIndex < 6 ) {
+						this.pwds[this.cursorIndex] = this.keys[index].value;
+						this.cursorIndex += 1;
+					}
+				}
+				if ( this.keys[index].value == 'delete' ) {
+					if ( this.cursorIndex > 0 ) {
+						this.cursorIndex -= 1;
+						this.pwds[this.cursorIndex] = -1;
+					}
+				}
+				let password = '';
+				for ( let i in this.pwds ) {
+					if ( this.pwds[i] > -1 ) {
+						password += this.pwds[i].toString();
+					}
+				}
+				this.password = password;
+				setTimeout(() => {
+					if ( this.cursorIndex == 6 ) {
+						if ( this.type == 'input' ) {
+							this.hide(true);
+						} else if ( this.type == 'init' ) {
+							switch (this.step) {
+							    case 0:
+							        this.newPwd = this.password;
+							        this.resetPwd();
+							        break;
+							    default:
+							        if ( this.newPwd == this.password ) {
+							        	this.hide(true);
+							        } else {
+							        	uni.showToast({
+							        		title: '两次输入新密码不匹配，请重新设置安全密码',
+											icon: 'none'
+							        	})
+							        	this.resetPwd();
+							        	this.step = -1;
+							        }
+							}
+							this.step += 1;
+						} else {
+							switch (this.step) {
+							    case 0:
+							        this.oldPwd = this.password;
+							        this.resetPwd();
+							        break;
+							    case 1:
+							        this.newPwd = this.password;
+							        this.resetPwd();
+							        break;
+							    default:
+							        if ( this.newPwd == this.password ) {
+							        	this.hide(true);
+							        } else {
+							        	uni.showToast({
+							        		title: '两次输入新密码不匹配，请重新设置安全密码',
+											icon: 'none'
+							        	})
+							        	this.resetPwd();
+							        	this.step = -1;
+							        }
+							}
+							this.step += 1;
+						}
+					}
+				}, 800)
+			},
+			resetPwd () {
+				this.password = '';
+				this.cursorIndex = 0;
+				this.pwds = [-1,-1,-1,-1,-1,-1];
+			}
+		},
+		watch: {
+			cursorIndex () {
+				this.cursorOpac = 1;
+			}
+		},
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide(false);
+				return true;
+			}
+			return false;
+		},
+		beforeDestroy() {
+			this.isShow = false;
+		},
+		components: {
+			CIcon
+		}
+	}
+</script>
+
+<style scoped>
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0,0,0,0.4);
+	}
+	.popup {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background-color: #FFFFFF;
+		border-top-left-radius: 30rpx;
+		border-top-right-radius: 30rpx;
+	}
+	.title {
+		align-items: center;
+		justify-content: center;
+		height: 70rpx;
+	}
+	.title-text {
+		color: #FFFFFF;
+		font-size: 30rpx;
+		font-weight: bold;
+	}
+	.tip-text {
+		text-align: center;
+		font-size: 25rpx;
+		margin: 20rpx 0;
+	}
+	.pwds {
+		flex-direction: row;
+		justify-content: space-between;
+		margin: 0 80rpx;
+	}
+	.pwd {
+		border: 1px solid #eee;
+		width: 80rpx;
+		height: 80rpx;
+		justify-content: center;
+		align-items: center;
+		position: relative;
+	}
+	.cursor {
+		position: absolute;
+		top: 20rpx;
+		left: 40rpx;
+		transform: translateX(-0.5px);
+		height: 40rpx;
+		width: 1px;
+		background-color: #333;
+	}
+	.keyboard {
+		flex-direction: row;
+		flex-wrap: wrap;
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+	}
+	.key {
+		width: 250rpx;
+		justify-content: center;
+		align-items: center;
+		height: 90rpx;
+		border: 1px solid #eee;
+	}
+	.num:active {
+		background-color: #eee;
+	}
+	.other {
+		background-color: #F2F2F2;
+	}
+	.key-text {
+		font-weight: bold;
+		font-size: 45rpx;
+	}
+</style>

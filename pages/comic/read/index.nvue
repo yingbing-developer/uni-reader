@@ -37,7 +37,6 @@
 <script>
 	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
-	import { TIMEOUT } from '@/assets/js/config.js'
 	import { getComicContent } from '@/common/online/getComic.js'
 	import ComicSetting from '../setting/index.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'

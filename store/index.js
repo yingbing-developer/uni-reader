@@ -5,6 +5,7 @@ import bookcertify from './modules/bookcertify.js'
 import music from './modules/music.js'
 import musiccertify from './modules/musiccertify.js'
 import skin from './modules/skin.js'
+import app from './modules/app.js'
 Vue.use(Vuex)
 const store = new Vuex.Store({
 	modules: {
@@ -12,7 +13,8 @@ const store = new Vuex.Store({
 		bookcertify,
 		music,
 		musiccertify,
-		skin
+		skin,
+		app
 	}
 })
 export default store

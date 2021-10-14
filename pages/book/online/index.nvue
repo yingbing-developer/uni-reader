@@ -67,7 +67,6 @@
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
-	import { BOOKURL } from '@/assets/js/config.js'
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin, bookMixin, bookcertifyMixin],
@@ -91,10 +90,11 @@
 				return this.nameFilter ? '没有搜索结果' : '请输入小说名称'
 			},
 			BOOKURL () {
-				return BOOKURL
+				return getApp().globalData.$config.BOOKURL
 			}
 		},
 		onLoad () {
+			const { BOOKURL } = getApp().globalData.$config
 			for ( let i in BOOKURL ) {
 				if ( this.getBookSourcesController.indexOf(i) == -1 ) {
 					this.nowPages[i] = 1 ;

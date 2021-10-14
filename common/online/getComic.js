@@ -1,10 +1,12 @@
 import http from '@/plugins/request/index.js'
-import { COMICURL, ERR_OK, ERR_FALSE } from '@/assets/js/config.js'
 import HTMLParser from '@/assets/js/html-parse.js'
-import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
+import Store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
 import Utils from '@/assets/js/util.js'
+import Config from '@/assets/js/config.js'
 
+const { COMICURL, ERR_OK, ERR_FALSE, ADULTS } = Config
 const { replaceStr } = Utils;
+const { getters } = Store;
 
 const tag1 = 'mangabz';
 const tag2 = 'loli';
@@ -17,24 +19,25 @@ const tag7 = 'dmzj';
 //获取漫画列表
 export function getComic (data) {
 	//判断一下哪些来源被关闭了
-	let sources = store.getters['book/getComicSourcesController'];
+	const sources = getters['book/getComicSourcesController'];
+	const adult = getters['app/getAdult'];
 	let newArr = [];
-	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
+	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] && (ADULTS.indexOf(tag1) == -1 || adult) ) {
 		newArr.push(getMangabz(data));
 	}
-	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] ) {
+	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] && (ADULTS.indexOf(tag2) == -1 || adult) ) {
 		newArr.push(getLoli(data));
 	}
 	// if ( sources.indexOf(tag4) == -1 && !data.isLastPage[tag4] ) {
 	// 	newArr.push(get18comic(data));
 	// }
-	if ( sources.indexOf(tag5) == -1 && !data.isLastPage[tag5] ) {
+	if ( sources.indexOf(tag5) == -1 && !data.isLastPage[tag5] && (ADULTS.indexOf(tag5) == -1 || adult) ) {
 		newArr.push(getSixmh6(data));
 	}
-	if ( sources.indexOf(tag6) == -1 && !data.isLastPage[tag6] ) {
+	if ( sources.indexOf(tag6) == -1 && !data.isLastPage[tag6] && (ADULTS.indexOf(tag6) == -1 || adult) ) {
 		newArr.push(getWnacg(data));
 	}
-	if ( sources.indexOf(tag7) == -1 && !data.isLastPage[tag7] ) {
+	if ( sources.indexOf(tag7) == -1 && !data.isLastPage[tag7] && (ADULTS.indexOf(tag7) == -1 || adult) ) {
 		newArr.push(getDmzj(data));
 	}
 	return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))

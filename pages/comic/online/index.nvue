@@ -68,7 +68,6 @@
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
-	import { COMICURL } from '@/assets/js/config.js'
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin, bookMixin],
@@ -92,10 +91,11 @@
 				return this.nameFilter ? '没有搜索结果' : '请输入漫画名称'
 			},
 			comicUrl () {
-				return COMICURL
+				return getApp().globalData.$config.COMICURL
 			}
 		},
 		onLoad () {
+			const { COMICURL } = getApp().globalData.$config
 			for ( let i in COMICURL ) {
 				if ( this.getComicSourcesController.indexOf(i) == -1 ) {
 					this.nowPages[i] = 1 ;

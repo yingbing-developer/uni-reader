@@ -1,11 +1,13 @@
 import http from '@/plugins/request/index.js'
 import Utils from '@/assets/js/util.js'
-import { BOOKURL, ERR_OK, ERR_FALSE } from '@/assets/js/config.js'
 import HTMLParser from '@/assets/js/html-parse.js'
 import gb2312 from '@/assets/js/gb2312.js'
-import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
+import Store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
+import Config from '@/assets/js/config.js'
 
+const { BOOKURL, ERR_OK, ERR_FALSE, ADULTS } = Config
 const { replaceStr, removeUrl } = Utils;
+const { getters } = Store;
 
 const tag1 = 'baoshuu';
 const tag2 = 'bamxs';
@@ -14,12 +16,13 @@ const tag2 = 'bamxs';
 //获取小说列表
 export function getBook (data) {
 	//判断一下哪些来源被关闭了
-	let sources = store.getters['book/getBookSourcesController'];
+	const sources = getters['book/getBookSourcesController'];
+	const adult = getters['app/getAdult'];
 	let newArr = [];
-	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
+	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] && (ADULTS.indexOf(tag1) == -1 || adult) ) {
 		newArr.push(getBaoshuu(data));
 	}
-	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] ) {
+	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] && (ADULTS.indexOf(tag2) == -1 || adult) ) {
 		newArr.push(getBamxs(data));
 	}
 	return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))

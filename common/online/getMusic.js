@@ -1,6 +1,9 @@
 import http from '@/plugins/request/index.js'
-import { MUSICURL, ERR_OK, ERR_FALSE, commonParams } from '@/assets/js/config.js'
-import store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
+import Store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
+import Config from '@/assets/js/config.js'
+
+const { MUSICURL, ERR_OK, ERR_FALSE, commonParams, ADULTS } = Config
+const { getters } = Store;
 
 const tag1 = 'qqmusic';
 const tag2 = '163music';
@@ -40,12 +43,13 @@ const time2seconds = function (time){
 //获取音乐列表
 export function getMusic (data) {
 	//判断一下哪些来源被关闭了
-	let sources = store.getters['music/getMusicSourcesController'];
+	const sources = getters['music/getMusicSourcesController'];
+	const adult = getters['app/getAdult'];
 	let newArr = [];
-	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] ) {
+	if ( sources.indexOf(tag1) == -1 && !data.isLastPage[tag1] && (ADULTS.indexOf(tag1) == -1 || adult) ) {
 		newArr.push(getQqmusic(data));
 	}
-	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] ) {
+	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] && (ADULTS.indexOf(tag2) == -1 || adult) ) {
 		newArr.push(getwangyimusic(data));
 	}
 	return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))

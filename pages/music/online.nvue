@@ -70,7 +70,6 @@
 	import BubbleItem from '@/components/bubble-item/bubble-item.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import NoData from '@/components/no-data/no-data.nvue'
-	import { MUSICURL } from '@/assets/js/config.js'
 	const dom = weex.requireModule('dom');
 	export default {
 		mixins: [skinMixin, musicMixin],
@@ -96,7 +95,7 @@
 				return this.nameFilter ? '没有搜索结果' : '请输入关键字搜索音乐'
 			},
 			musicUrl () {
-				return MUSICURL
+				return getApp().globalData.$config.MUSICURL
 			},
 			playStatus () {
 				return this.getMusicPlayStatus;
@@ -106,6 +105,7 @@
 			}
 		},
 		onLoad () {
+			const { MUSICURL } = getApp().globalData.$config
 			for ( let i in MUSICURL ) {
 				this.nowPages[i] = 1 ;
 				this.isLastPages[i] = false;

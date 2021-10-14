@@ -46,5 +46,21 @@ export default {
 				}
 			});
 		})
+	},
+	security (data = {}) {
+		const type = data.type || 'input'
+		const title = data.title || '请输入安全密码'
+		return new Promise((resolve, reject) => {
+			uni.navigateTo({
+				url: `/modules/security?type=${type}&title=${title}`,
+				complete: (res) => {
+					uni.$on('security-btn', (data) => {
+						resolve(data)
+						uni.navigateBack({delta: 1});
+						uni.$off('security-btn');
+					})
+				}
+			});
+		})
 	}
 }

@@ -55,9 +55,10 @@
 	import { skinMixin } from '@/common/mixin/index.js';
 	import musicMixin from '@/common/mixin/music.js'
 	import musiccertifyMixin from '@/common/mixin/musiccertify.js'
+	import appMixin from '@/common/mixin/app.js';
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin, musicMixin, musiccertifyMixin],
+		mixins: [skinMixin, musicMixin, musiccertifyMixin, appMixin],
 		data () {
 			return {
 				anima: {
@@ -73,7 +74,9 @@
 		computed: {
 			listSync () {
 				return this.playList.filter((item) => {
-					return item;
+					if ( getApp().globalData.$config.ADULTS.indexOf(item.source) == -1 || this.getAdult ) {
+						return item
+					}
 				});
 			},
 			playStatus () {

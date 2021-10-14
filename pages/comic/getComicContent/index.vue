@@ -4,7 +4,6 @@
 </template>
 
 <script>
-	import { COMICURL } from '@/assets/js/config.js'
 	let bgBox = null;
 	let wv = null;
 	export default {
@@ -25,6 +24,7 @@
 			}
 		},
 		onLoad (data) {
+			const { BOOKURL } = this.$config
 			this.url = data.url;
 			this.origin = COMICURL[data.source].href;
 			this.source = data.source;
