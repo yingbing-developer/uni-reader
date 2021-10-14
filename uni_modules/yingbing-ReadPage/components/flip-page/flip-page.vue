@@ -307,7 +307,8 @@
 				viewWidth: 0,
 				viewHeight: 0,
 				colorSync: '',
-				bgColorSync: ''
+				bgColorSync: '',
+				currentPageDataIdSync: -1
 			}
 		},
 		mounted() {
@@ -317,11 +318,11 @@
 			const flip = document.getElementById('flipPage');
 			this.viewWidth = flip.offsetWidth;
 			this.viewHeight = flip.offsetHeight;
-			
-			const style = document.createElement('style')
-			style.type = 'text/css'
-			style.innerHTML = animationRotate
-			document.head.appendChild(style)
+			this.currentPageDataIdSync = this.flipPageProp.currentPageDataId
+			// const style = document.createElement('style')
+			// style.type = 'text/css'
+			// style.innerHTML = animationRotate
+			// document.head.appendChild(style)
 			new Vue({
 				el: '#flip-content',
 				render: (h) => {
@@ -340,83 +341,88 @@
 							'z-index': 1,
 						}
 					}, this.pagesSync.map((item, key) => {
-						return h('div', {
-							class: 'flip-item',
-							key: item.dataId,
-							attrs: {
-								chapter: item.chapter,
-								start: item.start,
-								end: item.end,
-								type: item.type,
-								'data-id': item.dataId
-							},
-							style: this.createItemStyle(item)
-						}, [
-							h('div', {
-								class: 'flip-item-content',
-								style: this.createContentStyle(item)
-							}, item.type == 'text' ? item.text.map((text, key) => {
-								return h('p', {
-									class: 'flip-text',
-									key: key,
-									style: {
-										width: '100%',
-										'box-sizing': 'border-box',
-										'white-space': 'pre-wrap',
-										'font-family': '"Microsoft YaHei", 微软雅黑',
-										'margin-top': this.flipPageProp
-											.lineHeight + 'px',
-										height: this.flipPageProp
-											.fontSize + 'px'
-									}
-								}, text)
-							}) : (item.type == 'nextLoading' || item.type ==
-								'prevLoading') ? [
-								h('div', {
-									class: 'loading',
-									style: {
-										position: 'absolute',
-										width: '100%',
-										height: '100%',
-										top: 0,
-										left: 0,
-										'box-sizing': 'border-box',
-										display: 'flex',
-										'align-items': 'center',
-										'justify-content': 'center'
-									}
+						if (item.dataId == this.currentPageDataIdSync || (this.pagesSync[key + 1] ?
+								this.pagesSync[key + 1].dataId : -1) == this
+							.currentPageDataIdSync || (this.pagesSync[key - 1] ? this.pagesSync[
+								key - 1].dataId : -1) == this.currentPageDataIdSync) {
+								return h('div', {
+									class: 'flip-item',
+									key: item.dataId,
+									attrs: {
+										chapter: item.chapter,
+										start: item.start,
+										end: item.end,
+										type: item.type,
+										'data-id': item.dataId
+									},
+									style: this.createItemStyle(item)
 								}, [
 									h('div', {
-										style: {
-											color: this.colorSync
-										}
-									}, '正在加载内容...')
+										class: 'flip-item-content',
+										style: this.createContentStyle(item)
+									}, item.type == 'text' ? item.text.map((text, key) => {
+										return h('p', {
+											class: 'flip-text',
+											key: key,
+											style: {
+												width: '100%',
+												'box-sizing': 'border-box',
+												'white-space': 'pre-wrap',
+												'font-family': '"Microsoft YaHei", 微软雅黑',
+												'margin-top': this.flipPageProp
+													.lineHeight + 'px',
+												height: this.flipPageProp
+													.fontSize + 'px'
+											}
+										}, text)
+									}) : (item.type == 'nextLoading' || item.type ==
+										'prevLoading') ? [
+										h('div', {
+											class: 'loading',
+											style: {
+												position: 'absolute',
+												width: '100%',
+												height: '100%',
+												top: 0,
+												left: 0,
+												'box-sizing': 'border-box',
+												display: 'flex',
+												'align-items': 'center',
+												'justify-content': 'center'
+											}
+										}, [
+											h('div', {
+												style: {
+													color: this.colorSync
+												}
+											}, '正在加载内容...')
+										])
+									] : [
+										h('div', {
+											class: 'loading',
+											style: {
+												position: 'absolute',
+												width: '100%',
+												height: '100%',
+												top: 0,
+												left: 0,
+												'box-sizing': 'border-box',
+												display: 'flex',
+												'align-items': 'center',
+												'justify-content': 'center'
+											}
+										}, item.type == 'top' ? '已经到第一章了' : '已经到最后一章了')
+									]),
+									h('div', {
+										class: 'flip-item-bg',
+										style: this.createBgStyle(item)
+									}),
+									h('div', {
+										class: 'flip-item-shadow',
+										style: this.createShadowStyle(item)
+									})
 								])
-							] : [
-								h('div', {
-									class: 'loading',
-									style: {
-										position: 'absolute',
-										width: '100%',
-										height: '100%',
-										top: 0,
-										left: 0,
-										'box-sizing': 'border-box',
-										display: 'flex',
-										'align-items': 'center',
-										'justify-content': 'center'
-									}
-								}, item.type == 'top' ? '已经到第一章了' : '已经到最后一章了')
-							]),
-							h('div', {
-								class: 'flip-item-bg',
-								style: this.createBgStyle(item)
-							}),
-							h('div', {
-								class: 'flip-item-shadow',
-								style: this.createShadowStyle(item)
-							})
-						])
+							}
 					}))
 				}
 			})
@@ -479,6 +485,9 @@
 						break;
 					}
 				}
+				if (newValue.currentPageDataId != oldValue.currentPageDataId) {
+					this.currentPageDataIdSync = newValue.currentPageDataId
+				}
 				if (newValue.fontSize != oldValue.fontSize) {
 					this.triggerResetPage();
 				}
@@ -494,6 +503,7 @@
 				if (newValue.bgColor != oldValue.bgColor) {
 					this.bgColorSync = newValue.bgColor
 				}
+
 			},
 			pagesChange() {
 				this.$nextTick(() => {
@@ -730,7 +740,8 @@
 					top: 0,
 					right: 0,
 					'z-index': 9,
-					'box-shadow': item.dataId < this.flipPageProp.currentPageDataId ? this.flipPageProp.pageType == 'real' ? '0 0 60px 30px rgba(0,0,0,0.5)' : '' : ''
+					'box-shadow': item.dataId < this.flipPageProp.currentPageDataId ? this.flipPageProp.pageType ==
+						'real' ? '0 0 60px 30px rgba(0,0,0,0.5)' : '' : ''
 				}
 			},
 			//翻页动画

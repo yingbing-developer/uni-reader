@@ -415,7 +415,7 @@
 							bs.finishPullUp();
 							bs.enable();
 							this.triggerPreload(this.scrollPageProp.contents[nextContentIndex].chapter)
-						}, 100)
+						}, 200)
 					} else {
 						this.triggerScrolltoLower(nowChapter + 1);
 					}
