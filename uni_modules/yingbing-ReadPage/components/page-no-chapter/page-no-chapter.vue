@@ -22,6 +22,11 @@
 		'padding-bottom': bottomGap + 'px',
 		'background': bgColor}"
 		v-if="pageType == 'scroll'"></view>
+		
+		
+		<div class="loading" v-if="initLoading" :style="{background: bgColor}">
+			<page-refresh>正在加载内容</page-refresh>
+		</div>
 	</view>
 </template>
 
@@ -85,7 +90,9 @@
 				upper: false,//文章是否到最前面
 				lower: false,//文章是否到最后面
 				restart: false,//是否重绘页面
-				preLoading: false//等待预加载请求
+				preLoading: false,//等待预加载请求
+				initLoading: true,
+				chapters: []
 			}
 		},
 		computed: {
@@ -116,6 +123,7 @@
 			},
 			//跳转
 			change (data) {
+				this.initLoading = true;
 				this.start = data.start;
 				this.restart = true;
 			},
@@ -127,6 +135,16 @@
 			},
 			//抛出阅读页面改变事件
 			currentChange (e) {
+				const start = e.currentInfo.start
+				const chapterIndex = this.chapters.findIndex((chapter, key) => {
+					if ( key < this.chapters.length - 1 ) {
+						return start >= chapter.start && start < this.chapters[parseInt(key) + 1].start
+					} else {
+						return start >= chapter.start
+					}
+				})
+				e.currentInfo.chapter = this.chapters[chapterIndex].chapter
+				e.currentInfo.title = this.chapters[chapterIndex].title
 				this.$emit('currentChange', e.currentInfo);
 			},
 			//重置部分变量，方便下次使用
@@ -134,17 +152,24 @@
 				this.restart = false;
 				this.isNewChapter = false;
 			},
+			resetInitLoading () {
+				this.initLoading = false
+			},
 			//使用正则获取章节目录 并抛出事件
 			getCatalog (content) {
 				const reg = new RegExp(/(第?[一二两三四五六七八九十○零百千万亿0-9１２３４５６７８９０※✩★☆]{1,6}[章回卷节折篇幕集部]?[、.-\s][^\n]*)[_,-]?/g);
 				let match = '';
 				let catalog = [];
+				let chapter = 0
 				while ((match = reg.exec(content)) != null) {
+					chapter++
 					catalog.push({
 						title: match[0],
-						position: match.index
+						start: match.index,
+						chapter: chapter
 					})
 				}
+				this.chapters = catalog;
 				this.$emit('setCatalog', catalog);
 			}
 		}
@@ -381,6 +406,7 @@
 						this.currentInfo.end = parseInt(el.el.getAttribute('end'));
 						this.currentInfo.text = el.content.innerText;
 						this.triggerCurrentChange(this.currentInfo);
+						this.triggerResetInitLoading();
 					} else if ( type == 'prev' ) {
 						this.pageAnimation(-this.viewWidth, 0, el);
 						if ( parent.getElementsByClassName('page-item').length > 3 ) parent.removeChild(parent.lastChild);
@@ -414,6 +440,7 @@
 						}
 						this.bindScrollEvent();
 						this.triggerCurrentChange(this.currentInfo);
+						this.triggerResetInitLoading();
 					} else if ( type == 'prev' ) {
 						scrollBox.scrollTop = scrollItem.offsetHeight;
 						if ( scrollBox.getElementsByClassName('scroll-item').length > 3 ) scrollBox.removeChild(scrollBox.lastChild);
@@ -786,6 +813,18 @@
 				// #ifdef H5
 				this.resetPageProp()
 				// #endif
+			},
+			//重置部分传过来的属性
+			triggerResetInitLoading () {
+				// #ifndef H5
+				UniViewJSBridge.publishHandler('onWxsInvokeCallMethod', {
+					cid: this._$id,
+					method: 'resetInitLoading'
+				})
+				// #endif
+				// #ifdef H5
+				this.resetInitLoading()
+				// #endif
 			}
 		}
 	}
@@ -828,5 +867,16 @@
 		top: 0;
 		width: 100%;
 		height: 100%;
+	}
+	.loading {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		left: 0;
+		top: 0;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 </style>

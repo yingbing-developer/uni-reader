@@ -4,7 +4,7 @@ const bookcertifyMixin = {
 		...mapGetters({
 			bookInfo: 'bookcertify/getBookInfo',
 			bookChapters: 'bookcertify/getBookChapters',
-			bookPageInfo: 'bookcertify/getBookPageInfo'
+			pageInfo: 'bookcertify/getBookPageInfo'
 		})
 	},
 	methods: {

@@ -241,6 +241,7 @@ function getBaoshuuContent (data) {
 					contents.push({
 						chapter: data[i].chapter,
 						content: content,
+						title: data[i].title,
 						isStart: data[i].isStart,
 						isEnd: data[i].isEnd
 					})
@@ -424,6 +425,7 @@ function getBamxsContent (data) {
 					contents.push({
 						chapter: data[i].chapter,
 						content: content,
+						title: data[i].title,
 						isStart: data[i].isStart,
 						isEnd: data[i].isEnd
 					})

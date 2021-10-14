@@ -17,6 +17,7 @@
 		
 		<!-- 滑块 -->
 		<view class="item"
+		v-if="itemShow"
 		@touchstart="itemTouchstart"
 		ref="item"
 		:style="{
@@ -35,7 +36,7 @@
 	// #endif
 	export default {
 		props: {
-			disable: {
+			disabled: {
 				type: Boolean,
 				default: false
 			},
@@ -109,7 +110,7 @@
 		methods: {
 			//手指触摸到滑块
 			itemTouchstart (e) {
-				if ( this.disable ) {
+				if ( this.disabled ) {
 					return;
 				}
 				if ( e.touches.length > 1 ) {
@@ -119,7 +120,7 @@
 			},
 			//滑块触摸开始
 			touchstart (e) {
-				if ( this.disable ) {
+				if ( this.disabled ) {
 					return;
 				}
 				//手指是否触摸到滑块
@@ -138,7 +139,7 @@
 			},
 			//滑块触摸移动
 			touchmove (e) {
-				if ( this.disable ) {
+				if ( this.disabled ) {
 					return;
 				}
 				//手指是否触摸到滑块
@@ -153,7 +154,7 @@
 			},
 			//滑块触摸结束
 			touchend (e) {
-				if ( this.disable ) {
+				if ( this.disabled ) {
 					return;
 				}
 				//手指是否触摸到滑块
@@ -165,7 +166,7 @@
 			},
 			//点击进度条本身触发
 			lineTouchstart (e) {
-				if ( this.disable ) {
+				if ( this.disabled ) {
 					return;
 				}
 				if ( e.touches.length > 1 ) {
@@ -177,7 +178,7 @@
 				this.setPercent();
 			},
 			setPercent () {
-				if ( this.disable ) {
+				if ( this.disabled ) {
 					return;
 				}
 				if ( this.percent < 0 ) {

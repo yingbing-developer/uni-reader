@@ -654,6 +654,8 @@
 				let index = this.pagesSync.findIndex(item => item.dataId == dataId);
 				let pageInfo = this.pagesSync[index];
 				const nowChapters = this.pagesSync.filter(item => item.chapter == pageInfo.chapter)
+				const contentIndex = this.scrollPageProp.contents.findIndex(content => content.chapter == pageInfo.chapter)
+				if ( this.scrollPageProp.contents[contentIndex].title ) pageInfo.title = this.scrollPageProp.contents[contentIndex].title;
 				pageInfo.totalPage = nowChapters.length;
 				pageInfo.currentPage = nowChapters.findIndex(item => item.dataId == pageInfo.dataId) + 1;
 				return pageInfo

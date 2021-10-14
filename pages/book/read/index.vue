@@ -81,10 +81,6 @@
 			uni.$on('change-page', (data) => {
 				this.changePage(data);
 			})
-			uni.showLoading({
-				title: '读取文本中..',
-				mask: true
-			})
 		},
 		onShow () {
 			uni.$emit('musicBtn-down');
@@ -102,7 +98,6 @@
 						this.getLocalContent();
 					} else {
 						this.initContent(this.$Route.query.chapter).then((res) => {
-							uni.hideLoading();
 							this.initPage(res, this.$Route.query.chapter);
 						}).catch(() => {
 							uni.showToast({
@@ -132,7 +127,6 @@
 				//初始化页面
 				this.initPage();
 				Reader = '';
-				uni.hideLoading();
 				
 				// 获取内容 还不能使用
 				// let encoding = this.getFileCharset(this.path);
@@ -200,6 +194,7 @@
 					xhrs.push({
 						url: data[i].path,
 						chapter: data[i].chapter,
+						title: data[i].title,
 						isStart: data[i].isStart,
 						isEnd: data[i].isEnd,
 						source: this.bookInfo.source
@@ -264,7 +259,7 @@
 				const { page } = this.$refs;
 				if ( this.bookInfo.source == 'local' ) {
 					page.change({
-						position: data.position
+						start: data.start
 					})
 				} else {
 					uni.showLoading({
@@ -303,16 +298,22 @@
 			},
 			//更新阅读记录
 			savePageRecord (e) {
-				this.setBookPageInfo(e);
+				let pageInfo = {};
 				let record = {};
 				let isReaded = false;
 				if ( this.bookInfo.source == 'local' ) {
 					record = {
-						chapter: 0,
+						chapter: e.chapter,
 						position: e.start,
-						title: ''
+						title: e.title
 					}
 					isReaded =  e.end >= this.bookContent.length - 1;
+					pageInfo = {
+						progress: parseFloat(((e.start / this.bookContent.length) * 100).toFixed(2)),
+						title: this.bookInfo.name,
+						chapter: e.chapter,
+						text: e.text
+					}
 				} else {
 					let index = this.$utils.indexOf(this.bookChapters, 'chapter', e.chapter);
 					record = {
@@ -321,7 +322,16 @@
 						title: this.bookChapters[index].title
 					}
 					isReaded = this.bookChapters[index].isEnd && e.isChapterEnd;
+					pageInfo = {
+						progress: parseFloat(((e.currentPage / e.totalPage) * 100).toFixed(2)),
+						title: e.title,
+						chapter: e.chapter,
+						text: e.text,
+						currentPage: e.currentPage,
+						totalPage: e.totalPage
+					}
 				}
+				this.setBookPageInfo(pageInfo);
 				//更新阅读位置
 				this.updateBookInfo({
 					path: this.path,

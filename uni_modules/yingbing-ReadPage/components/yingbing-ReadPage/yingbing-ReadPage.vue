@@ -194,33 +194,39 @@
 			},
 			//重计算
 			refresh () {
-				if ( pageTypes.indexOf(this.pageType) > -1 ) {
-					this.$refs.filpPage.resetPage({
-						start: this.pageInfo.start,
-						chapter: this.pageInfo.chapter
-					})
-				} else {
-					this.$refs.scrollPage.resetPage({
-						start: this.pageInfo.start,
-						chapter: this.pageInfo.chapter
-					})
+				if ( !this.noChapter ) {
+					if ( pageTypes.indexOf(this.pageType) > -1 ) {
+						this.$refs.filpPage.resetPage({
+							start: this.pageInfo.start,
+							chapter: this.pageInfo.chapter
+						})
+					} else {
+						this.$refs.scrollPage.resetPage({
+							start: this.pageInfo.start,
+							chapter: this.pageInfo.chapter
+						})
+					}
 				}
 			},
 			//跳转
 			change (data) {
-				data.contents.forEach(item => {
-					const index = this.contents.findIndex(content => content.chapter == item.chapter)
-					if (index > -1) {
-						this.contents[index] = item;
-					} else {
-						this.contents.push(item);
-					}
-					this.init({
-						contents: this.contents,
-						start: data.start,
-						currentChapter: data.currentChapter
-					});
-				})
+				if ( !this.noChapter ) {
+					data.contents.forEach(item => {
+						const index = this.contents.findIndex(content => content.chapter == item.chapter)
+						if (index > -1) {
+							this.contents[index] = item;
+						} else {
+							this.contents.push(item);
+						}
+						this.init({
+							contents: this.contents,
+							start: data.start,
+							currentChapter: data.currentChapter
+						});
+					})
+				} else {
+					this.$refs.pageNoChapter.change(data);
+				}
 			}
 		},
 		watch: {

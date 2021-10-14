@@ -5,6 +5,10 @@
 		<div id="flip-content"></div>
 		<computed-page ref="computedPage" :pageType="pageType" :fontSize="fontSize" :lineHeight="lineHeight"
 			:slide="slide" :topGap="topGap" :bottomGap="bottomGap"></computed-page>
+			
+		<div class="loading" v-if="initLoading" :style="{background: bgColor}">
+			<page-refresh>正在加载内容</page-refresh>
+		</div>
 	</div>
 </template>
 
@@ -62,7 +66,8 @@
 				contents: [],
 				pages: [],
 				currentPageDataId: -1,
-				moreLoading: false
+				moreLoading: false,
+				initLoading: true
 			}
 		},
 		computed: {
@@ -83,6 +88,7 @@
 		},
 		methods: {
 			init(data) {
+				this.initLoading = true;
 				this.contents = data.contents;
 				this.resetPage(data);
 			},
@@ -134,6 +140,7 @@
 								this.pages = arr;
 								this.$nextTick(() => {
 									this.currentChange();
+									this.initLoading = false;
 									this.preload(data.currentChapter);
 								})
 							} else {
@@ -215,10 +222,12 @@
 						start: 0,
 						end: 0
 					})
-					const nowIndex = newPages.findIndex(page => page.dataId == this.currentPageDataId);
-					if (nowIndex == -1) this.currentPageDataId = e.type == 'next' ? pages[0].dataId : pages[pages
-						.length - 1].dataId;
 					this.pages = JSON.parse(JSON.stringify(newPages))
+					const nowIndex = newPages.findIndex(page => page.dataId == this.currentPageDataId);
+					if ( nowIndex == -1 ) {
+						this.currentPageDataId = e.type == 'next' ? pages[0].dataId : pages[pages.length - 1].dataId;
+						this.currentChange()
+					} 
 				});
 			},
 			changePageActived(value) {
@@ -266,8 +275,10 @@
 				let pageInfo = types.indexOf(type) == -1 ? this.pages[index] : (type == 'top' || type == 'prevLoading') ?
 					JSON.parse(JSON.stringify(this.pages[index + 1])) : JSON.parse(JSON.stringify(this.pages[index - 1]));
 				const nowChapters = this.pages.filter(item => item.chapter == pageInfo.chapter)
+				const contentIndex = this.contents.findIndex(content => content.chapter == pageInfo.chapter)
 				pageInfo.totalPage = nowChapters.length;
 				pageInfo.currentPage = nowChapters.findIndex(item => item.dataId == pageInfo.dataId) + 1;
+				if ( this.contents[contentIndex].title ) pageInfo.title = this.contents[contentIndex].title;
 				this.$emit('currentChange', pageInfo);
 			},
 			showToast(e) {
@@ -819,5 +830,16 @@
 		top: 0;
 		box-sizing: border-box;
 		overflow: hidden;
+	}
+	.loading {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		left: 0;
+		top: 0;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 </style>

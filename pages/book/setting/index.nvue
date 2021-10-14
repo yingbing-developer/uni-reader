@@ -19,9 +19,9 @@
 		<!-- 底部设置 -->
 		<view class="read-board" ref="readBottom" @touchmove.stop.prevent="">
 			<!-- 阅读进度 -->
-			<view class="percent" v-if="bookInfo.source == 'local'">
+			<view class="percent">
 				<view class="percent-box">
-					<text class="percent-text">{{progress}}%</text>
+					<text class="percent-text">{{bookInfo.source == 'local' ? progress + '%' : pageInfo.currentPage + ' / ' + pageInfo.totalPage}}</text>
 				</view>
 				<view class="percentAfter">
 					<view class="percent-arrow"></view>
@@ -31,14 +31,14 @@
 			<view class="readBoardContent">
 				
 				<!-- 阅读进度 -->
-				<view class="read-board-line" v-if="bookInfo.source == 'local'">
+				<view class="read-board-line">
 					<view class="progress-btn progress-prev">
 						<view @tap="prevPages">
 							<c-icon name="arrow-left" :size="45" color="#EFEFEF"></c-icon>
 						</view>
 					</view>
 					<view class="progress">
-						 <c-progress :value="progress" @input="upRecord" itemShow></c-progress>
+						 <c-progress :value="progress" @input="upRecord" :itemShow="bookInfo.source == 'local'" :disabled="bookInfo.source != 'local'"></c-progress>
 					</view>
 					<view class="progress-btn progress-next">
 						<view @tap="nextPages">
@@ -145,38 +145,14 @@
 				return parseFloat(this.bookReadMode.light) * 100;
 			},
 			progress () {
-				if ( this.bookInfo.source == 'local' ) {
-					if ( this.record.position == 0 ) {
-						return 0
-					} else {
-						return parseFloat(((this.record.position / this.bookInfo.length) * 100).toFixed(2))
-					}
-				} else {
-					return 0;
-				}
+				return this.pageInfo.progress ? this.pageInfo.progress : 0
 			},
 			//当前章节
 			chapterNow () {
-				if ( this.bookInfo.source == 'local' ) {
-					for ( let i in this.bookChapters ) {
-						if ( i < this.bookChapters.length - 1 ) {
-							if ( this.record.position >= this.bookChapters[i].position && this.record.position < this.bookChapters[parseInt(i) + 1].position ) {
-								return parseInt(i)
-							}
-						} else {
-							if ( this.record.position >= this.bookChapters[i].position) {
-								return parseInt(i)
-							}
-						}
-					}
-				} else {
-					let chapter = this.bookInfo.record.chapter > -1 ? this.bookInfo.record.chapter : 1;
-					let index = getApp().globalData.$utils.indexOf(this.bookChapters, 'chapter', chapter);
-					return parseInt(index);
-				}
+				return this.pageInfo.chapter ? this.pageInfo.chapter : 1
 			},
 			title () {
-				return this.bookInfo.source == 'local' ? this.bookInfo.name : this.bookInfo.record.title ? this.bookInfo.record.title : this.bookInfo.name
+				return this.pageInfo.title ? this.pageInfo.title : this.bookInfo.name
 			},
 			//书签
 			bookmark () {
@@ -254,8 +230,9 @@
 			},
 			//上个章节
 			prevChapter () {
-				if ( this.bookChapters[this.chapterNow - 1] ) {
-					uni.$emit('change-page', this.bookChapters[this.chapterNow - 1])
+				const chapterIndex = this.bookChapters.findIndex(bookChapter => (this.chapterNow - 1) == bookChapter.chapter)
+				if ( chapterIndex > -1 ) {
+					uni.$emit('change-page', this.bookChapters[chapterIndex])
 				} else {
 					uni.showToast({
 						icon: 'none',
@@ -265,7 +242,8 @@
 			},
 			//下个章节
 			nextChapter () {
-				let flag = this.chapterNow >= 0 ? this.bookChapters[this.chapterNow + 1] : this.bookChapters[0];
+				const chapterIndex = this.bookChapters.findIndex(bookChapter => (this.chapterNow + 1) == bookChapter.chapter)
+				let flag = chapterIndex > -1 ? this.bookChapters[chapterIndex] : false;
 				if ( flag ) {
 					uni.$emit('change-page', flag)
 				} else {
@@ -277,34 +255,39 @@
 			},
 			//后退0.1%
 			prevPages () {
-				let percent = this.progress - 0.1;
-				if ( percent < 0 ) {
-					percent = 0;
-					uni.showToast({
-						title: '前面已经没有了',
-						icon: 'none'
-					})
+				if ( this.bookInfo.source == 'local' ) {
+					let percent = this.progress - 0.1;
+					if ( percent < 0 ) {
+						percent = 0;
+						uni.showToast({
+							title: '前面已经没有了',
+							icon: 'none'
+						})
+					}
+					this.upRecord(percent);
 				}
-				this.upRecord(percent);
+				
 			},
 			//前进0.1%
 			nextPages() {
-				let percent = this.progress + 0.1;
-				if ( percent > 100 ) {
-					percent = 100;
-					uni.showToast({
-						title: '后面已经没有了',
-						icon: 'none'
-					})
+				if ( this.bookInfo.source == 'local' ) {
+					let percent = this.progress + 0.1;
+					if ( percent > 100 ) {
+						percent = 100;
+						uni.showToast({
+							title: '后面已经没有了',
+							icon: 'none'
+						})
+					}
+					this.upRecord(percent);
 				}
-				this.upRecord(percent);
 			},
 			//添加书签
 			addBookmark () {
 				this.saveBookmark({
 					path: this.bookInfo.path,
-					position: this.record.position,
-					title: this.bookPageInfo.text.substring(0, 20)
+					start: this.record.position,
+					title: this.pageInfo.text.substring(0, 20)
 				})
 			},
 			upRecord (percent) {
@@ -314,7 +297,7 @@
 				this.timer = setTimeout(() => {
 					let record = {
 						chapter: 0,
-						position: parseInt((percent / 100) * this.bookInfo.length),
+						start: parseInt((percent / 100) * this.bookInfo.length),
 						title: ''
 					};
 					uni.$emit('change-page', record)
