@@ -629,6 +629,12 @@
 					if ( !this.scrollPageProp.contents[nowContentIndex].isStart ) {
 						const prevContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == this.pagesSync[0].chapter - 1);
 						if (prevContentIndex > -1) {
+							if ( document.getElementsByClassName('pullup-loading')[0].style.display != 'flex' ) {
+								document.getElementsByClassName('pullup-loading')[0].style.display = 'flex';
+								document.getElementsByClassName('pullup-finish')[0].innerHTML = ''
+								document.getElementsByClassName('pullup-finish')[0].style.display = 'none'
+								bs.finishPullUp();
+							}
 							bs.disable()
 							const data = {
 								content: this.scrollPageProp.contents[prevContentIndex],
