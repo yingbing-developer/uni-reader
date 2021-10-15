@@ -24,7 +24,7 @@
 		v-if="pageType == 'scroll'"></view>
 		
 		
-		<div class="loading" v-if="initLoading" :style="{background: bgColor}">
+		<div class="loading" v-if="initLoading" :style="{background: bgColor, color: color}">
 			<page-refresh>正在加载内容</page-refresh>
 		</div>
 	</view>

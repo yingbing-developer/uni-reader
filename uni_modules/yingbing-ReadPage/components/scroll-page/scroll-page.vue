@@ -345,6 +345,12 @@
 			bs = new BScroll('.scroll-page', {
 				scrollY: true,
 				startY: 0,
+				bounce: {
+					top: true,
+					bottom: false,
+					left: false,
+					right: false
+				},
 				bounceTime: TIME_BOUNCE,
 				pullDownRefresh: {
 					threshold: THRESHOLD_PULL,
@@ -375,8 +381,8 @@
 							content: this.scrollPageProp.contents[prevContentIndex],
 							type: 'prev'
 						}
-						this.triggerComputedPage(data);
 						window.setTimeout(() => {
+							this.triggerComputedPage(data);
 							bs.finishPullDown();
 							bs.enable()
 							this.triggerPreload(this.scrollPageProp.contents[prevContentIndex].chapter)
@@ -410,12 +416,12 @@
 							content: this.scrollPageProp.contents[nextContentIndex],
 							type: 'next'
 						}
-						this.triggerComputedPage(data);
 						window.setTimeout(() => {
+							this.triggerComputedPage(data);
 							bs.finishPullUp();
 							bs.enable();
 							this.triggerPreload(this.scrollPageProp.contents[nextContentIndex].chapter)
-						}, 200)
+						}, TIME_BOUNCE + 50)
 					} else {
 						this.triggerScrolltoLower(nowChapter + 1);
 					}
@@ -552,33 +558,32 @@
 				this.pagesSync = JSON.parse(JSON.stringify(newValue));
 				this.$nextTick(() => {
 					bs.refresh();
-					window.setTimeout(() => {
-						for (let i in newValue) {
-							let index = oldValue.findIndex(item => item.dataId == newValue[i].dataId);
-							if (index == -1) {
-								if (newValue[i].dataId < (oldValue.length > 0 ? oldValue[0].dataId : -1)) {
-									adHeight += document.getElementsByClassName('scroll-item_' + newValue[
-										i].dataId)[0].offsetHeight;
-								}
+					for (let i in newValue) {
+						let index = oldValue.findIndex(item => item.dataId == newValue[i].dataId);
+						if (index == -1) {
+							if (newValue[i].dataId < (oldValue.length > 0 ? oldValue[0].dataId : -1)) {
+								adHeight += document.getElementsByClassName('scroll-item_' + newValue[
+									i].dataId)[0].offsetHeight;
 							}
 						}
-						if ( adHeight > 0) {
-							bs.scrollTo(0, -(this.scrollInfo.scrollTop - STOP_PULL + adHeight));
+					}
+					if ( adHeight > 0) {
+						const stop = this.scrollInfo.scrollTop > 0 ? STOP_PULL : 0
+						bs.scrollTo(0, -(this.scrollInfo.scrollTop - stop + adHeight));
+					}
+					if ( reHeight > 0 ) {
+						bs.scrollTo(0, -(this.scrollInfo.scrollTop - reHeight));
+					}
+					if (oldValue.length == 0) {
+						console.log('init')
+						let initIndex = this.pagesSync.findIndex(item => item.init);
+						if (initIndex > -1) {
+							let scrollTop = document.getElementsByClassName('scroll-item_' + this
+								.pagesSync[initIndex].dataId)[0].offsetTop;
+							bs.scrollTo(0, -scrollTop);
 						}
-						if ( reHeight > 0 ) {
-							bs.scrollTo(0, -(this.scrollInfo.scrollTop - reHeight));
-						}
-						if (oldValue.length == 0) {
-							console.log('init')
-							let initIndex = this.pagesSync.findIndex(item => item.init);
-							if (initIndex > -1) {
-								bs.enable();
-								let scrollTop = document.getElementsByClassName('scroll-item_' + this
-									.pagesSync[initIndex].dataId)[0].offsetTop;
-								bs.scrollTo(0, -scrollTop);
-							}
-						}
-					}, 20)
+						bs.enable();
+					}
 				})
 			},
 			diff(obj1, obj2){
@@ -614,17 +619,26 @@
 					scrollHeight: scroll.scrollHeight,
 					offsetHeight: scroll.offsetHeight
 				}
-				if (Math.ceil(this.scrollInfo.scrollTop + this.scrollInfo.offsetHeight) >= this.scrollInfo
-					.scrollHeight) { //触底
-					console.log('触底')
-				}
+				// if (Math.ceil(this.scrollInfo.scrollTop + this.scrollInfo.offsetHeight) >= this.scrollInfo
+				// 	.scrollHeight) { //触底
+				// 	console.log('触底')
+				// }
 				if (this.scrollInfo.scrollTop <= 0) { //触顶
 					const nowContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == this
 						.pagesSync[0].chapter);
 					if ( !this.scrollPageProp.contents[nowContentIndex].isStart ) {
 						const prevContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == this.pagesSync[0].chapter - 1);
 						if (prevContentIndex > -1) {
-							bs.autoPullDownRefresh();
+							bs.disable()
+							const data = {
+								content: this.scrollPageProp.contents[prevContentIndex],
+								type: 'prev'
+							}
+							this.triggerComputedPage(data);
+							window.setTimeout(() => {
+								bs.enable();
+								this.triggerPreload(this.scrollPageProp.contents[prevContentIndex].chapter)
+							}, 50)
 						}
 					}
 				}

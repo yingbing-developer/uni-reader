@@ -348,7 +348,15 @@ function getBamxsInfo (href) {
 				const img = pic.match(/<img[^>]*>/)[0];
 				const imgSrc = img.match(/src=\"*(\S*)\"/)[1]
 				const name = img.match(/alt=\"*(\S*)\"/)[1]
-				const desc = str.match(/<div[^>]*class=([""]?)novelinfo\1[^>]*>*([\s\S]*?)<\/div>/)[2]
+				let desc = str.match(/<div[^>]*class=([""]?)novelinfo\1[^>]*>*([\s\S]*?)<\/div>/)[2]
+				const imgTexts = desc.match(/<img[^>]*>/ig);
+				if ( imgTexts ) {
+					imgTexts.forEach(imgText => {
+						const pinyin = imgText.match(/image\/*(\S*).jpg/)[1];
+						const regExp = new RegExp(`${imgText}`, 'g');
+						desc = desc.replace(regExp, pinyin);
+					})
+				}
 				const jie = str.match(/<div[^>]*class=([""]?)jie\1[^>]*>*([\s\S]*?)<\/div>/)[0];
 				const author = jie.match(/作者：*([\s\S]*?)<\/a>/)[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/)[1]
 				const ul = str.match(/<div[^>]*class=([""]?)sso_a\1[^>]*>*([\s\S]*?)<\/div>/)[0];

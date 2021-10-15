@@ -6,8 +6,9 @@
 		<computed-page ref="computedPage" :pageType="pageType" :fontSize="fontSize" :lineHeight="lineHeight"
 			:slide="slide" :topGap="topGap" :bottomGap="bottomGap"></computed-page>
 			
-		<div class="loading" v-if="initLoading" :style="{background: bgColor}">
-			<page-refresh>正在加载内容</page-refresh>
+		<div class="loading" v-if="initLoading" :style="{background: bgColor, color: color, 'font-size': fontSize + 'px'}" @tap="refresh">
+			<page-refresh v-if="loadStatus == 'none'">{{loadingText}}</page-refresh>
+			<text v-else>{{loadingText}}</text>
 		</div>
 	</div>
 </template>
@@ -67,7 +68,11 @@
 				pages: [],
 				currentPageDataId: -1,
 				moreLoading: false,
-				initLoading: true
+				initLoading: true,
+				loadingText: '正在加载内容',
+				loadStatus: 'none',
+				loadChapter: -1,
+				loadValue: 0
 			}
 		},
 		computed: {
@@ -252,21 +257,46 @@
 						this.preload(loadChapter)
 						this.moreLoading = false;
 					} else {
-						this.$emit('loadmore', loadChapter, (status, contents) => {
-							if (status == 'success') {
-								this.contents = JSON.parse(JSON.stringify(contents))
-								const index = this.contents.findIndex(item => item.chapter == loadChapter)
-								const data = {
-									content: this.contents[index],
-									type: value > 0 ? 'next' : 'prev'
-								}
-								this.computedPage(data);
-								this.preload(loadChapter)
-								this.moreLoading = false;
-							}
-						})
+						this.loadmore(loadChapter, value)
 					}
 				}
+			},
+			refresh () {
+				if ( this.loadStatus == 'fail' || this.loadStatus == 'timeout' ) {
+					this.initLoading = false
+					this.loadingText = '正在加载内容'
+					this.loadStatus = 'none';
+					this.loadmore(this.loadChapter, this.loadValue);
+					this.loadChapter = -1;
+					this.loadValue = 0;
+				}
+			},
+			loadmore (chapter, value) {
+				this.$emit('loadmore', chapter, (status, contents) => {
+					if (status == 'success') {
+						this.contents = JSON.parse(JSON.stringify(contents))
+						const index = this.contents.findIndex(item => item.chapter == chapter)
+						const data = {
+							content: this.contents[index],
+							type: value > 0 ? 'next' : 'prev'
+						}
+						this.computedPage(data);
+						this.preload(chapter)
+						this.moreLoading = false;
+					} else if ( status == 'fail' ) {
+						this.loadStatus = status;
+						this.loadingText = '请求失败，点击重试'
+						this.initLoading = true
+						this.loadChapter = chapter;
+						this.loadValue = value;
+					} else {
+						this.loadStatus = status;
+						this.loadingText = '请求超时，点击重试'
+						this.initLoading = true
+						this.loadChapter = chapter;
+						this.loadValue = value;
+					}
+				})
 			},
 			currentChange() {
 				const types = ['top', 'bottom', 'prevLoading', 'nextLoading'];
@@ -841,5 +871,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		z-index: 2;
 	}
 </style>
