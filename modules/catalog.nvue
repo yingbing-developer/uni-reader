@@ -11,7 +11,7 @@
 			</view>
 			<list-scroll ref="listScroll" :line-height="80" :list="list" :bounce="false" v-if="list.length > 0">
 				<template v-slot="{item}">
-					<view class="list actived" @click="clickItem(item)">
+					<view class="list" :class="skinColor.activedName" @click="clickItem(item)">
 						<text class="list-text" :style="{color: list[scrollTo].chapter == item.chapter ? '#DD524D' : skinColor.menuTitleColor}" v-if="type == 'chapter'">{{item.title}}</text>
 						<text class="list-text" :style="{color: scrollTo > -1 ? list[scrollTo].position == item.position ? '#DD524D' : skinColor.menuTitleColor : skinColor.menuTitleColor}" v-else>{{item.title}}</text>
 					</view>
