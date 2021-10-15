@@ -352,7 +352,7 @@ function getBamxsInfo (href) {
 				const imgTexts = desc.match(/<img[^>]*>/ig);
 				if ( imgTexts ) {
 					imgTexts.forEach(imgText => {
-						const pinyin = imgText.match(/image\/*(\S*).jpg/)[1];
+						const pinyin = imgText.match(/in\/*(\S*).jpg/)[1];
 						const regExp = new RegExp(`${imgText}`, 'g');
 						desc = desc.replace(regExp, pinyin);
 					})
