@@ -147,36 +147,71 @@
 				}, 20)
 			},
 			//加载上个章节
-			scrolltoUpper(chapter) {
-				this.$emit('loadmore', chapter, (status, contents) => {
-					if (status == 'success') {
-						this.contents = JSON.parse(JSON.stringify(contents))
-						const index = this.contents.findIndex(item => item.chapter == chapter)
-						const data = {
-							content: this.contents[index],
-							type: 'prev'
-						}
-						this.computedPage(data);
-						this.preload(chapter)
+			// scrolltoUpper(chapter) {
+			// 	this.$emit('loadmore', chapter, (status, contents) => {
+			// 		if (status == 'success') {
+			// 			this.contents = JSON.parse(JSON.stringify(contents))
+			// 			const index = this.contents.findIndex(item => item.chapter == chapter)
+			// 			const data = {
+			// 				content: this.contents[index],
+			// 				type: 'prev'
+			// 			}
+			// 			this.computedPage(data);
+			// 			this.preload(chapter)
+			// 		}
+			// 		this.pulldownStatus = status;
+			// 	})
+			// },
+			// //加载下个章节
+			// scrolltoLower(chapter) {
+			// 	this.$emit('loadmore', chapter, (status, contents) => {
+			// 		if (status == 'success') {
+			// 			this.contents = JSON.parse(JSON.stringify(contents))
+			// 			const index = this.contents.findIndex(item => item.chapter == chapter)
+			// 			const data = {
+			// 				content: this.contents[index],
+			// 				type: 'next'
+			// 			}
+			// 			this.computedPage(data);
+			// 			this.preload(chapter)
+			// 		}
+			// 		this.pullupStatus = status;
+			// 	})
+			// },
+			//加载更多章节
+			loadmore (load) {
+				const chapter = load.chapter;
+				const type = load.type;
+				const contentIndex = this.contents.findIndex(item => item.chapter == chapter);
+				if ( contentIndex > -1 ) {
+					const data = {
+						content: this.contents[contentIndex],
+						type: type
 					}
-					this.pulldownStatus = status;
-				})
-			},
-			//加载下个章节
-			scrolltoLower(chapter) {
-				this.$emit('loadmore', chapter, (status, contents) => {
-					if (status == 'success') {
-						this.contents = JSON.parse(JSON.stringify(contents))
-						const index = this.contents.findIndex(item => item.chapter == chapter)
-						const data = {
-							content: this.contents[index],
-							type: 'next'
+					this.computedPage(data);
+					this.preload(chapter)
+					if ( type == 'next' )
+						this.pullupStatus = 'success';
+					else
+						this.pulldownStatus = 'success';
+				} else {
+					this.$emit('loadmore', chapter, (status, contents) => {
+						if (status == 'success') {
+							this.contents = JSON.parse(JSON.stringify(contents))
+							const index = this.contents.findIndex(item => item.chapter == chapter)
+							const data = {
+								content: this.contents[index],
+								type: type
+							}
+							this.computedPage(data);
+							this.preload(chapter)
 						}
-						this.computedPage(data);
-						this.preload(chapter)
-					}
-					this.pullupStatus = status;
-				})
+						if ( type == 'next' )
+							this.pullupStatus = status;
+						else
+							this.pulldownStatus = status;
+					})
+				}
 			},
 			//预加载章节
 			preload (chapter) {
@@ -207,26 +242,6 @@
 						content: content.content,
 						chapter: content.chapter
 					}).then((pages) => {
-						// if ( content.isStart ) {
-						// 	pages.unshift({
-						// 		type: 'top',
-						// 		text: this.title,
-						// 		chapter: content.chapter,
-						// 		start: 0,
-						// 		end: 0,
-						// 		dataId: parseInt(pages[0].dataId) - 1
-						// 	})
-						// }
-						// if ( content.isEnd ) {
-						// 	pages.push({
-						// 		type: 'bottom',
-						// 		text: '已经到结尾了！',
-						// 		chapter: content.chapter,
-						// 		start: 0,
-						// 		end: 0,
-						// 		dataId: parseInt(pages[pages.length - 1].dataId) + 1
-						// 	})
-						// }
 						resolve(pages);
 					})
 				}).catch(() => {
@@ -370,26 +385,11 @@
 					document.getElementsByClassName('pullup-finish')[0].style.display = 'none'
 					bs.finishPullUp();
 				}
-				const nowContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == this
-					.pagesSync[0].chapter);
+				const nowChapter = parseInt(this.pagesSync[0].chapter);
+				const nowContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == nowChapter);
 				if (!this.scrollPageProp.contents[nowContentIndex].isStart) {
 					bs.disable();
-					const prevContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == this
-						.pagesSync[0].chapter - 1);
-					if (prevContentIndex > -1) {
-						const data = {
-							content: this.scrollPageProp.contents[prevContentIndex],
-							type: 'prev'
-						}
-						window.setTimeout(() => {
-							this.triggerComputedPage(data);
-							bs.finishPullDown();
-							bs.enable()
-							this.triggerPreload(this.scrollPageProp.contents[prevContentIndex].chapter)
-						}, TIME_BOUNCE + 50)
-					} else {
-						this.triggerScrolltoUpper(parseInt(this.pagesSync[0].chapter) - 1);
-					}
+					this.triggerLoadmore(nowChapter - 1, 'prev');
 				} else {
 					document.getElementsByClassName('pulldown-loading')[0].style.display = 'none';
 					document.getElementsByClassName('pulldown-finish')[0].innerHTML = '------已经到第一章了------'
@@ -410,21 +410,7 @@
 				const nowContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == nowChapter);
 				if (!this.scrollPageProp.contents[nowContentIndex].isEnd) {
 					bs.disable();
-					const nextContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == nowChapter + 1);
-					if (nextContentIndex > -1) {
-						const data = {
-							content: this.scrollPageProp.contents[nextContentIndex],
-							type: 'next'
-						}
-						window.setTimeout(() => {
-							this.triggerComputedPage(data);
-							bs.finishPullUp();
-							bs.enable();
-							this.triggerPreload(this.scrollPageProp.contents[nextContentIndex].chapter)
-						}, TIME_BOUNCE + 50)
-					} else {
-						this.triggerScrolltoLower(nowChapter + 1);
-					}
+					this.triggerLoadmore(nowChapter + 1, 'next');
 				} else {
 					document.getElementsByClassName('pullup-loading')[0].style.display = 'none';
 					document.getElementsByClassName('pullup-finish')[0].innerHTML = '------已经到最后一章了------'
@@ -464,7 +450,6 @@
 				switch (newValue) {
 					case 'success':
 						bs.finishPullDown();
-						bs.enable();
 						break;
 					case 'fail':
 						document.getElementsByClassName('pulldown-loading')[0].style.display = 'none';
@@ -508,10 +493,8 @@
 				switch (newValue) {
 					case 'success':
 						bs.finishPullUp();
-						bs.enable();
 						break;
 					case 'fail':
-						bs.enable();
 						document.getElementsByClassName('pullup-loading')[0].style.display = 'none';
 						document.getElementsByClassName('pullup-finish')[0].innerHTML = '------请求失败,点击重试------'
 						document.getElementsByClassName('pullup-finish')[0].style.display = 'block'
@@ -523,9 +506,9 @@
 							bs.autoPullUpLoad();
 							document.getElementsByClassName('pullup-finish')[0].removeEventListener('touchend', function() {}, false);
 						}, false)
+						bs.enable();
 						break;
 					case 'timeout':
-						bs.enable();
 						document.getElementsByClassName('pullup-loading')[0].style.display = 'none';
 						document.getElementsByClassName('pullup-finish')[0].innerHTML = '------请求超时,点击重试------'
 						document.getElementsByClassName('pullup-finish')[0].style.display = 'block'
@@ -537,6 +520,7 @@
 							bs.autoPullUpLoad();
 							document.getElementsByClassName('pullup-finish')[0].removeEventListener('touchend', function() {}, false);
 						}, false)
+						bs.enable();
 						break;
 					default:
 						console.log('重置pullup')
@@ -582,8 +566,8 @@
 								.pagesSync[initIndex].dataId)[0].offsetTop;
 							bs.scrollTo(0, -scrollTop);
 						}
-						bs.enable();
 					}
+					bs.enable();
 				})
 			},
 			diff(obj1, obj2){
@@ -624,27 +608,19 @@
 				// 	console.log('触底')
 				// }
 				if (this.scrollInfo.scrollTop <= 0) { //触顶
-					const nowContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == this
-						.pagesSync[0].chapter);
+					const nowChapter = parseInt(this.pagesSync[0].chapter)
+					const nowContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == nowChapter);
 					if ( !this.scrollPageProp.contents[nowContentIndex].isStart ) {
-						const prevContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == this.pagesSync[0].chapter - 1);
+						const prevContentIndex = this.scrollPageProp.contents.findIndex(item => item.chapter == nowChapter - 1);
 						if (prevContentIndex > -1) {
+							bs.disable();
 							if ( document.getElementsByClassName('pullup-loading')[0].style.display != 'flex' ) {
 								document.getElementsByClassName('pullup-loading')[0].style.display = 'flex';
 								document.getElementsByClassName('pullup-finish')[0].innerHTML = ''
 								document.getElementsByClassName('pullup-finish')[0].style.display = 'none'
 								bs.finishPullUp();
 							}
-							bs.disable()
-							const data = {
-								content: this.scrollPageProp.contents[prevContentIndex],
-								type: 'prev'
-							}
-							this.triggerComputedPage(data);
-							window.setTimeout(() => {
-								bs.enable();
-								this.triggerPreload(this.scrollPageProp.contents[prevContentIndex].chapter)
-							}, 50)
+							this.triggerLoadmore(nowChapter - 1, 'prev');
 						}
 					}
 				}
@@ -704,20 +680,16 @@
 				this.computedPage(e);
 				// #endif
 			},
-			triggerScrolltoUpper(chapter) {
+			triggerLoadmore(chapter, type) {
+				const data = {
+					chapter: chapter,
+					type: type
+				}
 				// #ifndef H5
-				this.$ownerInstance.callMethod('scrolltoUpper', chapter);
+				this.$ownerInstance.callMethod('loadmore', data);
 				// #endif
 				// #ifdef H5
-				this.scrolltoUpper(chapter);
-				// #endif
-			},
-			triggerScrolltoLower(chapter) {
-				// #ifndef H5
-				this.$ownerInstance.callMethod('scrolltoLower', chapter);
-				// #endif
-				// #ifdef H5
-				this.scrolltoLower(chapter);
+				this.loadmore(data);
 				// #endif
 			},
 			triggerScrollEnd(e) {
