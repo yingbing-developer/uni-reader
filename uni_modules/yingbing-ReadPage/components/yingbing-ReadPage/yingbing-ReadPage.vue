@@ -1,6 +1,5 @@
 <template>
-	<view class="page">
-		
+	<view class="page" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
 		<template v-if="!noChapter">
 			<!-- 翻页模式 -->
 			<flip-page
@@ -111,6 +110,23 @@
 			noChapter: {
 				type: Boolean,
 				default: false
+			},
+			//开启点击事件
+			enableClick: {
+				type: Boolean,
+				default: false
+			},
+			//点击事件位置设置
+			clickOption: {
+				type: Object,
+				default () {
+					return {
+						width: uni.upx2px(200),
+						height: uni.upx2px(200),
+						left: 'auto',
+						top: 'auto'
+					}
+				}
 			}
 		},
 		data () {
@@ -118,7 +134,14 @@
 				pageInfo: {
 					dataId: -1
 				},
-				contents: []
+				contents: [],
+				touchstartX: 0,
+				touchstartY: 0,
+				touchmoveX: 0,
+				touchmoveY: 0,
+				touchTime: 0,
+				windowWidth: 0,
+				windowHeight: 0
 			}
 		},
 		computed: {
@@ -132,7 +155,80 @@
 				}
 			}
 		},
+		mounted () {
+			setTimeout(() => {
+				const query = uni.createSelectorQuery().in(this);
+				query.select('.page').boundingClientRect(data => {
+					this.windowWidth = data.width
+					this.windowHeight = data.height
+				}).exec();
+			}, 20)
+		},
 		methods: {
+			touchstart (e) {
+				if ( !this.enableClick ) {
+					return
+				}
+				if ( e.touches.length == 1 ) {
+					this.resetTouch();
+					this.touchInter = setInterval(() => {
+						this.touchTime += 50
+					}, 50)
+					const touch = e.touches[0]
+					this.touchstartX = touch.pageX;
+					this.touchstartY = touch.pageY;
+				}
+			},
+			touchmove (e) {
+				if ( !this.enableClick ) {
+					return
+				}
+				if ( e.touches.length == 1 ) {
+					const touch = e.touches[0]
+					this.touchmoveX = touch.pageX;
+					this.touchmoveY = touch.pageY;
+				}
+			},
+			touchend (e) {
+				if ( !this.enableClick ) {
+					return
+				}
+				clearInterval(this.touchInter);
+				if ( this.touchTime > 200 ) {
+					return
+				}
+				if ( Math.abs(this.touchmoveX - this.touchmoveX) > 50 || Math.abs(this.touchmoveY - this.touchmoveY) > 50 ) {
+					return
+				}
+				let left = 0
+				let top = 0
+				if ( this.clickOption.left == 'auto' ) {
+					left = (this.windowWidth / 2) - (this.clickOption.width / 2)
+				} else if ( typeof this.clickOption.left == 'number' ) {
+					left = this.clickOption.left
+				} else {
+					return
+				}
+				if ( this.clickOption.top == 'auto' ) {
+					top =  (this.windowHeight / 2) - (this.clickOption.height / 2)
+				} else if ( typeof this.clickOption.top == 'number' ) {
+					top = this.clickOption.top
+				} else {
+					return
+				}
+				let right = left + this.clickOption.width
+				let bottom = top + this.clickOption.height
+				if ( this.touchstartX >= left && this.touchstartX <= right && this.touchstartY >= top && this.touchstartY <= bottom ) {
+					this.$emit('clickTo')
+				}
+			},
+			resetTouch () {
+				this.touchstartX = 0
+				this.touchstartY = 0
+				this.touchmoveX = 0
+				this.touchmoveY = 0
+				this.touchTime = 0
+			},
 			loadmore (chapter, callback) {
 				this.$emit('loadmore', chapter, (status, content) => {
 					if (status == 'success') {

@@ -1,7 +1,7 @@
 {
   "id": "yingbing-ReadPage",
   "displayName": "小说阅读分页插件",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "description": "给小说分页的插件，包含翻页",
   "keywords": [
     "小说",
@@ -82,6 +82,7 @@
   },
   "dependencies": {
     "@better-scroll/core": "^2.4.2",
+    "@better-scroll/infinity": "^2.4.2",
     "@better-scroll/pull-down": "^2.4.2",
     "@better-scroll/pull-up": "^2.4.2"
   }

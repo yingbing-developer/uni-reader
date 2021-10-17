@@ -295,6 +295,8 @@ function getwangyiPlayUrl(data) {
 			let playUrl = ''
 			if ( res.data.code == 200 ) {
 				playUrl = res.data.data[0].url || '';
+			} else {
+				playUrl = `https://music.163.com/song/media/outer/url?id=${data.path}.mp3`
 			}
 			resolve({
 				code: ERR_OK,

@@ -12,6 +12,8 @@
 		:bottom-gap="barHeight"
 		:no-chapter="bookInfo.source == 'local'"
 		enablePreload
+		enableClick
+		@clickTo="openSettingNvue"
 		@currentChange="savePageRecord"
 		@setCatalog="setCatalog"
 		@preload="preloadContent"
@@ -19,9 +21,9 @@
 		</yingbing-ReadPage>
 		
 		<!-- 触摸区域 -->
-		<view class="touch-box touch-menu" @tap="openSettingNvue" @longpress="openEditNvue">
+		<!-- <view class="touch-box touch-menu" @tap="openSettingNvue" @longpress="openEditNvue">
 			菜单
-		</view>
+		</view> -->
 	</view>
 </template>
 
@@ -348,6 +350,7 @@
 			},
 			//打开编辑子窗体
 			openEditNvue () {
+				console.log('点击');
 				if ( this.bookInfo.source != 'local' ) {
 					return;
 				}

@@ -20,6 +20,16 @@
 | bottomGap | String/Number | 10 | 自定义 | 页面下边距 |
 | noChapter | Boolean | false | true/false | 是否开启整书模式（无章节模式） |
 | enablePreload | Boolean | false | true/false | 是否开启预加载章节功能（noChapter为false时有效） |
+| enableClick | Boolean | false | true/false | 是否开启点击区域（用于唤出设置窗口之类） |
+| clickOption | Object | { width: uni.upx2px(200),height: uni.upx2px(200),left:'auto',top:'auto'} | 自定义 | 点击区域配置（点击哪个区域有效 enableClick为true时有效） |
+
+#clickOption介绍
+| 键名 | 类型 | 说明 |
+| :----- | :----: | :---- |
+| width | Number | 点击区域宽度 |
+| height | Number | 点击区域高度 |
+| left | String/Number | 左右定位（默认auto为居中，可传入数字） |
+| top | String/Number | 上下定位（默认auto为居中，可传入数字） |
 
 #event事件
 | 事件名 | 参数 | 说明 |
@@ -83,6 +93,8 @@
 	:slide="slide"
 	:enablePreload="enablePreload"
 	:noChapter="noChapter"
+	enableClick
+	@clickTo="clickTo"
 	@loadmore="loadmoreContent"
 	@preload="preloadContent"
 	@currentChange="currentChange"
@@ -128,6 +140,9 @@
 			}
 		},
 		methods: {
+			clickTo () {
+				console.log('点击')
+			},
 			currentChange (e) {
 				console.log(e);
 			},
