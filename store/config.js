@@ -16,3 +16,4 @@ export const COMICSOURCES = 'UNI_READER_ONLINE_COMIC_SOURCES'//在线漫画来�
 export const MUSICSOURCES = 'UNI_READER_ONLINE_MUSIC_SOURCES'//在线音乐来源控制,放进来的表示关闭获取此来源的音乐
 export const BOOKSOURCES = 'UNI_READER_ONLINE_BOOK_SOURCES'//在线小说来源控制,放进来的表示关闭获取此来源的漫画
 export const MUSICLYRICSHOW = 'UNI_READER_ONLINE_MUSIC_LYRIC_SHOW'//控制歌词显示
+export const IMAGECACHE = 'UNI_READER_IMAGE_CACHE'//图片缓存

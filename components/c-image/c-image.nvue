@@ -18,6 +18,7 @@
 	import {
 		skinMixin
 	} from '@/common/mixin/index.js'
+	import cacheMixin from '@/common/mixin/cache.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import {
 		base64ToPath
@@ -29,7 +30,7 @@
 	const dom = weex.requireModule('dom');
 	// #endif
 	export default {
-		mixins: [skinMixin],
+		mixins: [skinMixin, cacheMixin],
 		props: {
 			//图片链接
 			src: {
@@ -101,12 +102,12 @@
 		},
 		created() {
 			if (this.src) {
-				this.url = this.src.replace('@', '');
+				this.selectCache()
 			}
 		},
 		watch: {
 			src(newVal) {
-				this.url = newVal.replace('@', '');
+				this.selectCache()
 			},
 			isError(newVal) {
 				if (newVal && this.defaultSrc) {
@@ -116,6 +117,23 @@
 			}
 		},
 		methods: {
+			selectCache () {
+				const caches = this.imageCache;
+				const index = caches.findIndex(cache => cache.key == this.src)
+				if ( index > -1 ) {
+					const path = plus.io.convertLocalFileSystemURL(caches[index].path);
+					const file = plus.android.newObject('java.io.File', path);
+					if ( file && file != null && plus.android.invoke(file, 'exists') ) {
+						this.url = caches[index].path
+						console.log(this.url);
+					} else {
+						this.removeImageCache(this.src)
+						this.url = this.src.replace('@', '');
+					}
+				} else {
+					this.url = this.src.replace('@', '');
+				}
+			},
 			appear() {
 				if (this.enableHidden) {
 					this.hidden = false;
@@ -145,7 +163,19 @@
 				let BaseImage = uni.requireNativePlugin('YingBingNativePlugin-BaseImage');
 				let base64 = BaseImage ? BaseImage.getImgStr(encodeURI(this.url)) : null;
 				if (base64) {
-					this.url = base64;
+					base64ToPath(base64)
+						.then(path => {
+							this.url = path
+							const obj = {
+								key: this.src,
+								path: path
+							}
+							this.addImageCache(obj)
+						})
+						.catch(error => {
+							this.isError = true;
+							this.$emit('error', e);
+						})
 				} else {
 					this.isError = true;
 					this.$emit('error', e);
@@ -268,20 +298,20 @@
 					}
 				});
 			},
-			base64ToFilePath(base64Code, flag) {
-				// let decodedString = Base64.decode(base64Code, Base64.DEFAULT);
-				base64ToPath(base64Code)
-					.then(path => {
-						if (flag == 0) {
-							this.intentImage(path);
-						} else {
-							this.photoImage(path);
-						}
-					})
-					.catch(error => {
-						console.error(error)
-					})
-			}
+			// base64ToFilePath(base64Code, flag) {
+			// 	// let decodedString = Base64.decode(base64Code, Base64.DEFAULT);
+			// 	base64ToPath(base64Code)
+			// 		.then(path => {
+			// 			if (flag == 0) {
+			// 				this.intentImage(path);
+			// 			} else {
+			// 				this.photoImage(path);
+			// 			}
+			// 		})
+			// 		.catch(error => {
+			// 			console.error(error)
+			// 		})
+			// }
 		},
 		beforeDestroy() {
 			clearTimeout(this.timer);

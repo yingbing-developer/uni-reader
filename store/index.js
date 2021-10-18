@@ -6,6 +6,7 @@ import music from './modules/music.js'
 import musiccertify from './modules/musiccertify.js'
 import skin from './modules/skin.js'
 import app from './modules/app.js'
+import cache from './modules/cache.js'
 Vue.use(Vuex)
 const store = new Vuex.Store({
 	modules: {
@@ -14,7 +15,8 @@ const store = new Vuex.Store({
 		music,
 		musiccertify,
 		skin,
-		app
+		app,
+		cache
 	}
 })
 export default store
