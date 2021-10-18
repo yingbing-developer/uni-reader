@@ -125,7 +125,6 @@
 					const file = plus.android.newObject('java.io.File', path);
 					if ( file && file != null && plus.android.invoke(file, 'exists') ) {
 						this.url = caches[index].path
-						console.log(this.url);
 					} else {
 						this.removeImageCache(this.src)
 						this.url = this.src.replace('@', '');
@@ -160,8 +159,8 @@
 				this.getBaseImage(e);
 			},
 			getBaseImage(e) {
-				let BaseImage = uni.requireNativePlugin('YingBingNativePlugin-BaseImage');
-				let base64 = BaseImage ? BaseImage.getImgStr(encodeURI(this.url)) : null;
+				const BaseImage = uni.requireNativePlugin('YingBingNativePlugin-BaseImage');
+				const base64 = BaseImage ? BaseImage.getImgStr(encodeURI(this.url)) : null;
 				if (base64) {
 					base64ToPath(base64)
 						.then(path => {
@@ -192,7 +191,6 @@
 					longPressActions: {
 						itemList: ['分享', '保存相册'],
 						success: (data) => {
-							console.log(data);
 							//选择分享
 							if (data.tapIndex == 0) {
 								this.shareImage(this.url, data.tapIndex);
@@ -211,13 +209,8 @@
 			//分享图片
 			shareImage(url, flag) {
 				if (url.indexOf('http') == -1) {
-					if (url.indexOf('base64') > -1) {
-						//base64先转为本地文件
-						this.base64ToFilePath(url, flag)
-					} else {
-						//本地图片直接分享
-						this.intentImage(url);
-					}
+					//本地图片直接分享
+					this.intentImage(url);
 				} else {
 					//网络图片先下载
 					this.downloadImage(url, flag);
@@ -297,21 +290,7 @@
 						})
 					}
 				});
-			},
-			// base64ToFilePath(base64Code, flag) {
-			// 	// let decodedString = Base64.decode(base64Code, Base64.DEFAULT);
-			// 	base64ToPath(base64Code)
-			// 		.then(path => {
-			// 			if (flag == 0) {
-			// 				this.intentImage(path);
-			// 			} else {
-			// 				this.photoImage(path);
-			// 			}
-			// 		})
-			// 		.catch(error => {
-			// 			console.error(error)
-			// 		})
-			// }
+			}
 		},
 		beforeDestroy() {
 			clearTimeout(this.timer);
