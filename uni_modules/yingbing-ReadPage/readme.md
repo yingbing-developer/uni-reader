@@ -37,7 +37,8 @@
 | loadmore | chapter,callback | 加载章节内容（chapter为需要加载的章节序号，callback为加载回调 此方法在noChapter为false有效）|
 | preload | chapters,callback | 预加载章节内容（chapters为需要预加载的章节序号集合，callback为加载回调 此方法在noChapter为false有效）|
 | currentChange | currentInfo | 阅读页面改变触发事件（返回当前阅读页面信息）|
-| setCatalog | catalog | 获取章节目录事件（此方法在noChapter为true时有效）|
+| setCatalog | catalog | 获取章节目录事件（此事件在noChapter为true时有效）|
+| clickTo | 无 | 点击事件（此事件在enableClick为true时有效）|
 
 #章节模式 内置方法
 | 方法名 | 参数 | 说明 |

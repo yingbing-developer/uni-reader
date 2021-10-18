@@ -560,7 +560,11 @@
 					if ( reHeight > 0 ) {
 						// bs.scrollTo(0, -(this.scrollInfo.scrollTop - reHeight));
 						const dataId = oldValue[oldValue.length - 1].dataId
-						bs.scrollToElement('.scroll-item_' + dataId, 0, 0, 0);
+						const index = parseInt(newValue.findIndex(item => item.dataId == dataId))
+						const nextDataId = newValue[index + 1].dataId
+						const viewHeight = document.getElementById('scrollPage').offsetHeight
+						const offsetY = document.getElementsByClassName('pullup-tips')[0].offsetHeight
+						bs.scrollToElement('.scroll-item_' + nextDataId, 0, 0, -viewHeight + offsetY + this.scrollPageProp.bottomGap);
 					}
 					if (oldValue.length == 0) {
 						console.log('init')
