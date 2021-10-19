@@ -1,16 +1,16 @@
 <template>
-	<view class="about" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="关于软件" :backColor="skinColor.iconColor" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor"></nav-bar>
-		<view class="aboute-banner" :style="{'background-color': skinColor.navColor}">
-			<text class="app-name" :style="{color: skinColor.iconColor}">好用阅读器</text>
-			<text class="app-author" :style="{color: skinColor.iconColor}">yingbing</text>
-			<text class="app-version" :style="{color: skinColor.iconColor}">版本：V{{version}}</text>
+	<view class="about" :style="{'background-color': skinColor.color_bg_1}">
+		<nav-bar title="关于软件" :backColor="skinColor.color_4" :bgColor="skinColor.color_theme_1" :titleColor="skinColor.color_4"></nav-bar>
+		<view class="aboute-banner" :style="{'background-color': skinColor.color_theme_1}">
+			<text class="app-name" :style="{color: skinColor.color_4}">好用阅读器</text>
+			<text class="app-author" :style="{color: skinColor.color_4}">yingbing</text>
+			<text class="app-version" :style="{color: skinColor.color_4}">版本：V{{version}}</text>
 		</view>
 		<list>
 			<cell v-for="item in list">
-				<view class="about-list">
-					<text class="about-list-title" :style="{color: skinColor.titleColor}">{{item.title}}</text>
-					<text class="about-list-link" :style="{color: skinColor.textColor}">{{item.link}}</text>
+				<view class="about-list" :class="skinMode + '-actived'" @tap="copyTo(item.link)">
+					<text class="about-list-title" :style="{color: skinColor.color_1}">{{item.title}}</text>
+					<text class="about-list-link" :style="{color: skinColor.color_2}">{{item.link}}</text>
 				</view>
 			</cell>
 		</list>
@@ -18,9 +18,9 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	export default {
-		mixins:[skinMixin],
+		mixins:[appMixin],
 		data () {
 			return {
 				list: [{
@@ -41,6 +41,25 @@
 		computed: {
 			version () {
 				return plus.runtime.version;
+			}
+		},
+		methods: {
+			copyTo (href) {
+				uni.setClipboardData({
+				    data: href,
+				    success: () => {
+				        uni.showToast({
+				        	title: '已复制链接',
+							icon: 'none'
+				        })
+				    },
+					fail: () => {
+						uni.showToast({
+							title: '复制链接失败',
+							icon: 'none'
+						})
+					}
+				});
 			}
 		}
 	}

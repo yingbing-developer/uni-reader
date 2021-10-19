@@ -3,13 +3,16 @@ const appMixin = {
 	computed: {
 		...mapGetters({
 			getAdult: 'app/getAdult',
-			getAdultPwd: 'app/getAdultPwd'
+			getAdultPwd: 'app/getAdultPwd',
+			skinMode: 'app/skinMode',
+			skinColor: 'app/skinColor'
 		})
 	},
 	methods: {
 		...mapMutations({
 			setAdult: 'app/setAdult',
-			setAdultPwd: 'app/setAdultPwd'
+			setAdultPwd: 'app/setAdultPwd',
+			changeSkin: 'app/changeSkin'
 		})
 	}
 }

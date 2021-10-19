@@ -1,10 +1,10 @@
 <template>
-	<view class="search" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="添加漫画" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+	<view class="search" :style="{'background-color': skinColor.color_bg_1}">
+		<nav-bar title="添加漫画" :bgColor="skinColor.color_theme_1" :titleColor="skinColor.color_4">
 			<view class="nav-right" slot="right">
-				<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{comicSync.length}})</text>
+				<text class="nav-text" :style="{'color': skinColor.color_4}" v-if="checkes.length > 0">选中({{checkes.length}}/{{comicSync.length}})</text>
 				<view @tap="$refs.bubble.show()">
-					<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
+					<c-icon name="more" size="37.5" :color="skinColor.color_4"></c-icon>
 				</view>
 			</view>
 		</nav-bar>
@@ -20,22 +20,22 @@
 			<!-- 列表顶部 用于返回顶部 -->
 			<view slot="listTop" ref="listTop"></view>
 			<template v-slot="{item}">
-				<view @tap="readComic(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
+				<view @tap="readComic(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.color_gap_1, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.color_gap_1 : ''}">
 					<view class="comic-list-icon" @tap.stop="check(item.path)">
 						<c-image class="comic-image" :src="item.image" mode="aspectFill"></c-image>
 					</view>
 					<view class="comic-list-right">
 						<view class="comic-lr-line">
-							<text class="comic-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
+							<text class="comic-list-title" :style="{'color': skinColor.color_1}">{{item.name}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-text" :style="{'color': skinColor.textColor}">章节：共{{item.length}}话</text>
+							<text class="comic-list-text" :style="{'color': skinColor.color_2}">章节：共{{item.length}}话</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-text" :style="{'color': skinColor.textColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.color_2}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-text" :style="{'color': skinColor.textColor}">时间：{{item.time}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.color_2}">时间：{{item.time}}</text>
 						</view>
 					</view>
 				</view>
@@ -43,14 +43,14 @@
 		</list-scroll>
 		
 		<!-- 读取漫画资源按钮 -->
-		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}" v-if="!comicPathHistory">
+		<view class="btn-box" :style="{'border-top-color': skinColor.color_gap_1}" v-if="!comicPathHistory">
 			<view class="btn" @tap="checkPath">
 				<text class="btn-text">读取当前路径下的漫画资源</text>
 			</view>
 		</view>
 		
 		<!-- 导入漫画按钮 -->
-		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}" v-if="checkes.length > 0">
+		<view class="btn-box" :style="{'border-top-color': skinColor.color_gap_1}" v-if="checkes.length > 0">
 			<view class="btn" @tap="leadBook">
 				<text class="btn-text">导入漫画</text>
 			</view>
@@ -69,8 +69,8 @@
 		  
 		<view class="fixed">
 			<view @tap="scrollTop">
-				<fixed-button :show="Math.abs(oldOffsetY) > 300">
-					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
+				<fixed-button :color="skinColor.color_theme_1" :show="Math.abs(oldOffsetY) > 300">
+					<c-icon name="top" size="40" :color="skinColor.color_4"></c-icon>
 				</fixed-button>
 			</view>
 		</view>
@@ -78,7 +78,7 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
@@ -96,7 +96,7 @@
 	const zipName = '_SHARE_HAOYONG_READER';
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [appMixin, bookMixin],
 		data () {
 			return {
 				list: [],

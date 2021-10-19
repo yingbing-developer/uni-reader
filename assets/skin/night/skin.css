@@ -1,0 +1,5 @@
+/* 夜间皮肤 */
+
+.night-actived:active {
+	background-color: #3F3F3F;
+}

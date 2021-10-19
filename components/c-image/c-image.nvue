@@ -1,23 +1,20 @@
 <template>
-	<view class="c-image" @appear="appear" @disappear="disappear"
-		:style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}">
-		<image referrerPolicy="origin" @load="getImageInfo" @error="error" ref="image"
-			:class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode" v-if="!hidden"
+	<view class="c-image" :style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}">
+		<image @load="getImageInfo" @error="error" ref="image"
+			:class="{'c-img': mode != 'widthFix'}" :lazyLoad="lazyLoad" :src="url" :mode="mode"
 			:style="{height: mode == 'widthFix' ? imageHeight + 'px' : '', borderRadius: borderRadius + 'rpx'}"></image>
-		<view class="img-mask" :style="{opacity: skinColor.imgMask, borderRadius: borderRadius + 'rpx'}"
+		<view class="img-mask" :style="{opacity: maskOpac, borderRadius: borderRadius + 'rpx'}"
 			v-if="enableMask"></view>
-		<view class="error" v-if="isError">
-			<text class="error-text"
-				:style="{'color': skinColor.menuTitleColor, 'font-size': errorSize + 'rpx'}">加载失败!</text>
-		</view>
 		<view class="longpress" @longpress="preview" v-if="enablePreview"></view>
+		<view class="error" v-if="isError">
+			<text class="error-text color_1"
+				:style="{'font-size': errorSize + 'rpx'}">加载失败!</text>
+		</view>
 	</view>
 </template>
 
 <script>
-	import {
-		skinMixin
-	} from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import cacheMixin from '@/common/mixin/cache.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import {
@@ -30,7 +27,7 @@
 	const dom = weex.requireModule('dom');
 	// #endif
 	export default {
-		mixins: [skinMixin, cacheMixin],
+		mixins: [appMixin, cacheMixin],
 		props: {
 			//图片链接
 			src: {
@@ -44,11 +41,6 @@
 			},
 			//懒加载
 			lazyLoad: {
-				type: Boolean,
-				default: false
-			},
-			//是否打开超出屏幕隐藏
-			enableHidden: {
 				type: Boolean,
 				default: false
 			},
@@ -89,12 +81,14 @@
 			imageHeight() {
 				return (this.windowWidth / this.width * this.height) > 0 ? this.windowWidth / this.width * this.height :
 					400
+			},
+			maskOpac () {
+				return this.skinMode == 'night' ? 0.2 : 0
 			}
 		},
 		data() {
 			return {
 				url: '',
-				hidden: false,
 				width: 0,
 				height: 0,
 				isError: false
@@ -131,16 +125,6 @@
 					}
 				} else {
 					this.url = this.src.replace('@', '');
-				}
-			},
-			appear() {
-				if (this.enableHidden) {
-					this.hidden = false;
-				}
-			},
-			disappear() {
-				if (this.enableHidden) {
-					this.hidden = true;
 				}
 			},
 			getImageInfo(e) {
@@ -182,7 +166,7 @@
 			},
 			//预览图片
 			preview() {
-				if (!this.enablePreview) {
+				if (!this.enablePreview && this.isError) {
 					return;
 				}
 				uni.previewImage({

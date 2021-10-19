@@ -1,16 +1,16 @@
 <template>
-	<view class="setting" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="阅读设置" :backColor="skinColor.iconColor" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor"></nav-bar>
+	<view class="setting" :style="{'background-color': skinColor.color_bg_1}">
+		<nav-bar title="阅读设置" :backColor="skinColor.color_4" :bgColor="skinColor.color_theme_1" :titleColor="skinColor.color_4"></nav-bar>
 		<list>
 			<cell>
-				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">阅读动画</text>
+				<view class="list list2" :style="{'border-bottom-color': skinColor.color_gap_1}">
+					<text class="list-title" :style="{'color': skinColor.color_1}">阅读动画</text>
 					<view class="list-right list-bottom">
 						<text
 						@tap="changeBookReadPageType(item.value)"
 						:style="{
-							'background-color': bookReadMode.pageType == item.value ? skinColor.activeBgColor : '',
-							'color': bookReadMode.pageType == item.value ? skinColor.activeColor : skinColor.titleColor
+							'background-color': bookReadMode.pageType == item.value ? skinColor.color_theme_1 : '',
+							'color': bookReadMode.pageType == item.value ? skinColor.color_4 : skinColor.color_1
 						}"
 						class="lr-text" v-for="(item, index) in pagesTypes"
 						:key="index">{{item.title}}</text>
@@ -18,38 +18,38 @@
 				</view>
 			</cell>
 			<cell>
-				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">青壮年模式</text>
+				<view class="list list2" :style="{'border-bottom-color': skinColor.color_gap_1}">
+					<text class="list-title" :style="{'color': skinColor.color_1}">青壮年模式</text>
 					<view class="list-bottom">
 						<view class="check-line">
-							<text class="lr-text" :style="{'color': skinColor.menuTitleColor}">是否开启</text>
+							<text class="lr-text" :style="{'color': skinColor.color_2}">是否开启</text>
 							<c-switch
-							:itemColor='skinColor.itemColor'
-							:gapColor="skinColor.gapColor"
-							:bgColor="skinColor.bgColor"
+							:itemColor='skinColor.color_theme_1'
+							:gapColor="skinColor.color_gap_1"
+							:bgColor="skinColor.color_bg_1"
 							:value="adultMode"
 							@input="changeModeSources"></c-switch>
 						</view>
 						<view class="check-line" :class="skinColor.activedName" @tap="selectPwd">
-							<text class="lr-text" :style="{'color': skinColor.menuTitleColor}">设置密码</text>
+							<text class="lr-text" :style="{'color': skinColor.color_2}">设置密码</text>
 							<view class="check-right">
-								<text class="lr-text" :style="{'color': skinColor.menuTitleColor}">{{getAdultPwd ? '******' : '无'}}</text>
-								<c-icon name="arrow-right" :color="skinColor.menuTitleColor" size="30"></c-icon>
+								<text class="lr-text" :style="{'color': skinColor.color_2}">{{getAdultPwd ? '******' : '无'}}</text>
+								<c-icon name="arrow-right" :color="skinColor.color_2" size="30"></c-icon>
 							</view>
 						</view>
 					</view>
 				</view>
 			</cell>
 			<cell>
-				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">漫画来源</text>
+				<view class="list list2" :style="{'border-bottom-color': skinColor.color_gap_1}">
+					<text class="list-title" :style="{'color': skinColor.color_1}">漫画来源</text>
 					<view class="list-bottom">
 						<view class="check-line" v-for="(item, index) in comicSource">
-							<text class="lr-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
+							<text class="lr-text" :style="{'color': skinColor.color_2}">{{item.title}}</text>
 							<c-switch
-							:itemColor='skinColor.itemColor'
-							:gapColor="skinColor.gapColor"
-							:bgColor="skinColor.bgColor"
+							:itemColor='skinColor.color_theme_1'
+							:gapColor="skinColor.color_gap_1"
+							:bgColor="skinColor.color_bg_1"
 							:value="item.isOpen"
 							@input="changeComicSources($event, index)"></c-switch>
 						</view>
@@ -57,15 +57,15 @@
 				</view>
 			</cell>
 			<cell>
-				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">小说来源</text>
+				<view class="list list2" :style="{'border-bottom-color': skinColor.color_gap_1}">
+					<text class="list-title" :style="{'color': skinColor.color_1}">小说来源</text>
 					<view class="list-bottom">
 						<view class="check-line" v-for="(item, index) in bookSource">
-							<text class="lr-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
+							<text class="lr-text" :style="{'color': skinColor.color_2}">{{item.title}}</text>
 							<c-switch
-							:itemColor='skinColor.itemColor'
-							:gapColor="skinColor.gapColor"
-							:bgColor="skinColor.bgColor"
+							:itemColor='skinColor.color_theme_1'
+							:gapColor="skinColor.color_gap_1"
+							:bgColor="skinColor.color_bg_1"
 							:value="item.isOpen"
 							@input="changeBookSources($event, index)"></c-switch>
 						</view>
@@ -73,15 +73,15 @@
 				</view>
 			</cell>
 			<cell>
-				<view class="list list2" :style="{'border-bottom-color': skinColor.gapColor}">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">音乐来源</text>
+				<view class="list list2" :style="{'border-bottom-color': skinColor.color_gap_1}">
+					<text class="list-title" :style="{'color': skinColor.color_1}">音乐来源</text>
 					<view class="list-bottom">
 						<view class="check-line" v-for="(item, index) in musicSource">
-							<text class="lr-text" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
+							<text class="lr-text" :style="{'color': skinColor.color_2}">{{item.title}}</text>
 							<c-switch
-							:itemColor='skinColor.itemColor'
-							:gapColor="skinColor.gapColor"
-							:bgColor="skinColor.bgColor"
+							:itemColor='skinColor.color_theme_1'
+							:gapColor="skinColor.color_gap_1"
+							:bgColor="skinColor.color_bg_1"
 							:value="item.isOpen"
 							@input="changeMusicSources($event, index)"></c-switch>
 						</view>
@@ -93,13 +93,12 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
 	import musicMixin from '@/common/mixin/music.js'
 	import bookMixin from '@/common/mixin/book.js'
 	import appMixin from '@/common/mixin/app.js'
 	import CSwitch from '@/components/c-switch/c-switch.nvue'
 	export default {
-		mixins:[skinMixin, bookMixin, musicMixin, appMixin],
+		mixins:[bookMixin, musicMixin, appMixin],
 		data () {
 			return {
 				pagesTypes: [{

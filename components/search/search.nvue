@@ -1,23 +1,23 @@
 <template>
-	<view ref="inputBox" class="input-box" :style="{'background-color': skinColor.navColor}">
-		<view class="search-box" :style="{'background-color': skinColor.menuBgColor}">
+	<view ref="inputBox" class="input-box" :style="{'background-color': skinColor.color_theme_1}">
+		<view class="search-box" :style="{'background-color': skinColor.color_bg_1}">
 			<view class="search-icon">
 				<c-icon name="search" size="37.5" color="#DEDEDD"></c-icon>
 			</view>
-			<input :adjust-position="false" confirm-type="搜索" @confirm="confirm" class="search-input" type="text" v-model="filterContent" :style="{color: skinColor.titleColor}" />
+			<input :adjust-position="false" confirm-type="搜索" @confirm="confirm" class="search-input" type="text" v-model="filterContent" :style="{color: skinColor.color_1}" />
 			<view class="clear-icon" v-if="filterContent.length > 0" @tap="clearFilterContent">
 				<c-icon name="clear-fill" size="37.5" color="#DEDEDD"></c-icon>
 			</view>
 		</view>
-		<text v-if="filterContent.length > 0" class="search-btn" :style="{color: skinColor.iconColor}" @tap="confirm">搜索</text>
+		<text v-if="filterContent.length > 0" class="search-btn" :style="{color: skinColor.color_4}" @tap="confirm">搜索</text>
 	</view>
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	export default {
-		mixins: [skinMixin],
+		mixins: [appMixin],
 		props: {
 			closeClear: {
 				type: Boolean,

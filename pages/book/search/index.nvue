@@ -18,7 +18,7 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import FileList from '@/components/fileList/fileList.nvue';

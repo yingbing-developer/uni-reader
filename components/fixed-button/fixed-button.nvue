@@ -1,5 +1,5 @@
 <template>
-	<view ref="button" v-if="isShow" elevation="3" class="button" :style="{'background-color': skinColor.itemColor}">
+	<view ref="button" :style="{'background-color': color}" v-if="isShow" elevation="3" class="button">
 		<slot></slot>
 	</view>
 </template>
@@ -13,6 +13,10 @@
 			show: {
 				type: Boolean,
 				default: true
+			},
+			color: {
+				type: String,
+				default: '#2196F5'
 			}
 		},
 		data () {

@@ -2,7 +2,7 @@
 
 <script>
 	import { getPlayUrl, getLyric } from '@/common/online/getMusic.js'
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import musicMixin from '@/common/mixin/music.js'
 	import musiccertifyMixin from '@/common/mixin/musiccertify.js'
 	let audio = null;
@@ -19,7 +19,7 @@
 	const iconSize = uni.upx2px(40);
 	const iconGap = uni.upx2px(10);
 	export default {
-		mixins: [skinMixin, musicMixin, musiccertifyMixin],
+		mixins: [appMixin, musicMixin, musiccertifyMixin],
 		data () {
 			return {
 				//鼠标按下时间，避免移动时触发点击事件
@@ -213,7 +213,7 @@
 									},
 									textStyles: {
 										size: uni.upx2px(30) + 'px',
-										color: this.skinColor.iconColor,
+										color: this.skinColor.color_4,
 										verticalAlign: 'top',
 										weight: 'bold',
 										align: 'center'
@@ -252,7 +252,7 @@
 									},
 									textStyles: {
 										size: uni.upx2px(30) + 'px',
-										color: this.skinColor.iconColor,
+										color: this.skinColor.color_4,
 										verticalAlign: 'top',
 										weight: 'bold',
 										align: 'center'
@@ -268,7 +268,7 @@
 			},
 			drawContent () {
 				musicBox.draw([{
-					tag:'rect', id:'bg', rectStyles: {color: this.skinColor.bgColor, radius: '8px', borderColor: this.skinColor.gapColor, borderWidth: '1px'}, position:{top:'0', left: '0', width:'100%',height: '100%'}
+					tag:'rect', id:'bg', rectStyles: {color: this.skinColor.color_bg_1, radius: '8px', borderColor: this.skinColor.color_gap_1, borderWidth: '1px'}, position:{top:'0', left: '0', width:'100%',height: '100%'}
 				},{
 			 		tag:'img',
 					id:'music-next',
@@ -304,7 +304,7 @@
 				this.drawMusicInfo();
 				this.drawProgress();
 				musicControl.draw([{
-					tag:'rect', id:'bg', rectStyles: {color: this.skinColor.navColor, radius: height + 'px', borderColor: this.skinColor.gapColor, borderWidth: '1px'}, position:{top:'0', left: '0', width:'100%',height: '100%'}
+					tag:'rect', id:'bg', rectStyles: {color: this.skinColor.color_theme_1, radius: height + 'px', borderColor: this.skinColor.color_gap_1, borderWidth: '1px'}, position:{top:'0', left: '0', width:'100%',height: '100%'}
 				},{
 					tag:'font',
 					id:'music-arrow',
@@ -314,7 +314,7 @@
 					},
 					textStyles: {
 						size: uni.upx2px(30) + 'px',
-						color: this.skinColor.iconColor,
+						color: this.skinColor.color_4,
 						verticalAlign: 'top',
 						weight: 'bold',
 						align: 'center'
@@ -366,7 +366,7 @@
 					},
 					textStyles: {
 						size: uni.upx2px(20) + 'px',
-						color: this.skinColor.menuTitleColor,
+						color: this.skinColor.color_1,
 						verticalAlign: 'top',
 						align: 'right'
 					}
@@ -384,7 +384,7 @@
 					},
 					textStyles: {
 						size: uni.upx2px(28) + 'px',
-						color: this.skinColor.menuTitleColor,
+						color: this.skinColor.color_1,
 						verticalAlign: 'top',
 						align: 'left',
 						weight: 'bold',
@@ -401,7 +401,7 @@
 					},
 					textStyles: {
 						size: uni.upx2px(20) + 'px',
-						color: this.skinColor.menuTitleColor,
+						color: this.skinColor.color_1,
 						verticalAlign: 'top',
 						align: 'left',
 						overflow: 'ellipsis'

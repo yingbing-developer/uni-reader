@@ -1,27 +1,27 @@
 <template>
-	<view class="search" :style="{'background-color': skinColor.bgColor}">
+	<view class="search" :style="{'background-color': skinColor.color_bg_1}">
 		<block v-if="titleShow">
-			<nav-bar :title="title" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+			<nav-bar :title="title" :bgColor="skinColor.color_theme_1" :titleColor="skinColor.color_4">
 				<view class="nav-right" slot="right">
-					<text class="nav-text" :style="{'color': skinColor.iconColor}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
+					<text class="nav-text" :style="{'color': skinColor.color_4}" v-if="checkes.length > 0">选中({{checkes.length}}/{{fileLength}})</text>
 					<view @tap="$refs.bubble.show()">
-						<c-icon name="more" size="37.5" :color="skinColor.iconColor"></c-icon>
+						<c-icon name="more" size="37.5" :color="skinColor.color_4"></c-icon>
 					</view>
 				</view>
 			</nav-bar>
 			<c-search @confirm="setNameFilter"></c-search>
 		</block>
 		<list-scroll ref="list" :loadmoreoffset="500" @scroll="scroll" :line-height="108" :list="listSync">
-			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.gapColor}">
+			<view slot="listTop" ref="listTop" @tap="backParent()" class="list" :style="{'border-bottom-color': skinColor.color_gap_1}">
 				<view class="list-icon">
 					<c-icon name="folder" size="75" color="#FFCA28"></c-icon>
 				</view>
 				<view class="list-right-back">
-					<text class="list-title" :style="{'color': skinColor.titleColor}">..</text>
+					<text class="list-title" :style="{'color': skinColor.color_1}">..</text>
 				</view>
 			</view>
 			<template v-slot="{item}">
-				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :class="skinColor.activedName" :style="{'border-bottom-color': skinColor.gapColor, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.menuActiveBgColor : ''}">
+				<view @tap="clickFolder(item.path)" @longpress="showAction(item.path)" class="list" :class="skinMode + '-actived'" :style="{'border-bottom-color': skinColor.color_gap_1, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.color_gap_1 : ''}">
 					<view class="list-icon" @tap.stop="check(item.path)">
 						<c-icon name="folder" size="75" color="#FFCA28" v-if="item.type == 'folder'"></c-icon>
 						<c-icon name="txt" size="60" color="#FFCA28" v-if="item.type == 'txt'"></c-icon>
@@ -29,12 +29,12 @@
 					</view>
 					<view class="list-right">
 						<view class="lr-top">
-							<text class="list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
-							<text v-if="isLead(item.path) > -1" class="lt-right list-text" :style="{'color': skinColor.textColor}">已导入</text>
+							<text class="list-title" :style="{'color': skinColor.color_1}">{{item.name}}</text>
+							<text v-if="isLead(item.path) > -1" class="lt-right list-text" :style="{'color': skinColor.color_2}">已导入</text>
 						</view>
 						<view class="lr-bottom">
-							<text class="list-text" :style="{'color': skinColor.textColor}">{{item.time}}</text>
-							<text class="list-text" :style="{'color': skinColor.textColor}" v-if="item.type != 'folder'">{{item.size}}</text>
+							<text class="list-text" :style="{'color': skinColor.color_2}">{{item.time}}</text>
+							<text class="list-text" :style="{'color': skinColor.color_2}" v-if="item.type != 'folder'">{{item.size}}</text>
 						</view>
 					</view>
 				</view>
@@ -53,8 +53,8 @@
 		  
 		<view class="fixed">
 			<view @tap="scrollTop">
-				<fixed-button :show="Math.abs(oldOffsetY) > 2000">
-					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
+				<fixed-button :color="skinColor.color_theme_1" :show="Math.abs(oldOffsetY) > 2000">
+					<c-icon name="top" size="40" :color="skinColor.color_4"></c-icon>
 				</fixed-button>
 			</view>
 		</view>
@@ -62,7 +62,7 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
@@ -75,7 +75,7 @@
 	const MimeTypeMap = plus.android.importClass("android.webkit.MimeTypeMap");
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin],
+		mixins: [appMixin],
 		props: {
 			titleShow: {
 				type: Boolean,

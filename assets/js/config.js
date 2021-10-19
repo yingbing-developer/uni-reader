@@ -8,6 +8,10 @@ export default {
 		'bamxs': {
 			title: '八毛小说',
 			href: 'http://m.bamxs.com'
+		},
+		'xquge': {
+			title: '笔趣阁',
+			href: 'https://www.xquge.com'
 		}
 	},
 	

@@ -11,19 +11,19 @@
 		@popFile="popFile"
 		@checkChange="checkChange"
 		@deleteFile="deleteFile"></file-list>
-		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}" v-if="checkList.length > 0">
+		<view class="btn-box" :style="{'border-top-color': skinColor.color_gap_1}" v-if="checkList.length > 0">
 			<c-button class="btn" title="导入选中歌曲" @click="pushFile(checkList)"></c-button>
 		</view>
 	</view>
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import musicMixin from '@/common/mixin/music.js'
 	import CButton from '@/components/c-button/c-button.nvue'
 	import FileList from '@/components/fileList/fileList.nvue';
 	export default {
-		mixins: [skinMixin, musicMixin],
+		mixins: [appMixin, musicMixin],
 		data () {
 			return {
 				checkList: []

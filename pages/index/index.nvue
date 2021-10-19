@@ -1,25 +1,24 @@
 <template>
-	<view class="index" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="好用阅读器" :backShow="false" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+	<view class="index" :style="{'background-color': skinColor.color_bg_1}">
+		<nav-bar title="好用阅读器" :backShow="false" :bgColor="skinColor.color_theme_1" :titleColor="skinColor.color_4">
 			<view class="nav-left" slot="left" @tap="$refs.leftMenu.show()">
-				<c-icon name="menu" size="37.5" :color="skinColor.iconColor"></c-icon>
+				<c-icon name="menu" size="37.5" :color="skinColor.color_4"></c-icon>
 			</view>
 			<view class="nav-right" slot="right">
 				<view @tap="searchBook">
-					<c-icon name="search" size="37.5" :color="skinColor.iconColor"></c-icon>
+					<c-icon name="search" size="37.5" :color="skinColor.color_4"></c-icon>
 				</view>
 				<view @tap="opearteFilter">
-					<c-icon name="filter" size="37.5" :color="skinColor.iconColor"></c-icon>
+					<c-icon name="filter" size="37.5" :color="skinColor.color_4"></c-icon>
 				</view>
 			</view>
 		</nav-bar>
 		<c-search v-if="showFilter" @confirm="setNameFilter"></c-search>
-		<view class="tabs" :style="{'background-color': skinColor.navColor}">
+		<view class="tabs" :style="{'background-color': skinColor.color_theme_1}">
 			<view class="tab" @tap="changeTab(index)" v-for="(item, index) in tabs" :key="index">
-				<text class="tab-title" :style="{'color': skinColor.iconColor}">{{item.title}}</text>
+				<text class="tab-title" :style="{'color': skinColor.color_4}">{{item.title}}</text>
 			</view>
-			<view class="tab-line"
-				:style="{'background-color': skinColor.bgColor, transform: `translateX(${currentTab * 375}rpx)`}">
+			<view class="tab-line" :style="{'background-color': skinColor.color_bg_1 , transform: `translateX(${currentTab * 375}rpx)`}">
 			</view>
 		</view>
 		<list-scroll :column-count="3" :column-width="230" :line-height="285" @scroll="scroll" :list="list"
@@ -29,26 +28,26 @@
 			</view>
 			<view class="fixed" slot="fixed">
 				<view @tap="changeReadStatus">
-					<fixed-button>
-						<c-icon name="history" size="40" :color="skinColor.iconColor" v-if="!tabs[currentTab].isReaded">
+					<fixed-button :color="skinColor.color_theme_1">
+						<c-icon name="history" size="40" :color="skinColor.color_4" v-if="!tabs[currentTab].isReaded">
 						</c-icon>
-						<c-icon name="read" size="47.5" :color="skinColor.iconColor" v-if="tabs[currentTab].isReaded">
+						<c-icon name="read" size="47.5" :color="skinColor.color_4" v-if="tabs[currentTab].isReaded">
 						</c-icon>
 					</fixed-button>
 				</view>
 				<view @tap="clear">
-					<fixed-button :show="list.length > 0">
-						<c-icon name="waste-fill" size="40" :color="skinColor.iconColor"></c-icon>
+					<fixed-button :color="skinColor.color_theme_1" :show="list.length > 0">
+						<c-icon name="waste-fill" size="40" :color="skinColor.color_4"></c-icon>
 					</fixed-button>
 				</view>
 				<view @tap="searchOnline">
-					<fixed-button>
-						<c-icon name="network" size="40" :color="skinColor.iconColor"></c-icon>
+					<fixed-button :color="skinColor.color_theme_1">
+						<c-icon name="network" size="40" :color="skinColor.color_4"></c-icon>
 					</fixed-button>
 				</view>
 				<view @tap="scrollTop">
-					<fixed-button :show="Math.abs(oldOffsetY) > 2000">
-						<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
+					<fixed-button :color="skinColor.color_theme_1" :show="Math.abs(oldOffsetY) > 2000">
+						<c-icon name="top" size="40" :color="skinColor.color_4"></c-icon>
 					</fixed-button>
 				</view>
 			</view>
@@ -66,13 +65,12 @@
 				</view>
 			</template>
 		</list-scroll>
-
+		
 		<!-- 抽屉菜单 -->
 		<c-menu v-model="currentTab" :translate="menuLate" :opacity="menuOpac" ref="leftMenu"></c-menu>
-
+		
 		<music-btn></music-btn>
 		<music-lyric></music-lyric>
-
 	</view>
 </template>
 
@@ -85,16 +83,13 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	import MusicBtn from '@/components/music-btn/music-btn.nvue'
 	import MusicLyric from '@/components/music-lyric/music-lyric.nvue'
-	import {
-		skinMixin,
-		menuTouchMixin
-	} from '@/common/mixin/index.js'
+	import { menuTouchMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import appMixin from '@/common/mixin/app.js';
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin, menuTouchMixin, bookMixin, bookcertifyMixin, appMixin],
+		mixins: [menuTouchMixin, bookMixin, bookcertifyMixin, appMixin],
 		data() {
 			return {
 				currentTab: 0,
