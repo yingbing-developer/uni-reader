@@ -7,8 +7,8 @@
 			v-if="enableMask"></view>
 		<view class="longpress" @longpress="preview" v-if="enablePreview"></view>
 		<view class="error" v-if="isError">
-			<text class="error-text color_1"
-				:style="{'font-size': errorSize + 'rpx'}">加载失败!</text>
+			<text class="error-text"
+				:style="{'font-size': errorSize + 'rpx', color: skinColor.color_1}">加载失败!</text>
 		</view>
 	</view>
 </template>

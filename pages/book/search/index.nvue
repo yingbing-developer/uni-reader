@@ -11,7 +11,7 @@
 		@popFile="popFile"
 		@checkChange="checkChange"
 		@deleteFile="deleteFile"></file-list>
-		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}" v-if="checkList.length > 0">
+		<view class="btn-box" :style="{'border-top-color': skinColor.color_gap_1}" v-if="checkList.length > 0">
 			<c-button class="btn" title="导入选中书籍" @click="pushFile(checkList)"></c-button>
 		</view>
 	</view>
@@ -24,7 +24,7 @@
 	import FileList from '@/components/fileList/fileList.nvue';
 	import CButton from '@/components/c-button/c-button.nvue'
 	export default {
-		mixins: [skinMixin, bookMixin, bookcertifyMixin],
+		mixins: [appMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				checkList: []

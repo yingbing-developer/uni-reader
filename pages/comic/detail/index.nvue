@@ -1,20 +1,20 @@
 <template>
-	<view class="detail" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="漫画详情" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor"></nav-bar>
+	<view class="detail" :style="{'background-color': skinColor.color_bg_1}">
+		<nav-bar title="漫画详情" :bgColor="skinColor.color_theme_1" :titleColor="skinColor.color_4"></nav-bar>
 		<view class="book-info">
 			<c-image class="book-img" :src="comicInfo.image" mode="aspectFill"></c-image>
 			<view class="book-info-right">
-				<text class="book-name" :style="{'color': skinColor.titleColor}">{{comicInfo.name}}</text>
-				<text class="book-intro-title" :style="{'color': skinColor.menuTitleColor}">{{comicInfo.source == 'local' ? '佚名' : author}}</text>
+				<text class="book-name" :style="{'color': skinColor.color_1}">{{comicInfo.name}}</text>
+				<text class="book-intro-title" :style="{'color': skinColor.color_2}">{{comicInfo.source == 'local' ? '佚名' : author}}</text>
 				<view class="book-intro">
-					<text class="book-intro-title" :style="{'color': skinColor.titleColor}">内容简介</text>
-					<text class="book-intro-text" :style="{'color': skinColor.menuTitleColor}">{{comicInfo.source == 'local' ? '暂无介绍' : intro}}</text>
+					<text class="book-intro-title" :style="{'color': skinColor.color_1}">内容简介</text>
+					<text class="book-intro-text" :style="{'color': skinColor.color_2}">{{comicInfo.source == 'local' ? '暂无介绍' : intro}}</text>
 				</view>
 			</view>
 		</view>
 		<view class="btns">
 			<view class="old-btn btn" @tap="readRecord">
-				<text class="btn-text" :style="{'color': skinColor.bgColor}">{{readed ? '上次读到 ' + record.title : '未阅读'}}</text>
+				<text class="btn-text" :style="{'color': skinColor.color_bg_1}">{{readed ? '上次读到 ' + record.title : '未阅读'}}</text>
 			</view>
 			<view class="new-btn btn" @tap="startRead">
 				<text class="btn-text new-btn-text">开始阅读</text>
@@ -22,7 +22,7 @@
 		</view>
 		
 		<view class="catalog-line">
-			<text class="catalog-title" :style="{'color': skinColor.titleColor}">漫画章节</text>
+			<text class="catalog-title" :style="{'color': skinColor.color_1}">漫画章节</text>
 			<text class="sort-title" @tap="changeSortType">{{sortType == 'reverse' ? '倒序' : '正序'}}</text>
 		</view>
 		
@@ -30,8 +30,8 @@
 		<list-scroll :column-count="5" :column-width="130" :line-height="80" :list="catalog" :bounce="false">
 			<no-data slot="fixed" v-if="catalog.length <= 0" title="貌似没有章节哦"></no-data>
 			<template v-slot="{item}">
-				<view class="catalog-block" :style="{'background-color': item.path == readed.path ? skinColor.gapColor : '', 'border-color': skinColor.gapColor}" @tap="readComic(item.path)">
-					<text class="catalog-text" :style="{'color': skinColor.menuTitleColor}">{{item.name}}</text>
+				<view class="catalog-block" :style="{'background-color': item.path == readed.path ? skinColor.color_gap_1 : '', 'border-color': skinColor.color_gap_1}" @tap="readComic(item.path)">
+					<text class="catalog-text" :style="{'color': skinColor.color_2}">{{item.name}}</text>
 				</view>
 			</template>
 		</list-scroll>
@@ -41,11 +41,11 @@
 <script>
 	import CImage from '@/components/c-image/c-image.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import { getComicDetail, getComicNum } from '@/common/online/getComic.js'
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [appMixin, bookMixin],
 		data () {
 			return {
 				catalog: [],

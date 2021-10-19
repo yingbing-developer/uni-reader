@@ -118,7 +118,7 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import CIcon from '@/components/c-icon/c-icon.nvue'
@@ -126,7 +126,7 @@
 	import NavBar from '@/components/nav-bar/nav-bar.nvue'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin, bookMixin, bookcertifyMixin],
+		mixins: [appMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				duration: 200,

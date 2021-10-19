@@ -9,5 +9,7 @@ export default {
 	color_3: '#5E5E5E',
 	color_4: '#777777',
 	color_5: '#737373',
-	color_gap_1: '#3F3F3F'
+	color_gap_1: '#3F3F3F',
+	color_read_text: '#95A3A6',
+	color_read_bg: '#393E41'
 }

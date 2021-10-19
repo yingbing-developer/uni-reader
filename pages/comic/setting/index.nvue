@@ -46,7 +46,7 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import NavBar from '@/components/nav-bar/nav-bar.nvue'
@@ -54,7 +54,7 @@
 	import CImage from '@/components/c-image/c-image.nvue'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [appMixin, bookMixin],
 		props: {
 			path: {
 				type: String,

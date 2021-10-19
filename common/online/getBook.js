@@ -90,7 +90,7 @@ function getBaoshuu (data) {
 					list.push({
 						image: '/static/cover/cover_default.jpg',
 						name: name,
-						type: tag,
+						type: tag || '其它',
 						author: '不详',
 						desc: desc ? desc.replace('简介：', '') : '暂无介绍',
 						status: 2,
@@ -299,6 +299,7 @@ function getBamxs (data) {
 								name = name.replace(regExp, redNameStr[1])
 							} 
 							const spans = main[0].match(/<span[^>]*>*([\s\S]*?)<\/span>/ig)
+							const type = spans[0].match(/<span[^>]*>*([\s\S]*?)<\/span>/)[1]
 							let author = spans[1].match(/<span[^>]*>*([\s\S]*?)<\/span>/)[1]
 							author = author.match(/作者:*([\s\S]*?)时间/)[1]
 							const redAuthorStr = author.match(/<font[^>]*>*([\s\S]*?)<\/font>/)
@@ -322,7 +323,7 @@ function getBamxs (data) {
 								name: name,
 								author: author || '暂无作者',
 								desc: desc || '暂无介绍',
-								type: '其它',
+								type: type || '其它',
 								status: 2,
 								path: BOOKURL[tag2].href + '/' + href,
 								source: tag2

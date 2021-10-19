@@ -50,7 +50,7 @@
 		<view class="fixed">
 			<view @tap="scrollTop">
 				<fixed-button :color="skinColor.color_theme_1" :show="Math.abs(oldOffsetY) > 300">
-					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
+					<c-icon name="top" size="40" :color="skinColor.color_4"></c-icon>
 				</fixed-button>
 			</view>
 		</view>

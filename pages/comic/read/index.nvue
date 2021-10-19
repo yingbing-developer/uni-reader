@@ -1,12 +1,12 @@
 <template>
-	<view class="read" :style="{'background-color': skinColor.bgColor}">
+	<view class="read" :style="{'background-color': skinColor.color_bg_1}">
 		<gap-bar :color="skinColor.navColor"></gap-bar>
 		<list ref="list" @scroll="scroll" @loadmore="getComicSync">
 			<!-- 利用appear通用事件，来判断列表是否触顶 -->
 			<cell><view style="height: 1px;" @appear="prevShow = true" @disappear="prevShow = false" v-if="comicSync.length"></view></cell>
 			
 			<cell v-for="(item, index) in comicSync" :key="index" @appear="appear(index)" @disappear="disappear(index)">
-				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.gapColor}">
+				<view class="comic-box" ref="comicBox" :style="{'border-color': skinColor.color_gap_1}">
 					<!-- <c-image :enable-mask="false" :enable-hidden="comicInfo.source == 'local' ? true : false" class="comic-image" lazy-load :style="{height: (windowWidth / item.imageWidth * item.imageHeight) + 'px'}" :src="item.path" mode="widthFix"></c-image> -->
 					<c-image enable-preview error-size="40" :enable-mask="false" enable-hidden :windowWidth="windowWidth" lazy-load :src="item.path" mode="widthFix" v-if="imageType"></c-image>
 					<comic-image :windowWidth="windowWidth" :src="item.path" v-if="!imageType"></comic-image>
@@ -35,7 +35,7 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import { getComicContent } from '@/common/online/getComic.js'
 	import ComicSetting from '../setting/index.nvue'
@@ -48,7 +48,7 @@
 	const options = 'name,path';
 	const pageSize = 50;
 	export default {
-		mixins: [skinMixin, bookMixin],
+		mixins: [appMixin, bookMixin],
 		computed: {
 			//书籍信息
 			comicInfo () {

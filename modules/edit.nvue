@@ -1,16 +1,16 @@
 <template>
 	<view class="toast">
 		<view class="mask" ref="mask" @tap="hide('cancel')"></view>
-		<view class="popup" ref="popup" :style="{'background-color': skinColor.menuBgColor}" @touchmove.stop.prevent="">
-			<text class="title" :style="{color: skinColor.menuTitleColor}">编辑内容</text>
-			<textarea :adjust-position="false" :show-confirm-bar="false" :style="{'border-color': skinColor.gapColor, 'background-color': skinColor.readBackColor, color: skinColor.readTextColor}" class="editTextarea" v-model="content" />
+		<view class="popup" ref="popup" :style="{'background-color': skinColor.color_bg_1}" @touchmove.stop.prevent="">
+			<text class="title" :style="{color: skinColor.color_1}">编辑内容</text>
+			<textarea :adjust-position="false" :show-confirm-bar="false" :style="{'border-color': skinColor.color_gap_1, 'background-color': skinColor.color_read_bg, color: skinColor.color_read_text}" class="editTextarea" v-model="content" />
 			<view class="btns">
-				<view class="btn" :class="skinColor.activedName" @tap="hide('cancel')">
-					<text class="btn-text" :style="{color: skinColor.menuTitleColor}">取消</text>
+				<view class="btn" :class="skinMode + '-actived'" @tap="hide('cancel')">
+					<text class="btn-text" :style="{color: skinColor.color_1}">取消</text>
 				</view>
-				<view class="line-gap" :style="{'background-color': skinColor.gapColor}"></view>
-				<view class="btn" :class="skinColor.activedName" @tap="save">
-					<text class="btn-text" :style="{color: skinColor.menuTitleColor}">保存</text>
+				<view class="line-gap" :style="{'background-color': skinColor.color_gap_1}"></view>
+				<view class="btn" :class="skinMode + '-actived'" @tap="save">
+					<text class="btn-text" :style="{color: skinColor.color_1}">保存</text>
 				</view>
 			</view>
 		</view>
@@ -20,11 +20,9 @@
 
 <script>
 	const animation = weex.requireModule('animation');
-	import {
-		skinMixin
-	} from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	export default {
-		mixins: [skinMixin],
+		mixins: [appMixin],
 		data() {
 			return {
 				isShow: false,

@@ -2,17 +2,17 @@
 	<view class="action" @touchmove.stop.prevent="">
 		<view class="mask" ref="mask" @tap="hide('cancel')"></view>
 		<view class="popup" ref="popup" :style="{transform: 'translateY(' + Math.abs(lateY) + 'px)'}">
-			<view class="item-box" :style="{'background-color': skinColor.menuBgColor}">
+			<view class="item-box" :style="{'background-color': skinColor.color_bg_1}">
 				<view v-for="(item, index) in list" :key="index">
-					<view class="list" @tap="hide('confirm', index)" :class="skinColor.activedName">
-						<text class="list-text" :class="{'color-red': current == index}" :style="{'color': skinColor.menuTitleColor}">{{item.title}}</text>
+					<view class="list" @tap="hide('confirm', index)" :class="skinMode + '-actived'">
+						<text class="list-text" :style="{'color': current == index ? '#FF3B30' : skinColor.color_1}">{{item.title}}</text>
 					</view>
-					<view class="list-gap" style="height: 2rpx" :style="{'background-color': skinColor.gapColor}" v-if="index < list.length"></view>
+					<view class="list-gap" style="height: 2rpx" :style="{'background-color': skinColor.color_gap_1}" v-if="index < list.length"></view>
 				</view>
 			</view>
 			<view style="height: 15rpx"></view>
-			<view class="list item-box" @tap="hide('cancel')" :style="{'background-color': skinColor.menuBgColor}">
-				<text class="list-text" :style="{'color': skinColor.menuTitleColor}">取消</text>
+			<view class="list item-box" @tap="hide('cancel')" :class="skinMode + '-actived'" :style="{'background-color': skinColor.color_bg_1}">
+				<text class="list-text" :style="{'color': skinColor.color_1}">取消</text>
 			</view>
 			<view style="height: 15rpx"></view>
 		</view>
@@ -21,9 +21,9 @@
 
 <script>
 	const animation = weex.requireModule('animation');
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	export default {
-		mixins: [skinMixin],
+		mixins: [appMixin],
 		data () {
 			return {
 				list: [],
@@ -139,12 +139,6 @@
 		height: 90rpx;
 		align-items: center;
 		justify-content: center;
-	}
-	.list:active {
-		background-color: #EEEEEE;
-	}
-	.list-gap {
-		background-color: #EEEEEE;
 	}
 	.list-text {
 		font-size: 27rpx;

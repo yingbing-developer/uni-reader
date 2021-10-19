@@ -7,7 +7,7 @@
 			:slide="slide" :topGap="topGap" :bottomGap="bottomGap"></computed-page>
 			
 		<div class="loading" v-if="initLoading" :style="{background: bgColor, color: color, 'font-size': fontSize + 'px'}" @tap="refresh">
-			<page-refresh v-if="loadStatus == 'none'">{{loadingText}}</page-refresh>
+			<page-refresh v-if="loadStatus == 'none'" :color="color">{{loadingText}}</page-refresh>
 			<text v-else>{{loadingText}}</text>
 		</div>
 	</div>

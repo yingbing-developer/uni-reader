@@ -33,7 +33,6 @@
 <style>
 	@import url("@/assets/skin/index.css");
 	/*每个页面公共css */
-	
 	/* #ifdef APP-VUE */
 	page {background: transparent;}
 	/* #endif */

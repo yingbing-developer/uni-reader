@@ -1,6 +1,6 @@
 <template>
-	<view class="search" :style="{'background-color': skinColor.bgColor}">
-		<nav-bar title="在线小说" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
+	<view class="search" :style="{'background-color': skinColor.color_bg_1}">
+		<nav-bar title="在线小说" :bgColor="skinColor.color_theme_1" :titleColor="skinColor.color_4">
 		</nav-bar>
 		<c-search @confirm="setNameFilter" close-clear></c-search>
 		
@@ -10,23 +10,23 @@
 			<!-- 列表顶部 用于返回顶部 -->
 			<view slot="listTop" ref="listTop"></view>
 			<template v-slot="{item}">
-				<view @tap="readBook(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor}">
+				<view @tap="readBook(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.color_gap_1}">
 					<view class="comic-list-icon" elevation="3">
 						<c-image class="comic-image" :src="item.image" mode="aspectFill"></c-image>
 					</view>
 					<view class="comic-list-right">
 						<view class="comic-lr-line comic-title-line">
-							<text class="comic-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
+							<text class="comic-list-title" :style="{'color': skinColor.color_1}">{{item.name}}</text>
 						</view>
 						<view class="comic-lr-line">
 							<text
 							class="comic-list-sub"
 							:style="{
-								'color': skinColor.menuTitleColor
+								'color': skinColor.color_3
 							}">作者：{{item.author}}&nbsp;&nbsp;|&nbsp;&nbsp;类别：{{item.type}}&nbsp;&nbsp;|&nbsp;&nbsp;来源：{{BOOKURL[item.source].title}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-desc" :style="{'color': skinColor.menuTitleColor}">简介：{{item.desc}}</text>
+							<text class="comic-list-desc" :style="{'color': skinColor.color_2}">简介：{{item.desc}}</text>
 						</view>
 						<view class="comic-lr-line">
 							<text class="badge" :class="item.status == 1 ? 'badge-brown' : 'badge-green'">{{item.status == 1 ? '连载中' : '已完结'}}</text>
@@ -35,8 +35,8 @@
 					</view>
 				</view>
 			</template>
-			<view slot="listBottom" class="comic-loading" v-if="isLastPage && list.length > 0"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">没有更多了</text></view>
-			<loading slot="loading" class="comic-loading" v-if="list.length >= 6 && !isLastPage"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">加载中...</text></loading>
+			<view slot="listBottom" class="comic-loading" v-if="isLastPage && list.length > 0"><text class="comic-loading-text" :style="{'color': skinColor.color_1}">没有更多了</text></view>
+			<loading slot="loading" class="comic-loading" v-if="list.length >= 6 && !isLastPage"><text class="comic-loading-text" :style="{'color': skinColor.color_1}">加载中...</text></loading>
 		</list-scroll>
 		
 		<!-- 气泡弹窗 -->
@@ -48,8 +48,8 @@
 		  
 		<view class="fixed">
 			<view @tap="scrollTop">
-				<fixed-button :show="Math.abs(oldOffsetY) > 300">
-					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
+				<fixed-button :color="skinColor.color_theme_1" :show="Math.abs(oldOffsetY) > 300">
+					<c-icon name="top" size="40" :color="skinColor.color_4"></c-icon>
 				</fixed-button>
 			</view>
 		</view>
@@ -57,7 +57,7 @@
 </template>
 
 <script>
-	import { skinMixin } from '@/common/mixin/index.js'
+	import appMixin from '@/common/mixin/app.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import { getBook } from '@/common/online/getBook.js'
@@ -70,7 +70,7 @@
 	import NoData from '@/components/no-data/no-data.nvue'
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [skinMixin, bookMixin, bookcertifyMixin],
+		mixins: [appMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				//漫画列表
