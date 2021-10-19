@@ -1,17 +1,4 @@
 import { mapGetters, mapMutations } from 'vuex'
-export const skinMixin = {
-	computed: {
-		...mapGetters({
-			skinMode: 'skin/skinMode',
-			skinColor: 'skin/skinColor'
-		})
-	},
-	methods: {
-		...mapMutations({
-			changeSkin: 'skin/changeSkin',
-		})
-	}
-}
 
 //菜单拖曳显示
 export const menuTouchMixin = {
