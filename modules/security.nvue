@@ -2,7 +2,7 @@
 	<view class="security" @touchmove.stop.prevent="">
 		<view class="mask" ref="mask" @tap="hide(false)"></view>
 		<view class="popup" ref="popup" @touchmove.stop.prevent="" :style="{'height': anima.lateY + 'rpx', transform: 'translateY(' + anima.lateY + 'rpx)'}">
-			<view class="title bgColor-theme">
+			<view class="title">
 				<text class="title-text">{{title}}</text>
 			</view>
 			<text class="tip-text color-text">{{tipText}}</text>
@@ -284,6 +284,7 @@
 		align-items: center;
 		justify-content: center;
 		height: 70rpx;
+		background-color: #007AFF;
 	}
 	.title-text {
 		color: #FFFFFF;

@@ -6,9 +6,7 @@
 
 <script>
 	const animation = weex.requireModule('animation');
-	import { skinMixin } from '@/common/mixin/index.js'
 	export default {
-		mixins: [skinMixin],
 		props: {
 			show: {
 				type: Boolean,

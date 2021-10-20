@@ -1,6 +1,6 @@
 <template>
 	<view class="read" :style="{'background-color': skinColor.color_bg_1}">
-		<gap-bar :color="skinColor.navColor"></gap-bar>
+		<gap-bar :color="skinColor.color_theme_1"></gap-bar>
 		<list ref="list" @scroll="scroll" @loadmore="getComicSync">
 			<!-- 利用appear通用事件，来判断列表是否触顶 -->
 			<cell><view style="height: 1px;" @appear="prevShow = true" @disappear="prevShow = false" v-if="comicSync.length"></view></cell>

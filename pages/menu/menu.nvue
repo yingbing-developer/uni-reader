@@ -12,7 +12,7 @@
 				<c-image class="bg" src="@/static/menuBack.png" mode="aspectFill"></c-image>
 			</view>
 			<!-- 列表切换 -->
-			<view class="list" :style="{'background-color': current == index ? skinColor.color_gap_1 : ''}" @tap="changeCurrent(index)" v-for="(item, index) in navs" :key="index">
+			<view class="list" :class="skinMode + '-actived'" :style="{'background-color': current == index ? skinColor.color_gap_1 : ''}" @tap="changeCurrent(index)" v-for="(item, index) in navs" :key="index">
 				<view class="icon">
 					<c-icon :name="item.icon" :size="item.size" :color="current == index ? skinColor.color_actived_1 : skinColor.color_5"></c-icon>
 				</view>
