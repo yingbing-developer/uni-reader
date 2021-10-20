@@ -373,8 +373,8 @@ function getLoliContent (href) {
 	return new Promise((resolve, reject) => {
 		http.get(href).then((res) => {
 			let str = replaceStr(res.data);//解析html字符
-			let div = str.match(/<div[^>]*class=([""]?)adace-slot-wrapper adace-before-content  adace-slot-wrapper-main\1[^>]*>*([\s\S]*?)<\/p>/);
-			let imgs = div[0].match(/<img[^>]*>/ig)
+			let div = str.match(/<div[^>]*class=([""]?)entry-featured-media entry-featured-media-main\1[^>]*>*([\s\S]*?)<\/p>/)[0];
+			let imgs = div.match(/<img[^>]*>/ig)
 			let images = [];
 			for ( let i in imgs ) {
 				let imgObj = HTMLParser(imgs[i])[0]

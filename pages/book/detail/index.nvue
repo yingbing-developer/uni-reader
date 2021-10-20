@@ -28,8 +28,8 @@
 				</view>
 				<view class="book-desc">
 					<text class="book-desc-text" :class="{'book-lines-5': descHide}" :style="{'color': skinColor.color_2, 'border-color': skinColor.color_gap_1}">{{bookInfo.source == 'local' ? '暂无介绍' : desc}}</text>
-					<text class="desc-btn-text" :style="{'color': skinColor.color_theme_1}" @tap="descHide = false" v-if="descHide">显示全部</text>
-					<text class="desc-btn-text" :style="{'color': skinColor.color_theme_1}" @tap="descHide = true" v-if="!descHide">隐藏内容</text>
+					<text class="desc-btn-text" @tap="descHide = false" v-if="descHide">显示全部</text>
+					<text class="desc-btn-text" @tap="descHide = true" v-if="!descHide">隐藏内容</text>
 				</view>
 				<view class="gap"></view>
 				<view class="tab-line" :style="{'background-color': skinColor.color_theme_1}">
@@ -50,7 +50,7 @@
 				</view>
 			</template>
 			<view slot="listBottom">
-				<text class="chapter-btn-text" :style="{'color': skinColor.color_theme_1}" v-if="catalog.length > 0" @tap="showCatalog">更多章节</text>
+				<text class="chapter-btn-text" v-if="catalog.length > 0" @tap="showCatalog">更多章节</text>
 			</view>
 		</list-scroll>
 	</view>
@@ -271,6 +271,7 @@
 	}
 	.desc-btn-text {
 		font-size: 28rpx;
+		color: #007AFF;
 	}
 	.book-lines-5 {
 		lines: 5;
@@ -320,5 +321,6 @@
 	.chapter-btn-text {
 		font-size: 28rpx;
 		padding: 20rpx;
+		color: #007AFF;
 	}
 </style>
