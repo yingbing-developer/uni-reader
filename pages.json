@@ -1,9 +1,10 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		//小说主页
 		{
-			"path": "pages/index/index"
+			"path": "pages/book/index"
 		},
-		//本地小说添加页
+		// 本地小说添加页
 		{
 			"path": "pages/book/search/index"
 		},
@@ -39,6 +40,10 @@
 				}
 			}
 		},
+		//漫画主页
+		{
+			"path": "pages/comic/index"
+		},
 		//本地漫画添加页
 		{
 			"path": "pages/comic/search/index"
@@ -63,16 +68,27 @@
 		{
 			"path": "pages/about/index"
 		},
+		//音乐首页
+		{
+			"path": "pages/music/index"
+		},
 		//音乐播放页面
 		{
 			"path": "pages/music/player",
 			"style": {
-				"backgroundColor": "transparent"
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
+				}
 			}
 		},
 		//音乐播放列表
 		{
-			"path": "pages/music/index",
+			"path": "pages/music/playlist",
 			"style": {
 				"backgroundColor": "transparent",
 				"app-plus": {
@@ -91,6 +107,10 @@
 		//添加在线音乐
 		{
 			"path": "pages/music/online"
+		},
+		//个人
+		{
+			"path": "pages/user/index"
 		},
 		//确认弹窗
 		{
@@ -168,9 +188,38 @@
 		"navigationStyle": "custom",
 		"navigationBarTextStyle": "white",
 		"navigationBarBackgroundColor": "transparent",
+		"backgroundColor":"#999",
 		"app-plus": {
-			"titleNView": false
+			"titleNView": false,
+			"background": "#999"
 		}
+	},
+	"tabBar": {
+		"color": "#666666",
+		"selectedColor": "#2ca2f9",
+		"borderStyle": "black",
+		"backgroundColor": "#FAFAFA",
+		"list": [{
+			"pagePath": "pages/book/index",
+			"iconPath": "static/tabbar/book_default.png",
+			"selectedIconPath": "static/tabbar/book_default-actived.png",
+			"text": "小说"
+		},{
+			"pagePath": "pages/comic/index",
+			"iconPath": "static/tabbar/comic_default.png",
+			"selectedIconPath": "static/tabbar/comic_default-actived.png",
+			"text": "漫画"
+		},{
+			"pagePath": "pages/music/index",
+			"iconPath": "static/tabbar/music_default.png",
+			"selectedIconPath": "static/tabbar/music_default-actived.png",
+			"text": "音乐"
+		},{
+			"pagePath": "pages/user/index",
+			"iconPath": "static/tabbar/user_default.png",
+			"selectedIconPath": "static/tabbar/user_default-actived.png",
+			"text": "我的"
+		}]
 	},
 	"condition" : { //模式配置，仅开发期间生效
 		"current": 0, //当前激活的模式(list 的索引项)

@@ -1,4 +1,4 @@
-//音乐播放临时阅读数据
+//音乐播放临时数据
 import Utils from '@/assets/js/util.js';
 const { indexOf, suffix, dateFormat, removeSuffix, randomString } = Utils;
 const state = {
@@ -46,7 +46,7 @@ const mutations = {
 	//设置音乐歌词
 	setMusicLyric (state, lyric) {
 		state.musicLyric = lyric;
-	},
+	}
 }
 
 export default {

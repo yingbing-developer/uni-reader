@@ -1,0 +1,24 @@
+<template>
+	<div>
+		
+	</div>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		created () {
+			getApp().globalData.$business.setSkinColor();
+		},
+		watch: {
+			skinMode () {
+				getApp().globalData.$business.setSkinColor();
+			}
+		},
+	}
+</script>
+
+<style>
+
+</style>

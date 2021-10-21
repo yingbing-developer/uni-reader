@@ -6,6 +6,7 @@
 	import Dom from '@/plugins/dom'
 	import Utils from '@/assets/js/util.js'
 	import Config from '@/assets/js/config.js'
+	import Business from '@/assets/js/business.js'
 	export default {
 		globalData: {
 			$Router: Router,
@@ -14,7 +15,8 @@
 			$xhr: Xhr,
 			$dom: Dom,
 			$utils: Utils,
-			$config: Config
+			$config: Config,
+			$business: Business,
 		},  
 		onLaunch: function() {
 			console.log('App Launch')

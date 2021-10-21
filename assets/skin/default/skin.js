@@ -1,9 +1,9 @@
 /* 默认皮肤 */
 
 export default {
-	color_theme_1: '#2196F5',
+	color_theme_1: '#2ca2f9',
 	color_bg_1: '#FAFAFA',
-	color_actived_1: '#2196F5',
+	color_actived_1: '#2ca2f9',
 	color_1: '#333',
 	color_2: '#666',
 	color_3: '#999',

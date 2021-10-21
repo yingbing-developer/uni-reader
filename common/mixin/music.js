@@ -2,7 +2,8 @@ import { mapGetters, mapMutations } from 'vuex'
 const musicMixin = {
 	computed: {
 		...mapGetters({
-			playList: 'music/playList',
+			playList: 'music/getPlayList',
+			collectionList: 'music/getCollection',
 			musicPathHistory: 'music/musicPathHistory',
 			getMusicPlayMode: 'music/getMusicPlayMode',
 			getMusicPlayRecord: 'music/getMusicPlayRecord',
@@ -12,9 +13,12 @@ const musicMixin = {
 	},
 	methods: {
 		...mapMutations({
-			addMusic: 'music/addMusic',
-			deleteMusic: 'music/deleteMusic',
-			clearMusic: 'music/clearMusic',
+			addPlayList: 'music/addPlayList',
+			removePlayList: 'music/removePlayList',
+			clearPlayList: 'music/clearPlayList',
+			addCollection: 'music/addCollection',
+			removeCollection: 'music/removeCollection',
+			clearCollection: 'music/clearCollection',
 			updateMusicPlayRecord: 'music/updateMusicPlayRecord',
 			changeMusicPlayMode: 'music/changeMusicPlayMode',
 			setMusicLyricShow: 'music/setMusicLyricShow',

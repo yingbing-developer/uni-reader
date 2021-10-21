@@ -16,6 +16,11 @@
 				    "type": "module",
 				    "name": "YingBingNativePlugin-BaseImage",
 				    "class": "com.yingbing.nativeplugin.BaseImage"
+				},
+				{
+				    "type": "module",
+				    "name": "YingBingNativePlugin-BlurImage",
+				    "class": "com.yingbing.nativeplugin.BlurImage"
 				}
             ],
 			"hooksClass": "",

@@ -1,7 +1,6 @@
 <template>
 	<view class="player" :style="{'background-color': skinColor.color_bg_1}" @touchmove.stop.prevent="">
-		<c-image class="background" defaultSrc="@/static/music/music-bg.jpg" :enableMask="false" :src="musicInfo ? musicInfo.image : '@/static/music/music-bg.jpg'" mode="aspectFill"></c-image>
-		<view class="bg-mask"></view>
+		<c-image class="background" defaultSrc="@/static/music/music-bg.jpg" :enableMask="false" :src="bgImage" mode="aspectFill"></c-image>
 		<view class="wrapper">
 			<gap-bar></gap-bar>
 			<view class="top" ref="top">
@@ -100,7 +99,8 @@
 				duration: 400,
 				delay: 200,
 				cdRotate: 0,
-				cdStart: 0
+				cdStart: 0,
+				bgImage: ''
 			}
 		},
 		computed: {
@@ -123,6 +123,9 @@
 		},
 		onLoad () {
 			uni.$emit('musicBtn-down');
+			const BlurImage = uni.requireNativePlugin('YingBingNativePlugin-BlurImage');
+			const url = plus.io.convertLocalFileSystemURL('/static/music/music-bg.jpg')
+			this.bgImage = BlurImage.blur(url, 0.5, 30);
 		},
 		onReady() {
 			this.show();
@@ -338,15 +341,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		opacity: 0.1;
-	}
-	.bg-mask {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-image: linear-gradient(to bottom right, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
+		opacity: 0.6;
 	}
 	.wrapper {
 		position: fixed;

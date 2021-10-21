@@ -15,9 +15,9 @@
 			<!-- 列表顶部 用于返回顶部 -->
 			<view slot="listTop" ref="listTop"></view>
 			<template v-slot="{item}">
-				<view @tap="playMusic(item.path)" @longpress="showAction(item.path)" class="music-list" :style="{'border-bottom-color': skinColor.color_gap_1, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.color_gap_1 : ''}">
+				<view @tap="playMusic(item.path)" @longpress="showAction(item)" class="music-list" :style="{'border-bottom-color': skinColor.color_gap_1, 'background-color': checkes.indexOf(item.path) > -1 ? skinColor.color_gap_1 : ''}">
 					<view class="music-list-icon" @tap.stop="check(item.path)">
-						<c-image lazyLoad class="music-image" defaultSrc="@/static/music/music-bg.jpg" :src="item.image" mode="scaleToFill"></c-image>
+						<c-image lazyLoad class="music-image" defaultSrc="@/static/music/music-bg.jpg" :src="item.cover" mode="scaleToFill"></c-image>
 					</view>
 					<view class="music-list-right">
 						<view class="music-lr-line music-title-line">
@@ -26,7 +26,7 @@
 						</view>
 						<view class="music-lr-line">
 							<text class="music-list-text" :style="{'color': skinColor.color_2}">{{item.singer}}</text>
-							<text v-if="isLead(item.path) > -1" class="music-list-source" :style="{'color': skinColor.color_2}">已导入</text>
+							<text v-if="item.isCollection" class="music-list-source" :style="{'color': skinColor.color_2}">已收藏</text>
 						</view>
 					</view>
 				</view>
@@ -62,7 +62,7 @@
 <script>
 	import appMixin from '@/common/mixin/app.js'
 	import musicMixin from '@/common/mixin/music.js'
-	import { getMusic} from '@/common/online/getMusic.js'
+	import { search } from '@/assets/api/music/index.js'
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CSearch from '@/components/search/search.nvue'
 	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
@@ -142,7 +142,7 @@
 					}
 				}, 500)
 			},
-			//触底加载更多漫画
+			//触底加载更多
 			loadmore (e) {
 				if ( this.nameFilter && !this.isLastPage && this.musicList.length >= 6 ) {
 					clearTimeout(this.moreTimer);
@@ -156,8 +156,8 @@
 			},
 			//搜索在线音乐
 			searchMusic (type = 'search') {
-				getMusic({
-					title: this.nameFilter,
+				search({
+					keyword: this.nameFilter,
 					page: this.nowPages,
 					isLastPage: this.isLastPages
 				}).then((res) => {
@@ -231,14 +231,7 @@
 				let music = [];
 				for ( let i in this.checkes ) {
 					let index = getApp().globalData.$utils.indexOf(this.musicList, 'path', this.checkes[i]);
-					music.push({
-						name: this.musicList[index].name,
-						singer: this.musicList[index].singer,
-						image: this.musicList[index].image,
-						path: this.musicList[index].path,
-						lyric: this.musicList[index].lyric,
-						source: this.musicList[index].source
-					});
+					music.push(this.musicList[index]);
 				}
 				this.leadMusic(music).then((res) => {
 					uni.showToast({
@@ -262,21 +255,21 @@
 							err++;
 						}
 					}
-					this.addMusic(music);
+					this.addCollection(music);
 					if ( err == 0 ) {
 						resolve({
-							title: '添加成功',
+							title: '收藏成功',
 							code: 200
 						});
 					} else {
 						if ( arr.length > 1 ) {
 							resolve({
-								title: '成功导入' + (arr.length - err) + '首歌曲，' + '有' + err + '首歌曲导入失败',
+								title: '成功收藏' + (arr.length - err) + '首歌曲，' + '有' + err + '首歌曲导入失败',
 								code: 205
 							});
 						} else {
 							resolve({
-								title: '已经添加过这首歌了',
+								title: '已经收藏过这首歌了',
 								code: 300
 							});
 						}
@@ -289,16 +282,9 @@
 				if ( flag > -1 ) {
 					this.changeMusic(path);
 				} else {
-					let index = getApp().globalData.$utils.indexOf(this.musicList, 'path', path);
+					const index = getApp().globalData.$utils.indexOf(this.musicList, 'path', path);
 					let music = [];
-					music.push({
-						name: this.musicList[index].name,
-						singer: this.musicList[index].singer,
-						image: this.musicList[index].image,
-						path: this.musicList[index].path,
-						lyric: this.musicList[index].lyric,
-						source: this.musicList[index].source
-					});
+					music.push(this.musicList[index]);
 					this.leadMusic(music).then((res) => {
 						if ( res.code == 200 ) {
 							this.changeMusic(path);
@@ -307,44 +293,35 @@
 				}
 			},
 			//展示操作列表
-			showAction (path) {
+			showAction (item) {
 				let actions = [];
-				//已经导入的文件操作列表
 				actions = [{
-					title: this.isLead(path) > -1 ? '取消导入' : '导入',
-					value: this.isLead(path) > -1 ? 'pop' : 'push',
+					title: item.isCollection ? '取消收藏' : '收藏',
+					value: item.isCollection ? 'pop' : 'push',
 				}]
 				getApp().globalData.$dom.actionSheet(actions).then((res) => {
-					let index = getApp().globalData.$utils.indexOf(this.musicList, 'path', path);
-					//用户选择导入操作
 					if ( res.value == 'push' ) {
 						let music = [];
-						music.push({
-							name: this.musicList[index].name,
-							singer: this.musicList[index].singer,
-							image: this.musicList[index].image,
-							path: this.musicList[index].path,
-							lyric: this.musicList[index].lyric,
-							source: this.musicList[index].source
-						});
+						music.push(item);
 						this.leadMusic(music).then((res) => {
+							const index = this.musicList.findIndex(music => music.id == item.id)
+							this.$set(this.musicList[index], 'isCollection', true)
 							uni.showToast({
 								title: res.title,
 								icon: 'none'
 							})
 						})
 					}
-					//选择取消导入
 					if ( res.value == 'pop' ) {
-						let name = this.musicList[index].name;
-						getApp().globalData.$dom.confirm('操作提示', '确认将  ' + name +'  从导入列表删除吗？').then((res) => {
+						getApp().globalData.$dom.confirm('操作提示', '确认将  ' + item.name +'  从导入列表删除吗？').then((res) => {
 							if ( res == 'confirm' ) {
-								this.deleteMusic(path);
+								this.removeCollection(item.id);
+								const index = this.musicList.findIndex(music => music.id == item.id)
+								this.$set(this.musicList[index], 'isCollection', false)
 							}
 						});
 					}
 				})
-				
 			},
 			changeMusic (path) {
 				if ( this.playRecord != path ) {

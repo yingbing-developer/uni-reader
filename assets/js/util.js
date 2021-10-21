@@ -25,6 +25,14 @@ export default {
 		return minutes + ':' + seconds;
 	},
 	/* *
+	 * 时间转化为秒数
+	 * @param {String} time 时间（HH:mm:ss）
+	 * */
+	time2seconds (time){
+		const seconds = parseInt(time.split(':')[0]) * 60 + parseInt(time.split(':')[1].split('.')[0]) + parseInt(time.split(':')[1].split('.')[1]) / 1000;
+		return seconds; 
+	},
+	/* *
 	 * 移除url地址域名
 	 * @param {String} str http地址
 	 * */

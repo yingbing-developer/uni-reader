@@ -1,0 +1,307 @@
+<template>
+	<view class="music">
+		<view class="mask" ref="mask" @tap="hide"></view>
+		<view class="popup" ref="popup" @touchmove.stop.prevent="" :style="{'background-color': skinColor.color_bg_1 }">
+			<view class="top" :style="{'border-color': skinColor.color_gap_1}">
+				<view class="mode" @tap="changeMode">
+					<c-icon name="loop" size="40" :color="skinColor.color_1" v-if="getMusicPlayMode == 'loop'"></c-icon>
+					<c-icon name="once" size="40" :color="skinColor.color_1" v-if="getMusicPlayMode == 'once'"></c-icon>
+					<c-icon name="random" size="40" :color="skinColor.color_1" v-if="getMusicPlayMode == 'random'"></c-icon>
+					<text class="modeName" :style="{color: skinColor.color_1}">{{modeName}}</text>
+				</view>
+				<view class="top-right">
+					<view class="tr-icon" @tap="routePush('/pages/music/online')">
+						<c-icon name="network" size="38" :color="skinColor.color_1"></c-icon>
+					</view>
+					<view class="tr-icon" @tap="routePush('/pages/music/search')">
+						<c-icon name="search" size="38" :color="skinColor.color_1"></c-icon>
+					</view>
+					<view class="tr-icon" @tap="hide">
+						<c-icon name="delete" size="28" :color="skinColor.color_1"></c-icon>
+					</view>
+				</view>
+			</view>
+			<list-scroll column-width="680" :list="listSync" :lineHeight="80" ref="musicList">
+				<template v-slot="{item}">
+					<view class="list" :class="skinMode + '-actived'" @tap="goPlayer(item.path)">
+						<text class="list-name" :style="{color: playRecord == item.path ? '#d43c33' : skinColor.color_1}">{{item.name}}</text>
+						<view class="list-right">
+							<view class="list-icon" @tap.stop="playMusic(item.path)">
+								<c-icon name="pause" size="37" color="#d43c33" v-if="playStatus && playRecord == item.path"></c-icon>
+								<c-icon name="play" size="35" color="#d43c33" v-else></c-icon>
+							</view>
+							<view class="list-icon" @tap.stop="deleteItem(item.path)">
+								<c-icon name="waste-fill" size="28" color="#d43c33"></c-icon>
+							</view>
+						</view>	
+					</view>
+				</template>
+			</list-scroll>
+			<no-data position="absolute" title="没有导入的歌曲哦!" v-if="listSync.length <= 0"></no-data>
+			<view class="add" @touchmove.stop.prevent="">
+				<view class="add-btn" :style="{'border-color': skinColor.color_1}" @tap="clear">
+					<text class="add-text" :style="{color: skinColor.color_1}">清除全部歌曲</text>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CProgress from '@/components/progress/progress.nvue'
+	import NoData from '@/components/no-data/no-data.nvue'
+	import musicMixin from '@/common/mixin/music.js'
+	import musiccertifyMixin from '@/common/mixin/musiccertify.js'
+	import appMixin from '@/common/mixin/app.js';
+	const animation = weex.requireModule('animation');
+	export default {
+		mixins: [musicMixin, musiccertifyMixin, appMixin],
+		data () {
+			return {
+				anima: {
+					opac: 0.4,
+					duration: 400
+				},
+				height: 800
+			}
+		},
+		onReady() {
+			this.show();
+		},
+		computed: {
+			listSync () {
+				return this.playList.filter((item) => {
+					if ( getApp().globalData.$config.ADULTS.indexOf(item.source) == -1 || this.getAdult ) {
+						return item
+					}
+				});
+			},
+			playStatus () {
+				return this.getMusicPlayStatus;
+			},
+			modeName () {
+				return this.getMusicPlayMode == 'loop' ? '顺序播放' : this.getMusicPlayMode == 'once' ? '单曲循环' : '随机播放';
+			},
+			playRecord () {
+				return this.getMusicPlayRecord;
+			}
+		},
+		methods: {
+			show () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: this.anima.opac
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateY(0)',
+						opacity: 1
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, () => {
+					setTimeout(() => {
+						let index = getApp().globalData.$utils.indexOf(this.playList, 'path', this.playRecord);
+						if ( index > -1) {
+							this.$refs.musicList.scrollTo(index);
+						}
+					}, 200)
+				})
+			},
+			hide () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: '0'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateY(' + Math.abs(this.height) + 'rpx)',
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, () => {
+					getApp().globalData.$Router.back();
+				})
+			},
+			//清空歌曲
+			clear () {
+				getApp().globalData.$dom.confirm('操作提示', '确认清空歌曲列表吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.clearPlayList();
+					}
+				});
+			},
+			//删除指定歌曲
+			deleteItem (path) {
+				let index = getApp().globalData.$utils.indexOf(this.playList, 'path', path);
+				getApp().globalData.$dom.confirm('操作提示', '确认删除 ' + this.playList[index].name + ' 吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.deleteMusic(path);
+					}
+				});
+			},
+			//改变播放模式
+			changeMode () {
+				switch(this.getMusicPlayMode)
+				{
+				    case 'loop':
+				        this.changeMusicPlayMode('once');
+				        break;
+				    case 'once':
+				        this.changeMusicPlayMode('random');
+				        break;
+				    default:
+				        this.changeMusicPlayMode('loop');
+						break;
+				}
+			},
+			goPlayer (path) {
+				if ( this.playRecord != path ) {
+					this.updateMusicPlayRecord(path);
+				}
+				getApp().globalData.$Router.push({
+					path: '/pages/music/player',
+					animationType: 'fade-in'
+				});
+			},
+			playMusic (path) {
+				if ( this.playRecord == path ) {
+					uni.$emit('change-status', {
+						status: !this.playStatus
+					})
+				} else {
+					this.updateMusicPlayRecord(path)
+				}
+			},
+			//更新时间
+			updateTime (percent) {
+				uni.$emit('update-time', {
+					time: (percent / 100) * this.musicDuration
+				})
+			},
+			routePush (url) {
+				const pages = getCurrentPages();
+				let bol = pages.some((item) => {
+					return item.$page.path == url;
+				})
+				if ( bol ) {
+					return;
+				}
+				getApp().globalData.$Router.push({ path: url });
+			}
+		},
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide();
+				return true;
+			}
+			return false
+		},
+		components: {
+			ListScroll,
+			CIcon,
+			NoData,
+			CProgress
+		}
+	}
+</script>
+
+<style scoped>
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		opacity: 0;
+		background-color: #000000;
+	}
+	.popup {
+		position: fixed;
+		bottom: 200rpx;
+		left: 35rpx;
+		right: 35rpx;
+		height: 800rpx;
+		transform: translateY(800rpx);
+		opacity: 0;
+		border-radius: 20rpx;
+	}
+	.top {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20rpx 30rpx;
+		border-bottom-width: 1px;
+	}
+	.top-right {
+		flex-direction: row;
+		align-items: center;
+	}
+	.tr-icon {
+		margin-left: 20rpx;
+	}
+	.mode {
+		flex-direction: row;
+		align-items: center;
+	}
+	.modeName {
+		font-size: 28rpx;
+		margin-left: 15rpx;
+	}
+	.list {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		height: 80rpx;
+		padding: 0 30rpx;
+	}
+	.list-right {
+		flex-direction: row;
+		align-items: center;
+	}
+	.list-icon {
+		margin-left: 20rpx;
+	}
+	.list-name {
+		flex: 1;
+		font-size: 28rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.add {
+		align-items: center;
+		padding: 30rpx 0;
+	}
+	.add-btn {
+		width: 220rpx;
+		height: 60rpx;
+		border-radius: 60rpx;
+		justify-content: center;
+		align-items: center;
+		border-width: 1px;
+		border-style: solid;
+	}
+	.add-text {
+		font-size: 28rpx;
+	}
+	.close-text {
+		font-size: 25rpx;
+	}
+</style>
