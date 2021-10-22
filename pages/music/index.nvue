@@ -1,6 +1,70 @@
 <template>
 	<view class="music" :style="{'background-color': skinColor.color_bg_1}">
-		<view></view>
+		<swiper
+		:style="{'height': (statusBarHeight + 130) + 'px'}"
+		class="ad-swiper"
+		circular
+		:indicator-dots="true"
+		:indicator-color="skinColor.color_bg_1"
+		:indicator-active-color="skinColor.color_actived_1"
+		:autoplay="true"
+		:interval="3000"
+		:duration="1000">
+			<swiper-item v-for="(item, index) in 3" :key="index">
+				<yb-image lazyLoad class="ad" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></yb-image>
+			</swiper-item>
+		</swiper>
+		
+		<list>
+			<cell>
+				<view class="singer" :class="skinMode + '-actived'" :style="{'background-color': skinColor.color_theme_2}">
+					<view class="singer-left">
+						<yb-icon name="micro-fill" color="#ffa916" size="50"></yb-icon>
+						<text class="singer-text" :style="{color: skinColor.color_1}">歌手列表</text>
+					</view>
+					<view class="go">
+						<text class="go-text">GO</text>
+					</view>
+				</view>
+			</cell>
+			<cell>
+				<view class="types">
+					<view class="type" :class="skinMode + '-actived'"
+					v-for="(item, index) in types"
+					:key="index"
+					:style="{
+						'background-color': skinColor.color_theme_2,
+						'margin-right': ((parseInt(index / 4) + 1) * 4) - 1 == index ? '0' : '24rpx'
+					}">
+						<text class="type-text" :style="{color: skinColor.color_1}">{{item}}</text>
+						<yb-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1"></yb-icon>
+					</view>
+				</view>
+			</cell>
+			<cell>
+				<view class="sheets">
+					<view class="title">
+						<text class="title-name" :style="{color: skinColor.color_1}">推荐歌单</text>
+						<view class="more opac-actived">
+							<text class="more-text" :style="{color: skinColor.color_2}">更多</text>
+							<yb-icon name="arrow-right" :color="skinColor.color_2"></yb-icon>
+						</view>
+					</view>
+					<view class="list">
+						<view class="item" :style="{
+							'margin': ((parseInt(index / 3) + 1) * 3) - 2 == index ? '0 24rpx 24rpx 24rpx' : '0 0 24rpx 0'
+						}" v-for="(item, index) in hots" :key="index">
+							<yb-image lazyLoad class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></yb-image>
+							<view class="num">
+								<yb-icon name="play" :color="skinColor.color_4"></yb-icon>
+								<text class="num-text" :style="{color: skinColor.color_4}">495.3万</text>
+							</view>
+							<text class="name" :style="{color: skinColor.color_1}">减压助眠纯音乐好梦</text>
+						</view>
+					</view>
+				</view>
+			</cell>
+		</list>
 	</view>
 </template>
 
@@ -10,7 +74,13 @@
 		mixins: [appMixin],
 		data () {
 			return {
+				statusBarHeight: 0,
+				types: ['古典', '流行', '华语', '欧美', '二次元', '轻音乐', '经典', '更多'],
+				hots: [1,2,3,4,5,6]
 			}
+		},
+		onLoad () {
+			this.statusBarHeight = uni.getSystemInfoSync().statusBarHeight
 		},
 		onReady() {
 		},
@@ -24,84 +94,113 @@
 </script>
 
 <style scoped>
-	.mask {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		opacity: 0;
-		background-color: #000000;
+	.ad-swiper {
+		height: 200rpx;
 	}
-	.popup {
-		position: fixed;
-		bottom: 200rpx;
-		left: 35rpx;
-		right: 35rpx;
-		height: 800rpx;
-		transform: translateY(800rpx);
-		opacity: 0;
-		border-radius: 20rpx;
+	.ad-swiper .ad {
+		flex: 1;
 	}
-	.top {
+	.singer {
+		height: 120rpx;
+		margin: 24rpx 30rpx;
+		border-radius: 16rpx;
+		padding: 0 30rpx;
 		flex-direction: row;
+		align-items: center;
 		justify-content: space-between;
-		align-items: center;
-		padding: 20rpx 30rpx;
-		border-bottom-width: 1px;
 	}
-	.top-right {
+	.singer-left {
 		flex-direction: row;
 		align-items: center;
 	}
-	.tr-icon {
-		margin-left: 20rpx;
+	.singer .singer-text {
+		font-weight: bold;
+		font-size: 36rpx;
+		margin-left: 45rpx;
 	}
-	.mode {
-		flex-direction: row;
-		align-items: center;
-	}
-	.modeName {
-		font-size: 28rpx;
-		margin-left: 15rpx;
-	}
-	.list {
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
+	.singer .go {
+		width: 80rpx;
 		height: 80rpx;
+		border-radius: 80rpx;
+		background: linear-gradient(to bottom, #ffdca0, #ffab1f);
+		align-items: center;
+		justify-content: center;
+	}
+	.singer .go .go-text {
+		font-weight: bold;
+		font-size: 38rpx;
+		color: #fff;
+	}
+	.types {
+		flex-direction: row;
+		justify-content: center;
+		flex-wrap: wrap;
 		padding: 0 30rpx;
 	}
-	.list-right {
+	.types .type {
+		width: 150rpx;
+		height: 64rpx;
 		flex-direction: row;
 		align-items: center;
+		justify-content: center;
+		margin: 0 0 24rpx 0;
 	}
-	.list-icon {
-		margin-left: 20rpx;
+	.types .type .type-text {
+		font-size: 24rpx;
 	}
-	.list-name {
-		flex: 1;
-		font-size: 28rpx;
+	
+	.sheets {
+		padding: 0 30rpx;
+	}
+	.sheets .title {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: 40rpx 0;
+	}
+	.sheets .title .title-name {
+		font-weight: bold;
+		font-size: 32rpx;
+	}
+	.sheets .title .more {
+		flex-direction: row;
+	}
+	.sheets .title .more .more-text {
+		font-size: 24rpx;
+	}
+	
+	.sheets .list {
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	.sheets .list .item {
+		position: relative;
+		width: 208rpx;
+	}
+	.sheets .list .item .cover {
+		width: 208rpx;
+		height: 208rpx;
+		border-radius: 12rpx;
+	}
+	.sheets .list .item .name {
+		font-size: 24rpx;
+		height: 66rpx;
+		lines: 2;
+		text-overflow: ellipsis;
+		margin-top: 15rpx;
+	}
+	.sheets .list .item .num {
+		flex-direction: row;
+		align-items: center;
+		position: absolute;
+		bottom: 90rpx;
+		left: 10rpx;
 		lines: 1;
 		text-overflow: ellipsis;
 	}
-	.add {
-		align-items: center;
-		padding: 30rpx 0;
-	}
-	.add-btn {
-		width: 220rpx;
-		height: 60rpx;
-		border-radius: 60rpx;
-		justify-content: center;
-		align-items: center;
-		border-width: 1px;
-		border-style: solid;
-	}
-	.add-text {
-		font-size: 28rpx;
-	}
-	.close-text {
-		font-size: 25rpx;
+	.sheets .list .item .num .num-text {
+		font-size: 24rpx;
+		margin-left: 10rpx;
 	}
 </style>

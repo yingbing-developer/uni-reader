@@ -2,7 +2,8 @@
 
 export default {
 	color_theme_1: '#2ca2f9',
-	color_bg_1: '#FAFAFA',
+	color_theme_2: '#f2fbff',
+	color_bg_1: '#FFFFFF',
 	color_actived_1: '#2ca2f9',
 	color_1: '#333',
 	color_2: '#666',

@@ -38,4 +38,8 @@
 	/* #ifdef APP-VUE */
 	page {background: transparent;}
 	/* #endif */
+	
+	.opac-actived:active {
+		opacity: 0.5;
+	}
 </style>
