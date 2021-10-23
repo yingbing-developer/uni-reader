@@ -1,0 +1,30 @@
+<template>
+	<view class="bar" :style="{'height': barHeight, 'background-color': color}"></view>
+</template>
+
+<script>
+	export default {
+		props: {
+			color: {
+				type: String,
+				default: ''
+			}
+		},
+		data () {
+			return {
+				barHeight: ''
+			}
+		},
+		created () {
+			uni.getSystemInfo({
+				success: (res) => {//根据状态栏高度, 进行导航栏顶部适配
+					this.barHeight = `${res.statusBarHeight}px`;
+				}
+			})
+		}
+	}
+</script>
+
+<style>
+
+</style>

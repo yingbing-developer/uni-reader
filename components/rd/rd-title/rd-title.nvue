@@ -1,0 +1,54 @@
+<template>
+	<view class="title">
+		<text class="title-name" :style="{color: skinColor.color_1}">{{title}}</text>
+		<view class="more opac-actived" @tap="more" v-if="moreShow">
+			<text class="more-text" :style="{color: skinColor.color_2}">{{moreText}}</text>
+			<rd-icon name="arrow-right" :color="skinColor.color_2"></rd-icon>
+		</view>
+	</view>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		props: {
+			title: {
+				type: String,
+				default: ''
+			},
+			moreShow: {
+				type: Boolean,
+				default: true
+			},
+			moreText: {
+				type: String,
+				default: '更多'
+			}
+		},
+		methods: {
+			more () {
+				this.$emit('more')
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.title {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: 40rpx 0;
+	}
+	.title .title-name {
+		font-weight: bold;
+		font-size: 32rpx;
+	}
+	.title .more {
+		flex-direction: row;
+	}
+	.title .more .more-text {
+		font-size: 24rpx;
+	}
+</style>

@@ -6,7 +6,10 @@ const appMixin = {
 			getAdultPwd: 'app/getAdultPwd',
 			skinMode: 'app/skinMode',
 			skinColor: 'app/skinColor'
-		})
+		}),
+		app () {
+			return getApp().globalData
+		}
 	},
 	methods: {
 		...mapMutations({

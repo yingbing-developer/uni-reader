@@ -11,16 +11,16 @@
 		:interval="3000"
 		:duration="1000">
 			<swiper-item v-for="(item, index) in 3" :key="index">
-				<yb-image lazyLoad class="ad" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></yb-image>
+				<rd-image lazyLoad class="ad" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
 			</swiper-item>
 		</swiper>
-		
-		<list>
+		<list class="list">
+			<yb-pulldown ref="pulldown" :color="skinColor.color_1" @pulldown="pulldown"></yb-pulldown>
 			<cell>
-				<view class="singer" :class="skinMode + '-actived'" :style="{'background-color': skinColor.color_theme_2}">
+				<view class="singer-line opac-actived" :style="{'background-color': skinColor.color_theme_2}" @tap="app.$Router.push({path: '/pages/music/search'})">
 					<view class="singer-left">
-						<yb-icon name="micro-fill" color="#ffa916" size="50"></yb-icon>
-						<text class="singer-text" :style="{color: skinColor.color_1}">歌手列表</text>
+						<rd-icon name="micro-fill" color="#ffa916" size="50"></rd-icon>
+						<text class="singer-text" :style="{color: skinColor.color_1}">搜索歌曲/歌手</text>
 					</view>
 					<view class="go">
 						<text class="go-text">GO</text>
@@ -29,7 +29,7 @@
 			</cell>
 			<cell>
 				<view class="types">
-					<view class="type" :class="skinMode + '-actived'"
+					<view class="type opac-actived"
 					v-for="(item, index) in types"
 					:key="index"
 					:style="{
@@ -37,32 +37,38 @@
 						'margin-right': ((parseInt(index / 4) + 1) * 4) - 1 == index ? '0' : '24rpx'
 					}">
 						<text class="type-text" :style="{color: skinColor.color_1}">{{item}}</text>
-						<yb-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1"></yb-icon>
+						<rd-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1"></rd-icon>
 					</view>
 				</view>
 			</cell>
+			
+			<!-- 推荐歌单 -->
+			<rd-header title="推荐歌单"></rd-header>
 			<cell>
-				<view class="sheets">
-					<view class="title">
-						<text class="title-name" :style="{color: skinColor.color_1}">推荐歌单</text>
-						<view class="more opac-actived">
-							<text class="more-text" :style="{color: skinColor.color_2}">更多</text>
-							<yb-icon name="arrow-right" :color="skinColor.color_2"></yb-icon>
+				<rd-grid title="推荐歌单" :data="hotSheets" :recom-index="6" @more="sheetsMore" @clickTo="sheetsClick"></rd-grid>
+			</cell>
+			
+			<!-- 热门歌手 -->
+			<rd-header title="热门歌手"></rd-header>
+			<cell>
+				<view class="padding-gap">
+					<rd-title title="热门歌手" moreText="更多" @more="sheetsMore"></rd-title>
+					<scroll-view :show-scrollbar="false" scroll-x="true" class="singers">
+						<view class="singer"
+						v-for="(item, index) in hotSingers" :key="index"
+						:style="{'margin-right': index == hotSingers.length - 1 ? 0 : '24rpx'}">
+							<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
+							<text class="name">周杰伦</text>
 						</view>
-					</view>
-					<view class="list">
-						<view class="item" :style="{
-							'margin': ((parseInt(index / 3) + 1) * 3) - 2 == index ? '0 24rpx 24rpx 24rpx' : '0 0 24rpx 0'
-						}" v-for="(item, index) in hots" :key="index">
-							<yb-image lazyLoad class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></yb-image>
-							<view class="num">
-								<yb-icon name="play" :color="skinColor.color_4"></yb-icon>
-								<text class="num-text" :style="{color: skinColor.color_4}">495.3万</text>
-							</view>
-							<text class="name" :style="{color: skinColor.color_1}">减压助眠纯音乐好梦</text>
-						</view>
-					</view>
+					</scroll-view>
 				</view>
+			</cell>
+			
+			<!-- 新歌速递 -->
+			<rd-header title="新歌速递"></rd-header>
+			<cell>
+				<rd-grid title="新歌速递" :data="hotSongs" :recom-index="6" @more="sheetsMore" @clickTo="sheetsClick"></rd-grid>
+				<yb-gap></yb-gap>
 			</cell>
 		</list>
 	</view>
@@ -76,7 +82,9 @@
 			return {
 				statusBarHeight: 0,
 				types: ['古典', '流行', '华语', '欧美', '二次元', '轻音乐', '经典', '更多'],
-				hots: [1,2,3,4,5,6]
+				hotSheets: [1,2,3,4,5,6,7],
+				hotSongs: [1,2,3,4,5,6,7],
+				hotSingers: [1,2,3,4,5,6]
 			}
 		},
 		onLoad () {
@@ -84,11 +92,18 @@
 		},
 		onReady() {
 		},
-		computed: {
-			
-		},
 		methods: {
-			
+			pulldown () {
+				setTimeout(() => {
+					this.$refs.pulldown.success()
+				}, 1000)
+			},
+			sheetsMore () {
+				console.log('more');
+			},
+			sheetsClick (item) {
+				console.log(item);
+			}
 		}
 	}
 </script>
@@ -100,7 +115,7 @@
 	.ad-swiper .ad {
 		flex: 1;
 	}
-	.singer {
+	.singer-line {
 		height: 120rpx;
 		margin: 24rpx 30rpx;
 		border-radius: 16rpx;
@@ -109,16 +124,16 @@
 		align-items: center;
 		justify-content: space-between;
 	}
-	.singer-left {
+	.singer-line .singer-left {
 		flex-direction: row;
 		align-items: center;
 	}
-	.singer .singer-text {
+	.singer-line .singer-text {
 		font-weight: bold;
 		font-size: 36rpx;
 		margin-left: 45rpx;
 	}
-	.singer .go {
+	.singer-line .go {
 		width: 80rpx;
 		height: 80rpx;
 		border-radius: 80rpx;
@@ -126,7 +141,7 @@
 		align-items: center;
 		justify-content: center;
 	}
-	.singer .go .go-text {
+	.singer-line .go .go-text {
 		font-weight: bold;
 		font-size: 38rpx;
 		color: #fff;
@@ -149,58 +164,20 @@
 		font-size: 24rpx;
 	}
 	
-	.sheets {
-		padding: 0 30rpx;
-	}
-	.sheets .title {
-		flex-direction: row;
-		align-items: center;
-		justify-content: space-between;
-		padding: 40rpx 0;
-	}
-	.sheets .title .title-name {
-		font-weight: bold;
-		font-size: 32rpx;
-	}
-	.sheets .title .more {
+	.singers {
 		flex-direction: row;
 	}
-	.sheets .title .more .more-text {
+	.singers .singer {
+		width: 160rpx;
+	}
+	.singers .singer .cover {
+		width: 160rpx;
+		height: 200rpx;
+	}
+	.singers .singer .name {
 		font-size: 24rpx;
-	}
-	
-	.sheets .list {
-		flex-direction: row;
-		flex-wrap: wrap;
-		justify-content: center;
-	}
-	.sheets .list .item {
-		position: relative;
-		width: 208rpx;
-	}
-	.sheets .list .item .cover {
-		width: 208rpx;
-		height: 208rpx;
-		border-radius: 12rpx;
-	}
-	.sheets .list .item .name {
-		font-size: 24rpx;
-		height: 66rpx;
-		lines: 2;
-		text-overflow: ellipsis;
-		margin-top: 15rpx;
-	}
-	.sheets .list .item .num {
-		flex-direction: row;
-		align-items: center;
-		position: absolute;
-		bottom: 90rpx;
-		left: 10rpx;
 		lines: 1;
-		text-overflow: ellipsis;
-	}
-	.sheets .list .item .num .num-text {
-		font-size: 24rpx;
-		margin-left: 10rpx;
+		text-align: center;
+		margin: 10rpx 0;
 	}
 </style>

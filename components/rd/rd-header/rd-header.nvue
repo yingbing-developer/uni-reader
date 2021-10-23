@@ -1,0 +1,34 @@
+<template>
+	<header class="header">
+		<view class="header-line padding-gap" :style="{'background-color': skinColor.color_theme_1}">
+			<text class="header-text" :style="{color: skinColor.color_4}">{{title}}</text>
+		</view>
+	</header>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		props: {
+			title: {
+				type: String,
+				default: ''
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.header {
+		height: 0;
+	}
+	.header .header-line {
+		height: 70rpx;
+		justify-content: center;
+	}
+	.header-line .header-text {
+		font-size: 32rpx;
+		font-weight: bold;
+	}
+</style>

@@ -1,0 +1,111 @@
+<template>
+	<loading class="loading" :display="display" @loading="loadmore" v-if="!isFinish">
+		<view class="indicator-text">
+			<text class="refresh-text" :style="{color: color}">{{loadingText}}</text>
+		</view>
+		<loading-indicator v-if="showIndicator" class="loading-indicator" animating :style="{color: color}"></loading-indicator>
+	</loading>
+</template>
+
+<script>
+	export default {
+		props: {
+			color: {
+				type: String,
+				default: '#333'
+			}
+		},
+		data () {
+			return {
+				//显示/隐藏
+				display: 'show',
+				//控制loading控件显示
+				showIndicator: false,
+				//正在刷新中？
+				refreshing: false,
+				//等待提示文字
+				loadingText: '加载更多',
+				isFinish: false
+			}
+		},
+		methods: {
+			success () {
+				this.isFinish = false;
+				if ( !this.refreshing ) {
+					return;
+				}
+				this.loadingText = '加载成功';
+				this.showIndicator = false;
+				setTimeout(() => {
+					this.reset();
+				}, 500)
+			},
+			finish () {
+				this.loadingText = '加载完成'
+				this.showIndicator = false;
+				this.display = 'hide';
+				setTimeout(() => {
+					this.loadingText = '加载更多'
+					this.refreshing = false;
+					this.display = 'show';
+					this.isFinish = true;
+				}, 500)
+			},
+			fail () {
+				this.isFinish = false;
+				if ( !this.refreshing ) {
+					return;
+				}
+				this.loadingText = '加载失败'
+				this.showIndicator = false;
+				setTimeout(() => {
+					this.reset();
+				}, 500)
+			},
+			reset () {
+				this.display = 'hide';
+				setTimeout(() => {
+					this.loadingText = '加载更多'
+					this.refreshing = false;
+					this.display = 'show';
+				}, 500)
+			},
+			loadmore () {
+				this.refreshing = true;
+				this.showIndicator = true;
+				this.loadingText = '加载更多'
+				//延迟0.5秒后再抛出事件
+				setTimeout(() => {
+					this.$emit('pullup');
+				}, 500)
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.loading {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+	.indicator-text {
+		flex-direction: row;
+		align-items: center;
+	}
+	.indicator-symbol {
+		font-size: 38rpx;
+		font-weight: bold;
+		margin-right: 10rpx;
+	}
+	.refresh-text {
+		font-size: 25rpx;
+		margin: 20rpx 0;
+		margin-right: 10rpx;
+	}
+	.loading-indicator {
+		width: 40rpx;
+		height: 40rpx;
+		color: #333;
+	}
+</style>

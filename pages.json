@@ -100,7 +100,7 @@
 				}
 			}
 		},
-		//添加音乐
+		//搜索音乐
 		{
 			"path": "pages/music/search"
 		},
@@ -117,6 +117,7 @@
 			"path": "modules/confirm",
 			"style": {
 				"backgroundColor": "transparent",
+				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -131,6 +132,7 @@
 			"path": "modules/actionSheet",
 			"style": {
 				"backgroundColor": "transparent",
+				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -145,6 +147,7 @@
 			"path": "modules/edit",
 			"style": {
 				"backgroundColor": "transparent",
+				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -159,6 +162,7 @@
 			"path": "modules/catalog",
 			"style": {
 				"backgroundColor": "transparent",
+				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -173,6 +177,7 @@
 			"path": "modules/security",
 			"style": {
 				"backgroundColor": "transparent",
+				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -185,13 +190,11 @@
 	],
 	"globalStyle": {
 		"disableScroll": true, // 不嵌套 scroller
-		"navigationStyle": "custom",
-		"navigationBarTextStyle": "white",
-		"navigationBarBackgroundColor": "transparent",
 		"backgroundColor":"#999",
+		"navigationStyle":"custom",
 		"app-plus": {
-			"titleNView": false,
-			"background": "#999"
+			"background": "#999",
+			"titleNView": false
 		}
 	},
 	"tabBar": {
@@ -224,7 +227,8 @@
 	"easycom": {
 		"autoscan": true, //是否自动扫描组件
 		"custom": { //自定义扫描规则
-			"^yb-(.*)": "@/components/yb/yb-$1/yb-$1.nvue"
+			"^yb-(.*)": "@/components/yb/yb-$1/yb-$1.nvue",
+			"^rd-(.*)": "@/components/rd/rd-$1/rd-$1.nvue"
 		}
 	},
 	"condition" : { //模式配置，仅开发期间生效

@@ -42,4 +42,12 @@
 	.opac-actived:active {
 		opacity: 0.5;
 	}
+	.margin-gap {
+		margin-left: 30rpx;
+		margin-right: 30rpx;
+	}
+	.padding-gap {
+		padding-left: 30rpx;
+		padding-right: 30rpx;
+	}
 </style>

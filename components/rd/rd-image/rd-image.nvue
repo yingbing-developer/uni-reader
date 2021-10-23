@@ -1,5 +1,5 @@
 <template>
-	<view class="c-image">
+	<view class="c-image" @tap="onTap">
 		<image @load="getImageInfo" @error="error" ref="image"
 			class="c-img" :lazyLoad="lazyLoad" :src="url" :mode="mode"
 			:style="{borderRadius: borderRadius + 'rpx'}"></image>
@@ -111,6 +111,9 @@
 			}
 		},
 		methods: {
+			onTap () {
+				this.$emit('click')
+			},
 			selectCache () {
 				const caches = this.imageCache;
 				const index = caches.findIndex(cache => cache.key == this.src)
