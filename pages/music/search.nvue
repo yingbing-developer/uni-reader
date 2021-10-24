@@ -1,43 +1,27 @@
 <template>
-	<view class="search" :style="{'background-color': skinColor.color_bg_1}">
-		<yb-gap-bar></yb-gap-bar>
-		<view class="search-box">
-			<rd-icon class="back opac-actived" name="arrow-left" size="50" :color="skinColor.color_1" @click="app.$Router.back()"></rd-icon>
-			<view class="search-left" :style="{'background-color': skinColor.color_gap_1}">
-				<rd-icon name="search" :color="skinColor.color_1" size="35"></rd-icon>
-				<input class="input" type="text" placeholder="搜索歌曲/歌手" :style="{'color': skinColor.color_1}" />
-			</view>
-		</view>
-		<list>
-			<cell>
-				<yb-gap></yb-gap>
-			</cell>
-			<rd-header title="热门搜索"></rd-header>
-			<cell>
-				<view class="title padding-gap">
-					<text class="title-text" :style="{'color': skinColor.color_3}">热门搜索</text>
-				</view>
-				<view class="keywords padding-gap">
-					<text class="keyword" :class="skinMode + '-actived'" :style="{'color': skinColor.color_2, 'border-color': skinColor.color_2}"
-					v-for="(item, index) in keywords" :key="index">{{item}}</text>
-				</view>
-			</cell>
-			<rd-header title="搜索历史"></rd-header>
-			<cell>
-				<yb-gap></yb-gap>
-				<view class="title padding-gap">
-					<text class="title-text" :style="{'color': skinColor.color_3}">搜索历史</text>
-					<rd-icon class="opac-actived" name="waste-fill" :color="skinColor.color_3"></rd-icon>
-				</view>
-				<view class="records padding-gap">
-					<view class="record" :style="{'border-color': skinColor.color_gap_1}" v-for="(item, index) in records" :key="index">
-						<text class="record-text" :style="{'color': skinColor.color_2}">{{item}}</text>
-						<rd-icon class="opac-actived" size="24" name="delete" :color="skinColor.color_2"></rd-icon>
+	<rd-search placeholder="搜索歌曲/歌手" :keywords="keywords" :records="records" @change="change">
+		<list class="result" v-if="keyword" :style="{'background-color': skinColor.color_bg_1}">
+			<rd-no-data title="暂无搜索数据" v-if="results.length == 0 && !loading" />
+			<rd-list-loading size="80" :color="skinColor.color_3" title="搜索中" v-if="loading" /></rd-list-loading>
+			<cell v-for="(item, index) in results">
+				<view class="item" :style="{'border-color': skinColor.color_gap_1}">
+					<view class="item-left">
+						<rd-icon name="person" size="34" :color="skinColor.color_1" v-if="item.type == 'singer'"></rd-icon>
+						<rd-icon name="music" size="34" :color="skinColor.color_1" v-else></rd-icon>
+						<view>
+							<text class="label" :style="{color: skinColor.color_1}">{{item.label}}</text>
+							<text class="label sub" :style="{color: skinColor.color_3}" v-if="item.singer">{{item.singer}}</text>
+						</view>
+					</view>
+					<view class="item-right">
+						<rd-icon class="icon opac-actived" name="micro" size="32" :color="skinColor.color_1" v-if="item.type == 'song'"></rd-icon>
+						<rd-icon class="icon opac-actived" name="inc-rect" size="34" :color="skinColor.color_1" v-if="item.type == 'song'"></rd-icon>
+						<music-icon class="icon" name="collection" size="30" :color="skinColor.color_1"></music-icon>
 					</view>
 				</view>
 			</cell>
 		</list>
-	</view>
+	</rd-search>
 </template>
 
 <script>
@@ -46,79 +30,94 @@
 		mixins: [appMixin],
 		data () {
 			return {
+				keyword: '',
+				loading: false,
 				keywords: ['反方向的钟', '阿姨莫', '失忆', '五十年以后', '一路生化', '孤城', '陶氏幺幺', '它山和', '最爱'],
-				records: ['反方向的钟', '阿姨莫', '失忆', '五十年以后', '一路生化', '孤城', '陶氏幺幺', '它山和', '最爱', '反方向的钟', '阿姨莫', '失忆', '五十年以后', '一路生化', '孤城', '陶氏幺幺', '它山和', '最爱']
+				records: ['反方向的钟', '阿姨莫', '失忆', '五十年以后', '一路生化', '孤城', '陶氏幺幺', '它山和', '最爱', '反方向的钟', '阿姨莫', '失忆', '五十年以后', '一路生化', '孤城', '陶氏幺幺', '它山和', '最爱'],
+				results: []
 			}
 		},
 		computed: {
 			
 		},
 		methods: {
-			
+			search (keyword) {
+				this.keyword = keyword
+				this.loading = true;
+				setTimeout(() => {
+					this.results = [{
+						label: '周杰伦',
+						type: 'singer'
+					},{
+						label: '蝴蝶梦',
+						type: 'song',
+						singer: '周杰伦'
+					},{
+						label: '青花瓷',
+						type: 'song',
+						singer: '周杰伦'
+					},{
+						label: '稻香',
+						type: 'song',
+						singer: '周杰伦'
+					},{
+						label: '和蔼的情人',
+						type: 'song',
+						singer: '周杰伦'
+					},{
+						label: '疯子一群',
+						type: 'song',
+						singer: '周杰伦'
+					}]
+					this.loading = false;
+				}, 500)
+			},
+			change (keyword) {
+				this.keyword = keyword
+				if ( keyword ) {
+					this.results = []
+					this.search(keyword)
+				} else {
+					this.results = []
+				}
+			}
 		}
 	}
 </script>
 
-<style scoped>
-	.search-box {
-		flex-direction: row;
-		align-items: center;
-		margin: 10rpx 0;
+<style scoped>	
+	.result {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 	}
-	.search-box .search-left {
-		flex-direction: row;
-		align-items: center;
-		border-radius: 12rpx;
-		height: 80rpx;
-		padding: 0 20rpx;
-		margin-right: 30rpx;
-		flex: 1;
-	}
-	.search-box .input {
-		flex: 1;
-		font-size: 28rpx;
-		margin-left: 20rpx;
-	}
-	.search-box .back {
-		margin-right: 10rpx;
-	}
-	
-	.title {
-		flex-direction: row;
-		align-items: center;
-		justify-content: space-between;
-		margin: 20rpx 0 0 0;
-	}
-	.title .title-text {
-		font-size: 28rpx;
-	}
-	
-	.keywords {
-		flex-direction: row;
-		flex-wrap: wrap;
-		margin-top: 40rpx;
-	}
-	.keywords .keyword {
-		border-width: 1rpx;
-		border-radius: 12rpx;
-		padding: 10rpx 20rpx;
-		margin: 0 40rpx 20rpx 0;
-		font-size: 28rpx;
-	}
-	
-	.records {
-		margin-top: 20rpx;
-	}
-	.records .record {
-		flex-direction: row;
-		align-items: center;
-		justify-content: space-between;
-		padding: 20rpx 0;
+	.result .item {
+		padding: 20rpx 55rpx;
 		border-bottom-width: 1rpx;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
 	}
-	.records .record .record-text {
+	.result .item .label {
 		font-size: 28rpx;
-		lines: 1;
+		margin-left: 10rpx;
 		flex: 1;
+	}
+	.result .item .sub {
+		font-size: 24rpx;
+	}
+	.result .item .item-left {
+		flex-direction: row;
+		align-items: center;
+		flex: 1;
+	}
+	.result .item .item-right {
+		flex-direction: row;
+		align-items: center;
+	}
+	.result .item .item-right .icon {
+		margin-left: 20rpx;
 	}
 </style>

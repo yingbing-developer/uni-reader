@@ -23,7 +23,7 @@
 	.header {
 		height: 0;
 	}
-	.header .header-line {
+	.header-line {
 		height: 70rpx;
 		justify-content: center;
 	}

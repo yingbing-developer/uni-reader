@@ -190,7 +190,7 @@
 	],
 	"globalStyle": {
 		"disableScroll": true, // 不嵌套 scroller
-		"backgroundColor":"#999",
+		"backgroundColor": "#999",
 		"navigationStyle":"custom",
 		"app-plus": {
 			"background": "#999",
@@ -228,7 +228,8 @@
 		"autoscan": true, //是否自动扫描组件
 		"custom": { //自定义扫描规则
 			"^yb-(.*)": "@/components/yb/yb-$1/yb-$1.nvue",
-			"^rd-(.*)": "@/components/rd/rd-$1/rd-$1.nvue"
+			"^rd-(.*)": "@/components/rd/rd-$1/rd-$1.nvue",
+			"^music-(.*)": "@/components/music/music-$1/music-$1.nvue"
 		}
 	},
 	"condition" : { //模式配置，仅开发期间生效

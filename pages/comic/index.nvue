@@ -6,7 +6,9 @@
 
 <script>
 	export default {
-		
+		onShow () {
+			getApp().globalData.$business.setSkinColor();
+		}
 	}
 </script>
 

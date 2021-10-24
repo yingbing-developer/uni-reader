@@ -38,9 +38,18 @@ const mutations = {
 	}
 }
 
+const actions = {
+	//改变皮肤模式
+	changeSkinAction ({commit}, skin) {
+		commit('changeSkin', skin)
+		getApp().globalData.$business.setSkinColor()
+	}
+}
+
 export default {
     namespaced: true,
     state,
     getters,
-    mutations
+    mutations,
+	actions
 }

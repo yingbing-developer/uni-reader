@@ -1,6 +1,6 @@
 <template>
-	<view class="no-data" :style="{position: position}">
-		<image class="no-img" src="@/static/no-data.png" mode="aspectFit"></image>
+	<view class="no-data" :style="{height: height + 'rpx'}">
+		<image class="no-img" :src="src" mode="aspectFit"></image>
 		<text class="no-title">{{title}}</text>
 	</view>
 </template>
@@ -10,11 +10,15 @@
 		props: {
 			title: {
 				type: String,
-				default: '暂无数据!'
+				default: '暂无数据'
 			},
-			position: {
+			height: {
+				type: Number | String,
+				default: 300
+			},
+			src: {
 				type: String,
-				default: 'fixed'
+				default: '/static/no-data.png'
 			}
 		}
 	}
@@ -22,10 +26,6 @@
 
 <style scoped>
 	.no-data {
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
 		align-items: center;
 		justify-content: center;
 	}

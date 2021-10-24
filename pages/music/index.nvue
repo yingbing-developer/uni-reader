@@ -19,7 +19,7 @@
 			<cell>
 				<view class="singer-line opac-actived" :style="{'background-color': skinColor.color_theme_2}" @tap="app.$Router.push({path: '/pages/music/search'})">
 					<view class="singer-left">
-						<rd-icon name="micro-fill" color="#ffa916" size="50"></rd-icon>
+						<rd-icon name="search" color="#ffa916" size="50"></rd-icon>
 						<text class="singer-text" :style="{color: skinColor.color_1}">搜索歌曲/歌手</text>
 					</view>
 					<view class="go">
@@ -58,7 +58,7 @@
 						v-for="(item, index) in hotSingers" :key="index"
 						:style="{'margin-right': index == hotSingers.length - 1 ? 0 : '24rpx'}">
 							<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
-							<text class="name">周杰伦</text>
+							<text class="name" :style="{color: skinColor.color_1}">周杰伦</text>
 						</view>
 					</scroll-view>
 				</view>
@@ -76,6 +76,7 @@
 
 <script>
 	import appMixin from '@/common/mixin/app.js';
+	import createOb from '@/js_sdk/overall-btn/index.js'
 	export default {
 		mixins: [appMixin],
 		data () {
@@ -90,7 +91,23 @@
 		onLoad () {
 			this.statusBarHeight = uni.getSystemInfoSync().statusBarHeight
 		},
+		onShow () {
+			getApp().globalData.$business.setSkinColor();
+		},
 		onReady() {
+			const ob = createOb({
+				size: uni.upx2px(60),
+				left: uni.getSystemInfoSync().windowWidth - 50,
+				top: uni.getSystemInfoSync().windowHeight - 60,
+				opacity: 0.3,
+				border: 1,
+				touch: true,
+				func: (e) => {
+					ob.draw(this.skinMode == 'night' ? '日' : '夜')
+					this.changeSkin(this.skinMode == 'night' ? 'default' : 'night')
+				}
+			})
+			ob.show();
 		},
 		methods: {
 			pulldown () {

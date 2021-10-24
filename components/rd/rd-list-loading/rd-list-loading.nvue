@@ -1,0 +1,36 @@
+<template>
+	<view class="list-loading">
+		<yb-loading :size="size" :color="color" :title="title" />
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			size: {
+				type: Number | String,
+				default: 40
+			},
+			color: {
+				type: String,
+				default: '#333'
+			},
+			title: {
+				type: String,
+				default: ''
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.list-loading {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		align-items: center;
+		justify-content: center;
+	}
+</style>

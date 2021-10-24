@@ -1,4 +1,4 @@
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 const appMixin = {
 	computed: {
 		...mapGetters({
@@ -14,8 +14,10 @@ const appMixin = {
 	methods: {
 		...mapMutations({
 			setAdult: 'app/setAdult',
-			setAdultPwd: 'app/setAdultPwd',
-			changeSkin: 'app/changeSkin'
+			setAdultPwd: 'app/setAdultPwd'
+		}),
+		...mapActions({
+			changeSkin: 'app/changeSkinAction'
 		})
 	}
 }
