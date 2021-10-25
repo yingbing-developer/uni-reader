@@ -6,7 +6,7 @@
 			<view class="search-left" :style="{'background-color': skinColor.color_gap_1}">
 				<rd-icon name="search" :color="skinColor.color_1" size="35"></rd-icon>
 				<input class="input" type="text" :placeholder="placeholder" v-model="keyword" :style="{'color': skinColor.color_1}" />
-				<rd-icon v-if="keyword" class="opac-actived" name="clear-fill" :color="skinColor.color_3" size="35" @click="changeKeyword('')"></rd-icon>
+				<rd-icon v-if="keyword" class="opac-actived" name="fork-circle-fill" :color="skinColor.color_3" size="35" @click="changeKeyword('')"></rd-icon>
 			</view>
 		</view>
 		<view class="wrapper">
@@ -32,7 +32,7 @@
 					<yb-gap></yb-gap>
 					<view class="title padding-gap">
 						<text class="title-text" :style="{'color': skinColor.color_3}">搜索历史</text>
-						<rd-icon class="opac-actived" name="waste-fill" :color="skinColor.color_3" @click="clearRecord"></rd-icon>
+						<rd-icon class="opac-actived" name="dustbin" size="30" :color="skinColor.color_3" @click="clearRecord"></rd-icon>
 					</view>
 					<view class="records padding-gap">
 						<view class="record"
@@ -40,7 +40,7 @@
 						v-for="(item, index) in records" :key="index"
 						@tap="changeKeyword(item)">
 							<text class="record-text" :style="{'color': skinColor.color_2}">{{item}}</text>
-							<rd-icon class="opac-actived" size="24" name="delete" :color="skinColor.color_2" @click="deleteRecord(index)"></rd-icon>
+							<rd-icon class="opac-actived" size="38" name="fork" :color="skinColor.color_2" @click="deleteRecord(index)"></rd-icon>
 						</view>
 					</view>
 				</cell>

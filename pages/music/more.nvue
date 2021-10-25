@@ -1,0 +1,63 @@
+<template>
+	<view class="more" :style="{'background-color': skinColor.color_bg_1}">
+		<yb-nav-bar :bgColor="skinColor.color_theme_1" :frontColor="skinColor.color_4" :title="title"></yb-nav-bar>
+		<list>
+			<cell>
+				<yb-gap :height="30"></yb-gap>
+			</cell>
+			<cell v-for="(item, index) in list" :key="index">
+				<view class="item padding-gap">
+					<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
+					<view class="info">
+						<text class="title" :style="{color: skinColor.color_1}">终究是戏子，永远在别人的故事里</text>
+						<text class="label" :style="{color: skinColor.color_3}">歌单狂魔</text>
+					</view>
+					<view class="actions">
+						<music-icon class="icon" name="collection" size="30" :color="skinColor.color_1"></music-icon>
+					</view>
+				</view>
+			</cell>
+		</list>
+	</view>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		data () {
+			return {
+				list: []
+			}
+		},
+		computed: {
+			title () {
+				return getApp().globalData.$Route.query.title
+			}
+		},
+		onLoad () {
+			this.list = JSON.parse(decodeURIComponent(getApp().globalData.$Route.query.list))
+		}
+	}
+</script>
+
+<style scoped>
+	.item {
+		flex-direction: row;
+		align-items: center;
+		padding-bottom: 30rpx;
+	}
+	.item .cover {
+		width: 150rpx;
+		height: 150rpx;
+	}
+	.item .info {
+		flex: 1;
+		height: 100rpx;
+		justify-content: space-between;
+		margin-left: 30rpx;
+	}
+	.item .info .title, .item .info .label {
+		font-size: 28rpx;
+	}
+</style>

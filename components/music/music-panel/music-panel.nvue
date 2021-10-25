@@ -1,0 +1,115 @@
+<template>
+	<yb-panel :visible.sync="show" :height="520" @hide="hide" v-if="show">
+		<view class="panel" :style="{'background-color': skinColor.color_bg_2}">
+			<view class="top">
+				<rd-icon name="micro-fill" size="30" :color="skinColor.color_red"></rd-icon>
+				<text class="title" :style="{color: skinColor.color_1}">{{data.title}}</text>
+			</view>
+			<text class="label" :style="{color: skinColor.color_3}">{{data.label}}</text>
+			<view class="actions">
+				<view class="action" v-for="(item, index) in actions" :key="index">
+					<view class="action-icon opac-actived" :style="{'background-color': skinColor.color_bg_1}">
+						<rd-icon :name="item.icon" size="50" :color="skinColor.color_1"></rd-icon>
+					</view>
+					<text class="action-text" :style="{color: skinColor.color_1}">{{item.label}}</text>
+				</view>
+			</view>
+		</view>
+	</yb-panel>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		props: {
+			visible: {
+				type: Boolean,
+				default: false
+			},
+			data: {
+				type: Object,
+				default () {
+					return new Object
+				}
+			}
+		},
+		data () {
+			return {
+				show: false,
+				actions: [{
+					label: '播放',
+					icon: 'play-outline'
+				},{
+					label: '下一首播放',
+					icon: 'next'
+				},{
+					label: '喜欢',
+					icon: 'love'
+				},{
+					label: '加入歌单',
+					icon: 'inc-rect'
+				},{
+					label: '下载',
+					icon: 'download'
+				}]
+			}
+		},
+		mounted () {
+			this.show = this.visible;
+		},
+		methods: {
+			hide () {
+				this.$emit('update:visible', false)
+			}
+		},
+		watch: {
+			visible (newVal) {
+				this.show = newVal
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.panel {
+		height: 520rpx;
+		padding: 30rpx 50rpx;
+	}
+	.panel .top {
+		flex-direction: row;
+		align-items: center;
+	}
+	.panel .title {
+		font-size: 32rpx;
+		margin-left: 10rpx;
+		flex: 1;
+		lines: 1;
+	}
+	.panel .label {
+		font-size: 26rpx;
+		margin-top: 10rpx;
+		margin-left: 40rpx;
+		lines: 1;
+	}
+	.actions {
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+	.actions .action {
+		width: 162.5rpx;
+		align-items: center;
+		margin-top: 34rpx;
+	}
+	.actions .action .action-icon {
+		width: 120rpx;
+		height: 120rpx;
+		border-radius: 10rpx;
+		align-items: center;
+		justify-content: center;
+	}
+	.actions .action .action-text {
+		font-size: 24rpx;
+		margin-top: 20rpx;
+	}
+</style>

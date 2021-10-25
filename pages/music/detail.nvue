@@ -1,0 +1,194 @@
+<template>
+	<view class="detail" :style="{'background-color': skinColor.color_bg_2}">
+		<view class="top">
+			<rd-image lazyLoad class="bg" :src="bgImage" mode="aspectFill"></rd-image>
+			<view class="info">
+				<rd-image lazyLoad borderRadius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
+				<view class="info-right">
+					<text class="title" :style="{color: '#fff'}">英文舒适向英文舒适向英文舒适向英文舒适向</text>
+					<text class="author" :style="{color: '#fff'}">再来一本浓茶</text>
+					<text class="desc" :style="{color: '#fff'}">英文舒适向英文舒适向英文舒适向英文舒适向英文舒适向英文舒适向</text>
+				</view>
+			</view>
+		</view>
+		<yb-nav-bar class="nav-bar" title="歌单" bg-color="rgba(0,0,0,0)" front-color="#fff"></yb-nav-bar>
+		<view class="control" elevation="3px" :style="{'background-color': skinColor.color_bg_2}">
+			<view class="play">
+				<rd-icon :style="{'background-color': skinColor.color_green}" class="play-icon" name="play" color="#fff"></rd-icon>
+				<text class="play-text" :style="{color: skinColor.color_1}">播放全部</text>
+			</view>
+			<view class="collection">
+				<rd-icon class="collection-icon" name="love" size="45" :color="skinColor.color_1"></rd-icon>
+				<text class="collection-text" :style="{color: skinColor.color_1}">收藏</text>
+			</view>
+		</view>
+		<list>
+			<yb-list-no-data top="500" title="暂无数据" v-if="list.length == 0 && !loading" />
+			<yb-list-loading top="500" size="80" :color="skinColor.color_3" title="加载中" v-if="loading" />
+			<cell>
+				<yb-gap :height="75"></yb-gap>
+			</cell>
+			<cell v-for="(item, index) in list">
+				<view class="item" :class="skinMode + '-actived'">
+					<text class="index" :style="{color: skinColor.color_1}">{{index + 1}}</text>
+					<rd-icon name="music-fill" size="30" :color="skinColor.color_green"></rd-icon>
+					<view class="info">
+						<text class="title" :style="{color: skinColor.color_1}">Go Sold</text>
+						<text class="label" :style="{color: skinColor.color_3}">Tom Jhon</text>
+					</view>
+					<rd-icon class="more opac-actived" name="more-vertical" :color="skinColor.color_3" @click="showMore"></rd-icon>
+				</view>
+			</cell>
+		</list>
+		<music-panel :data="panelData" :visible.sync="panelShow"></music-panel>
+	</view>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		data () {
+			return {
+				item: '',
+				bgImage: '',
+				loading: true,
+				list: [],
+				panelData: '',
+				panelShow: false
+			}
+		},
+		onLoad () {
+			setTimeout(() => {
+				this.loading = false
+				this.list = [1,2,3,4,5,6,7,8,9,10]
+			}, 500)
+			this.item = JSON.parse(decodeURIComponent(getApp().globalData.$Route.query.item))
+			const BlurImage = uni.requireNativePlugin('YingBingNativePlugin-BlurImage');
+			const url = 'https://www.kugou.com/ts/Public/static/img/banner_download2.png'
+			this.bgImage = BlurImage.blur(url, 0.5, 10);
+		},
+		methods: {
+			showMore () {
+				this.panelData = {
+					title: '不能说秘密《主题曲》',
+					label: '周杰伦'
+				}
+				this.panelShow = true
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.detail {
+		position: relative;
+	}
+	.nav-bar {
+		position: absolute;
+		left: 0;
+		top: 0;
+		right: 0;
+	}
+	.top {
+		height: 500rpx;
+		position: relative;
+		justify-content: center;
+	}
+	.top .bg {
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		right: 0;
+	}
+	.top .info {
+		flex-direction: row;
+		padding: 0 50rpx;
+	}
+	.top .info .cover {
+		width: 200rpx;
+		height: 200rpx;
+	}
+	.top .info .info-right {
+		flex: 1;
+		margin-left: 20rpx;
+	}
+	.top .info .title {
+		font-size: 32rpx;
+		lines: 2;
+		height: 75rpx;
+		font-weight: bold;
+	}
+	.top .info .author, .top .info .desc {
+		font-size: 26rpx;
+	}
+	.top .info .author {
+		lines: 1;
+		margin: 15rpx 0;
+	}
+	.top .info .desc {
+		lines: 2;
+	}
+	
+	.control {
+		border-radius: 12rpx;
+		padding: 0 30rpx;
+		height: 150rpx;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		position: absolute;
+		top: 425rpx;
+		left: 40rpx;
+		right: 40rpx;
+	}
+	.control .play {
+		flex-direction: row;
+		align-items: center;
+	}
+	.control .play .play-icon {
+		width: 50rpx;
+		height: 50rpx;
+		border-radius: 50rpx;
+		text-align: center;
+		line-height: 50rpx;
+	}
+	.control .play .play-text {
+		font-size: 28rpx;
+		margin-left: 10rpx;
+	}
+	.control .collection {
+		align-items: center;
+	}
+	.control .collection-text {
+		font-size: 28rpx;
+		margin-top: 10rpx;
+	}
+	
+	.item {
+		flex-direction: row;
+		align-items: center;
+		padding: 0 60rpx;
+		height: 120rpx;
+	}
+	.item .index {
+		font-size: 30rpx;
+		margin-right: 30rpx;
+	}
+	.item .info {
+		flex: 1;
+		margin-left: 30rpx;
+	}
+	.item .info .title, .item .info .label {
+		font-size: 26rpx;
+		lines: 1;
+	}
+	.item .info .label {
+		margin-top: 20rpx;
+	}
+	.item .more {
+		width: 40rpx;
+		height: 40rpx;
+	}
+</style>

@@ -1,5 +1,5 @@
 <template>
-	<view class="rd-no-data">
+	<view class="rd-no-data" :style="{top: top + 'rpx'}">
 		<yb-no-data :title="title" :src="src" />
 	</view>
 </template>
@@ -14,6 +14,10 @@
 			src: {
 				type: String,
 				default: '/static/no-data.png'
+			},
+			top: {
+				type: Number | String,
+				default: 0
 			}
 		}
 	}
@@ -22,7 +26,6 @@
 <style scoped>
 	.rd-no-data {
 		position: fixed;
-		top: 0;
 		left: 0;
 		right: 0;
 		bottom: 0;

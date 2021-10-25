@@ -1,5 +1,5 @@
 <template>
-	<view class="list-loading">
+	<view class="list-loading" :style="{top: top + 'rpx'}">
 		<yb-loading :size="size" :color="color" :title="title" />
 	</view>
 </template>
@@ -18,6 +18,10 @@
 			title: {
 				type: String,
 				default: ''
+			},
+			top: {
+				type: Number | String,
+				default: 0
 			}
 		}
 	}
@@ -26,7 +30,6 @@
 <style scoped>
 	.list-loading {
 		position: fixed;
-		top: 0;
 		left: 0;
 		right: 0;
 		bottom: 0;

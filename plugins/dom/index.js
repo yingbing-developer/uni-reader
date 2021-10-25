@@ -62,5 +62,19 @@ export default {
 				}
 			});
 		})
+	},
+	actionPanel ({title, label, actions}) {
+		return new Promise((resolve, reject) => {
+			uni.navigateTo({
+				url: `/modules/actionPanel?title=${title}&label=${label}&actions=${JSON.stringify(actions)}`,
+				complete: (res) => {
+					uni.$on('actionPanel-btn', (data) => {
+						resolve(data)
+						uni.navigateBack({delta: 1});
+						uni.$off('actionPanel-btn');
+					})
+				}
+			});
+		})
 	}
 }

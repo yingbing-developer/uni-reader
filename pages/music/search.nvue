@@ -1,8 +1,8 @@
 <template>
 	<rd-search placeholder="搜索歌曲/歌手" :keywords="keywords" :records="records" @change="change">
 		<list class="result" v-if="keyword" :style="{'background-color': skinColor.color_bg_1}">
-			<rd-no-data title="暂无搜索数据" v-if="results.length == 0 && !loading" />
-			<rd-list-loading size="80" :color="skinColor.color_3" title="搜索中" v-if="loading" /></rd-list-loading>
+			<yb-list-no-data title="暂无搜索数据" v-if="results.length == 0 && !loading" />
+			<yb-list-loading size="80" :color="skinColor.color_3" title="搜索中" v-if="loading" />
 			<cell v-for="(item, index) in results">
 				<view class="item" :style="{'border-color': skinColor.color_gap_1}">
 					<view class="item-left">
@@ -14,9 +14,7 @@
 						</view>
 					</view>
 					<view class="item-right">
-						<rd-icon class="icon opac-actived" name="micro" size="32" :color="skinColor.color_1" v-if="item.type == 'song'"></rd-icon>
-						<rd-icon class="icon opac-actived" name="inc-rect" size="34" :color="skinColor.color_1" v-if="item.type == 'song'"></rd-icon>
-						<music-icon class="icon" name="collection" size="30" :color="skinColor.color_1"></music-icon>
+						<rd-icon class="icon opac-actived" name="more-horizontal" size="32" :color="skinColor.color_3"></rd-icon>
 					</view>
 				</view>
 			</cell>

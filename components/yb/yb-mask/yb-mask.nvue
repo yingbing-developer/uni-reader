@@ -1,0 +1,29 @@
+<template>
+	<view class="mask" :style="{'background-color': color}" @tap="onTap"></view>
+</template>
+
+<script>
+	export default {
+		props: {
+			color: {
+				type: String,
+				default: 'rgba(0,0,0,0.5)'
+			}
+		},
+		methods: {
+			onTap () {
+				this.$emit('click')
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+</style>

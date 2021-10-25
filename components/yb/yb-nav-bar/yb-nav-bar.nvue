@@ -2,22 +2,24 @@
 	<view class="nav-bar" :style="{'background-color': bgColor}">
 		<view class="bar" :style="{'height': barHeight + 'px'}" v-if="gapShow"></view>
 		<view class="nav">
-			<view class="left">
-				<slot name="left">
-					<view class="back" v-if="backShow" @tap="back">
-						<c-icon name="arrow-left" :size="45" :color="frontColor"></c-icon>
-					</view>
-				</slot>
-			</view>
-			<view class="center">
-				<slot name="center">
-					<text class="title" :style="{'color': frontColor}">{{title}}</text>
-				</slot>
-			</view>
-			<view class="right">
-				<slot name="right">
-				</slot>
-			</view>
+			<slot>
+				<view class="left">
+					<slot name="left">
+						<view class="back" v-if="backShow" @tap="back">
+							<c-icon name="arrow-left" :size="45" :color="frontColor"></c-icon>
+						</view>
+					</slot>
+				</view>
+				<view class="center">
+					<slot name="center">
+						<text class="title" :style="{'color': frontColor}">{{title}}</text>
+					</slot>
+				</view>
+				<view class="right">
+					<slot name="right">
+					</slot>
+				</view>
+			</slot>
 		</view>
 	</view>
 </template>
@@ -102,7 +104,7 @@
 		opacity: 0.5;
 	}
 	.title {
-		font-size: 35rpx;
+		font-size: 32rpx;
 		/* #ifdef APP-NVUE */
 		text-overflow: ellipsis;
 		lines: 1;
@@ -120,10 +122,11 @@
 		flex-direction: row;
 		align-items: center;
 	}
-	.left {
-		width: 100rpx;
+	.left, .right {
+		width: 200rpx;
 	}
 	.center {
 		flex: 1;
+		justify-content: center;
 	}
 </style>

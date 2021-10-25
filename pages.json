@@ -72,6 +72,14 @@
 		{
 			"path": "pages/music/index"
 		},
+		//音乐更多展示
+		{
+			"path": "pages/music/more"
+		},
+		//音乐详情页
+		{
+			"path": "pages/music/detail"
+		},
 		//音乐播放页面
 		{
 			"path": "pages/music/player",
@@ -142,6 +150,21 @@
 				}
 			}
 		},
+		//操作面版
+		{
+			"path": "modules/actionPanel",
+			"style": {
+				"backgroundColor": "transparent",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"bounce":"none",
+					"animationType": "fade-in",
+					"background": "transparent", // 背景透明
+					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
+					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
+				}
+			}
+		},
 		//文本编辑框
 		{
 			"path": "modules/edit",
@@ -190,11 +213,11 @@
 	],
 	"globalStyle": {
 		"disableScroll": true, // 不嵌套 scroller
-		"backgroundColor": "#999",
 		"navigationStyle":"custom",
+		"backgroundColor": "transparent",
 		"app-plus": {
-			"background": "#999",
-			"titleNView": false
+			"titleNView": false,
+			"background": "transparent"
 		}
 	},
 	"tabBar": {
