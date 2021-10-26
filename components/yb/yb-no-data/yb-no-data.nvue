@@ -1,7 +1,7 @@
 <template>
-	<view class="no-data" :style="{height: height + 'rpx'}">
+	<view class="no-data">
 		<image class="no-img" :src="src" mode="aspectFit"></image>
-		<text class="no-title">{{title}}</text>
+		<text class="no-title" :style="{color: color}">{{title}}</text>
 	</view>
 </template>
 
@@ -12,13 +12,13 @@
 				type: String,
 				default: '暂无数据'
 			},
-			height: {
-				type: Number | String,
-				default: 300
-			},
 			src: {
 				type: String,
 				default: '/static/no-data.png'
+			},
+			color: {
+				type: String,
+				default: '#666666'
 			}
 		}
 	}
@@ -36,6 +36,5 @@
 	.no-title {
 		font-size: 27rpx;
 		margin-top: 15rpx;
-		color: #666666;
 	}
 </style>

@@ -1,6 +1,6 @@
 <template>
 	<view class="c-image" @tap="onTap">
-		<image @load="getImageInfo" @error="error" ref="image"
+		<image @load="load" @error="error" ref="image"
 			class="c-img" :lazyLoad="lazyLoad" :src="url" :mode="mode"
 			:style="{borderRadius: borderRadius + 'rpx'}"></image>
 		<view class="img-mask" :style="{opacity: maskOpac, borderRadius: borderRadius + 'rpx'}"
@@ -23,9 +23,6 @@
 	const main = plus.android.runtimeMainActivity();
 	const Intent = plus.android.importClass("android.content.Intent");
 	const Uri = plus.android.importClass("android.net.Uri");
-	// #ifdef APP-NVUE
-	const dom = weex.requireModule('dom');
-	// #endif
 	export default {
 		mixins: [appMixin, cacheMixin],
 		props: {
@@ -68,9 +65,29 @@
 				type: String,
 				default: ''
 			},
+			//开启高斯模糊
+			enableBlur: {
+				type: Boolean,
+				default: false
+			},
+			//高斯模糊配置
+			blur: {
+				type: Object,
+				default () {
+					return {
+						scale: 0.5,//尺寸比例
+						radius: 10//半径
+					}
+				}
+			},
 			errorSize: {
 				type: String | Number,
 				default: 22
+			},
+			//开启防盗链处理
+			enableReferer: {
+				type: Boolean,
+				default: false
 			},
 			enablePreview: {
 				type: Boolean,
@@ -105,7 +122,7 @@
 			},
 			isError(newVal) {
 				if (newVal && this.defaultSrc) {
-					this.url = this.defaultSrc.replace('@', '');
+					this.url = this.defaultSrc;
 					this.isError = false;
 				}
 			}
@@ -114,58 +131,82 @@
 			onTap () {
 				this.$emit('click')
 			},
-			selectCache () {
+			async selectCache () {
 				const caches = this.imageCache;
-				const index = caches.findIndex(cache => cache.key == this.src)
-				if ( index > -1 ) {
-					const path = plus.io.convertLocalFileSystemURL(caches[index].path);
-					const file = plus.android.newObject('java.io.File', path);
-					if ( file && file != null && plus.android.invoke(file, 'exists') ) {
-						this.url = caches[index].path
-					} else {
-						this.removeImageCache(this.src)
-						this.url = this.src.replace('@', '');
+				if ( this.src.indexOf('http') > -1 ) {
+					const url = this.src + (this.enableBlur ? '_blur' : this.enableReferer ? '_base' : '')
+					const index = caches.findIndex(cache => cache.key == url)
+					if ( index > -1 ) {
+						const path = plus.io.convertLocalFileSystemURL(caches[index].path);
+						const file = plus.android.newObject('java.io.File', path);
+						if ( plus.android.invoke(file, 'exists') ) {
+							this.url = caches[index].path
+							return
+						} else {
+							this.removeImageCache(url)
+						}
 					}
+					let path = ''
+					if ( this.enableReferer ) {
+						path = await this.baseImage(this.src)
+					}
+					if ( this.enableBlur ) {
+						path = path ? await this.blurImage(path) : await this.blurImage(this.src)
+					}
+					this.url = path ? path : this.src;
 				} else {
-					this.url = this.src.replace('@', '');
+					this.url = this.src;
 				}
 			},
-			getImageInfo(e) {
+			blurImage (src) {
+				return new Promise(resolve => {
+					const url = src.indexOf('http') > -1 ? encodeURI(src) : plus.io.convertLocalFileSystemURL(src)
+					const BlurImage = uni.requireNativePlugin('YingBingNativePlugin-BlurImage');
+					const base64 = BlurImage.blur(url, this.blur.scale, this.blur.radius) || null;
+					if ( base64 ) {
+						base64ToPath(base64)
+							.then(path => {
+								this.addImageCache({
+									key: this.src + '_blur',
+									path: path
+								})
+								resolve(path)
+							})
+							.catch(error => {
+								resolve(false)
+							})
+					} else {
+						resolve(false)
+					}
+				})
+			},
+			baseImage(e) {
+				return new Promise(resolve => {
+					const BaseImage = uni.requireNativePlugin('YingBingNativePlugin-BaseImage');
+					const base64 = BaseImage ? BaseImage.getImgStr(encodeURI(this.url)) : null;
+					if (base64) {
+						base64ToPath(base64)
+							.then(path => {
+								this.addImageCache({
+									key: this.src + '_base',
+									path: path
+								})
+								resolve(path)
+							})
+							.catch(error => {
+								resolve(false)
+							})
+					} else {
+						resolve(false)
+					}
+				})
+			},
+			load(e) {
 				this.isError = false;
 				this.$emit('load', e);
-				// if (!this.width && !this.height && this.mode == 'widthFix') {
-				// 	this.timer = setTimeout(() => {
-				// 		dom.getComponentRect(this.$refs.image, (res) => {
-				// 			this.width = res.size.width;
-				// 			this.height = res.size.height;
-				// 		});
-				// 	}, 100)
-				// }
 			},
 			error(e) {
-				this.getBaseImage(e);
-			},
-			getBaseImage(e) {
-				const BaseImage = uni.requireNativePlugin('YingBingNativePlugin-BaseImage');
-				const base64 = BaseImage ? BaseImage.getImgStr(encodeURI(this.url)) : null;
-				if (base64) {
-					base64ToPath(base64)
-						.then(path => {
-							this.url = path
-							const obj = {
-								key: this.src,
-								path: path
-							}
-							this.addImageCache(obj)
-						})
-						.catch(error => {
-							this.isError = true;
-							this.$emit('error', e);
-						})
-				} else {
-					this.isError = true;
-					this.$emit('error', e);
-				}
+				this.$emit('error', e);
 			},
 			//预览图片
 			preview() {
@@ -215,13 +256,8 @@
 			//保存图片
 			saveImage(url, flag) {
 				if (url.indexOf('http') == -1) {
-					if (url.indexOf('base64') > -1) {
-						//base64先转为本地文件
-						this.base64ToFilePath(url, flag)
-					} else {
-						//本地图片直接保存
-						this.photoImage(url);
-					}
+					//本地图片直接保存
+					this.photoImage(url);
 				} else {
 					//网络图片先下载
 					this.downloadImage(url, flag);

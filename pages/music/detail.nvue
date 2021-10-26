@@ -1,7 +1,7 @@
 <template>
 	<view class="detail" :style="{'background-color': skinColor.color_bg_2}">
 		<view class="top">
-			<rd-image lazyLoad class="bg" :src="bgImage" mode="aspectFill"></rd-image>
+			<rd-image lazyLoad class="bg" enable-blur src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
 			<view class="info">
 				<rd-image lazyLoad borderRadius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
 				<view class="info-right">
@@ -64,9 +64,6 @@
 				this.list = [1,2,3,4,5,6,7,8,9,10]
 			}, 500)
 			this.item = JSON.parse(decodeURIComponent(getApp().globalData.$Route.query.item))
-			const BlurImage = uni.requireNativePlugin('YingBingNativePlugin-BlurImage');
-			const url = 'https://www.kugou.com/ts/Public/static/img/banner_download2.png'
-			this.bgImage = BlurImage.blur(url, 0.5, 10);
 		},
 		methods: {
 			showMore () {

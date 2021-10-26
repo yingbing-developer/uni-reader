@@ -72,9 +72,21 @@
 		{
 			"path": "pages/music/index"
 		},
-		//音乐更多展示
+		//音乐歌单分类列表
 		{
-			"path": "pages/music/more"
+			"path": "pages/music/mix"
+		},
+		//音乐新歌分类列表
+		{
+			"path": "pages/music/song"
+		},
+		//音乐歌手分类列表
+		{
+			"path": "pages/music/singer"
+		},
+		//音乐排行榜列表
+		{
+			"path": "pages/music/rank"
 		},
 		//音乐详情页
 		{
@@ -214,10 +226,8 @@
 	"globalStyle": {
 		"disableScroll": true, // 不嵌套 scroller
 		"navigationStyle":"custom",
-		"backgroundColor": "transparent",
 		"app-plus": {
-			"titleNView": false,
-			"background": "transparent"
+			"titleNView": false
 		}
 	},
 	"tabBar": {

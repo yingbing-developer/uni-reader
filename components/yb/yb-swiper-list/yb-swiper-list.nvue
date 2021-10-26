@@ -1,0 +1,101 @@
+<template>
+	<view class="yb-swiper-list">
+		<scroll-view
+		scroll-with-animation
+		:scroll-into-view="scrollId"
+		:show-scrollbar="false"
+		class="tabs"
+		scroll-x="true"
+		:style="{
+			'border-color': borderColor
+		}">
+			<view class="tab" v-for="(item, index) in tabs" :key="index" :id="'yb-tab_' + index" @tap="changeTab(index)">
+				<text class="tab-text" :style="{color: index == current ? activedColor : frontColor}">{{item.label}}</text>
+			</view>
+		</scroll-view>
+		<swiper class="swiper" :current="current" skip-hidden-item-layout :interval="3000" :duration="1000" @change="swiperChange">
+			<swiper-item v-for="(item, index) in tabs" :key="index">
+				<view class="swiper-item">
+					<slot :swiperSlot="{
+						detail: item,
+						index: index
+					}"></slot>
+				</view>
+			</swiper-item>
+		</swiper>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			tabs: {
+				type: Array,
+				default () {
+					return new Array
+				}
+			},
+			frontColor: {
+				type: String,
+				default: '#333333'
+			},
+			borderColor: {
+				type: String,
+				default: '#666'
+			},
+			activedColor: {
+				type: String,
+				default: '#2196F5'
+			}
+		},
+		data () {
+			return {
+				current: 0,
+				scrollId: ''
+			}
+		},
+		methods: {
+			changeTab (index) {
+				this.current = index
+				this.scrollId = 'yb-tab_' + (index - 1 >= 0 ? index - 1 : 0)
+			},
+			swiperChange (e) {
+				this.changeTab(e.detail.current)
+			}
+		},
+		watch: {
+			current (newVal) {
+				this.$emit('change', {
+					current: newVal,
+					detail: this.tabs[newVal]
+				})
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.yb-swiper-list {
+		flex: 1;
+	}
+	.tabs {
+		flex-direction: row;
+		border-bottom-width: 1rpx;
+		border-color: #666;
+	}
+	.tabs .tab {
+		padding: 32rpx 46rpx;
+	}
+	.tabs .tab .tab-text {
+		font-size: 30rpx;
+		text-align: center;
+		lines: 1;
+		color: #333333;
+	}
+	.swiper {
+		flex: 1;
+	}
+	.swiper .swiper-item {
+		flex: 1;
+	}
+</style>

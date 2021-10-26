@@ -1,6 +1,6 @@
 <template>
 	<view class="rd-no-data" :style="{top: top + 'rpx'}">
-		<yb-no-data :title="title" :src="src" />
+		<yb-no-data :title="title" :src="src" :color="color" />
 	</view>
 </template>
 
@@ -18,6 +18,10 @@
 			top: {
 				type: Number | String,
 				default: 0
+			},
+			color: {
+				type: String,
+				default: '#666666'
 			}
 		}
 	}

@@ -1,0 +1,110 @@
+<template>
+	<view class="yb-index-list">
+		<list @scroll="scroll">
+			<header v-if="listSync.length > 0">
+				<view class="header-line" :style="{'background-color': headerBgColor}">
+					<text class="header-text" :style="{color: headerFrontColor}">{{listSync[currentIndex].index}}</text>
+				</view>
+			</header>
+			<cell v-for="(item, i) in listSync" @appear="onappear(i)" @disappear="ondisappear(i)">
+				<view class="header-line" :style="{'background-color': headerBgColor}" v-if="i != 0">
+					<text class="header-text" :style="{color: headerFrontColor}">{{item.index}}</text>
+				</view>
+				<view v-for="(child, j) in item.child" :key="j">
+					<slot :indexItem="child"></slot>
+				</view>
+			</cell>
+		</list>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			data: {
+				type: Array,
+				default () {
+					return new Array
+				}
+			},
+			headerBgColor: {
+				type: String,
+				default: '#2196F5'
+			},
+			headerFrontColor: {
+				type: String,
+				default: '#FAFAFA'
+			}
+		},
+		data () {
+			return {
+				listSync: [],
+				currentIndex: 0,
+				direction: '',
+				oldOffsetY: 0,
+				indexs: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','#']
+			}
+		},
+		created () {
+			this.init()
+		},
+		methods: {
+			init () {
+				if ( this.data.length > 0 ) {
+					let list = []
+					this.indexs.forEach(index => {
+						const arr = this.data.filter(item => item.index == index)
+						list.push({
+							index: index,
+							child: arr
+						})
+					})
+					this.listSync = list;
+				}
+			},
+			scroll (e) {
+				if ( e.contentOffset.y == 0 ) {
+					this.direction = '';
+					this.currentIndex = 0;
+				} else {
+					//向上滑动时
+					if ( e.contentOffset.y < this.oldOffsetY ) {
+						this.direction = 'up';
+					} else {
+						//向下滑动时
+						this.direction = 'under';
+					}
+				}
+				this.oldOffsetY = e.contentOffset.y;
+			},
+			onappear (i) {
+				if ( this.direction == 'under' ) {
+					this.currentIndex = i;
+				}
+			},
+			ondisappear (i) {
+				if ( this.direction == 'up' ) {
+					this.currentIndex = parseInt(i) + 1;
+				}
+			}
+		},
+		watch: {
+			data (newVal) {
+				this.init()
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.yb-index-list {
+		flex: 1;
+		position: relative;
+	}
+	.header-line {
+		padding: 10rpx 40rpx;
+	}
+	.header-line .header-text {
+		font-size: 28rpx;
+	}
+</style>

@@ -6,7 +6,7 @@ export default {
 	color_bg_1: '#131313',
 	color_bg_2: '#191919',
 	color_actived_1: '#FAFAFA',
-	color_1: '#8F8F8F',
+	color_1: '#f4f7f5',
 	color_2: '#8a8a8a',
 	color_3: '#888888',
 	color_4: '#777777',

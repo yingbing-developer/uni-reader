@@ -1,0 +1,53 @@
+<template>
+	<view class="rank" :style="{'background-color': skinColor.color_bg_1}">
+		<yb-nav-bar :bgColor="skinColor.color_theme_1" :frontColor="skinColor.color_4" title="排行榜"></yb-nav-bar>
+		<list>
+			<cell>
+				<yb-gap :height="20"></yb-gap>
+			</cell>
+			<cell v-for="(item, index) in list">
+				<view class="item" :style="{'background-color': '#191919'}">
+					<rd-image class="cover" lazyLoad src="http://y.gtimg.cn/music/photo_new/T003R300x300M000003wU5Cn1QDVjQ.jpg" mode="aspectFill"></rd-image>
+					<view class="top-list">
+						<text
+						class="top-item"
+						v-for="(top, i) in 3" :key="i"
+						:style="{'color': '#f4f7f5'}">{{i + 1}}. 那一年 (Live)-大张伟/汪苏泷</text>
+					</view>
+				</view>
+			</cell>
+		</list>
+	</view>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		data () {
+			return {
+				list: ['飙升榜', '热歌榜', '新歌榜', '内地榜', '全球榜', '网络歌曲榜', '原创榜', '抖音排行榜']
+			}
+		}
+	}
+</script>
+
+<style>
+ .item {
+	 margin: 0 20rpx 20rpx 20rpx;
+	 height: 200rpx;
+	 flex-direction: row;
+ }
+ .item .cover {
+	 width: 200rpx;
+	 height: 200rpx;
+ }
+ .item .top-list {
+	 padding: 0 40rpx;
+	 justify-content: center;
+ }
+ .item .top-list .top-item {
+	 font-size: 24rpx;
+	 line-height: 52rpx;
+ }
+</style>

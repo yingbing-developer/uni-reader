@@ -30,14 +30,15 @@
 			<cell>
 				<view class="types">
 					<view class="type opac-actived"
-					v-for="(item, index) in types"
+					v-for="(item, index) in ranks"
+					@tap="goRank(item)"
 					:key="index"
 					:style="{
 						'background-color': skinColor.color_theme_2,
 						'margin-right': ((parseInt(index / 4) + 1) * 4) - 1 == index ? '0' : '24rpx'
 					}">
 						<text class="type-text" :style="{color: skinColor.color_1}">{{item}}</text>
-						<rd-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1"></rd-icon>
+						<rd-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1" @click="goRank(item)"></rd-icon>
 					</view>
 				</view>
 			</cell>
@@ -45,21 +46,21 @@
 			<!-- 推荐歌单 -->
 			<rd-header title="推荐歌单"></rd-header>
 			<cell>
-				<rd-grid title="推荐歌单" :data="hotSheets" :recom-index="6" @more="goMore('推荐歌单', hotSheets)" @clickTo="goDetail(item)"></rd-grid>
+				<rd-grid title="推荐歌单" :data="hotSheets" :recom-index="6" @more="app.$Router.push({path: '/pages/music/mix'})" @clickTo="goDetail(item)"></rd-grid>
 			</cell>
 			
 			<!-- 热门歌手 -->
 			<rd-header title="热门歌手"></rd-header>
 			<cell>
 				<view class="padding-gap">
-					<rd-title title="热门歌手" moreText="更多" @more="goMore('热门歌手', hotSingers)"></rd-title>
+					<rd-title title="热门歌手" moreText="更多" @more="app.$Router.push({path: '/pages/music/singer'})"></rd-title>
 					<scroll-view :show-scrollbar="false" scroll-x="true" class="singers">
 						<view class="singer"
 						v-for="(item, index) in hotSingers" :key="index"
 						:style="{'margin-right': index == hotSingers.length - 1 ? 0 : '24rpx'}"
 						@tap="goDetail(item)">
 							<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
-							<text class="name" :style="{color: skinColor.color_1}">周杰伦</text>
+							<text class="name" :style="{color: skinColor.color_1}" @tap="goDetail(item)">周杰伦</text>
 						</view>
 					</scroll-view>
 				</view>
@@ -68,7 +69,7 @@
 			<!-- 新歌速递 -->
 			<rd-header title="新歌速递"></rd-header>
 			<cell>
-				<rd-grid title="新歌速递" :data="hotSongs" :recom-index="6" @more="goMore('新歌速递', hotSongs)" @clickTo="goDetail(item)"></rd-grid>
+				<rd-grid title="新歌速递" :data="hotSongs" :recom-index="6" @clickTo="goDetail(item)" @more="app.$Router.push({path: '/pages/music/song'})"></rd-grid>
 				<yb-gap></yb-gap>
 			</cell>
 		</list>
@@ -83,7 +84,7 @@
 		data () {
 			return {
 				statusBarHeight: 0,
-				types: ['古典', '流行', '华语', '欧美', '二次元', '轻音乐', '经典', '更多'],
+				ranks: ['飙升榜', '热歌榜', '新歌榜', '内地榜', '全球榜', '网络歌曲榜', '原创榜', '更多'],
 				hotSheets: [1,2,3,4,5,6,7],
 				hotSongs: [1,2,3,4,5,6,7],
 				hotSingers: [1,2,3,4,5,6]
@@ -116,15 +117,6 @@
 					this.$refs.pulldown.success()
 				}, 1000)
 			},
-			goMore (title, list) {
-				getApp().globalData.$Router.push({
-					path: '/pages/music/more',
-					query: {
-						title: title,
-						list: encodeURIComponent(JSON.stringify(list))
-					}
-				})
-			},
 			goDetail (item) {
 				getApp().globalData.$Router.push({
 					path: '/pages/music/detail',
@@ -132,6 +124,13 @@
 						item: encodeURIComponent(JSON.stringify({name: '歌单'}))
 					}
 				})
+			},
+			goRank (item) {
+				if ( item == '更多' ) {
+					getApp().globalData.$Router.push({path: '/pages/music/rank'})
+				} else {
+					this.goDetail(item)
+				}
 			}
 		}
 	}

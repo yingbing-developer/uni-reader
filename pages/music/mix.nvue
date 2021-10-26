@@ -1,0 +1,142 @@
+<template>
+	<view class="mix" :style="{'background-color': skinColor.color_bg_1}">
+		<yb-nav-bar :bgColor="skinColor.color_theme_1" :frontColor="skinColor.color_4" title="推荐歌单"></yb-nav-bar>
+		<yb-swiper-list
+		:tabs="tabs"
+		@change="changeTab"
+		:frontColor="skinColor.color_2"
+		:borderColor="skinColor.color_3"
+		:activedColor="skinColor.color_actived_1">
+			<template v-slot="{swiperSlot}">
+				<list>
+					<yb-pulldown v-if="!list[swiperSlot.index].loading" :ref="'pulldown_' + swiperSlot.index" :color="skinColor.color_1" @pulldown="pulldown(swiperSlot.index)"></yb-pulldown>
+					<cell>
+						<yb-gap :height="30"></yb-gap>
+					</cell>
+					<cell>
+						<view class="loading" v-if="list[swiperSlot.index].child.length == 0">
+							<yb-loading :color="skinColor.color_3" size="70" title="加载中" v-if="list[swiperSlot.index].loading" /></yb-loading>
+							<yb-no-data title="暂无数据" v-if="list[swiperSlot.index].child.length == 0 && !list[swiperSlot.index].loading" /></yb-no-data>
+						</view>
+					</cell>
+					<cell v-for="(item, index) in list[swiperSlot.index].child" :key="index">
+						<view class="item padding-gap">
+							<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
+							<view class="info">
+								<text class="title" :style="{color: skinColor.color_1}">终究是戏子，永远在别人的故事里</text>
+								<text class="label" :style="{color: skinColor.color_3}">歌单狂魔</text>
+							</view>
+							<view class="actions">
+								<rd-icon class="icon" name="love" size="38" :color="skinColor.color_1"></rd-icon>
+							</view>
+						</view>
+					</cell>
+				</list>
+			</template>
+			
+		</yb-swiper-list>
+	</view>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		data () {
+			return {
+				list: [{
+					loading: true,
+					child: []
+				},{
+					loading: true,
+					child: []
+				},{
+					loading: true,
+					child: []
+				},{
+					loading: true,
+					child: []
+				},{
+					loading: true,
+					child: []
+				},{
+					loading: true,
+					child: []
+				}],
+				tabs: [{
+					label: '华语',
+					value: '123',
+					source: 'qqmusic'
+				},{
+					label: '流行',
+					value: '123',
+					source: 'qqmusic'
+				},{
+					label: '摇滚',
+					value: '123',
+					source: 'qqmusic'
+				},{
+					label: '民谣',
+					value: '123',
+					source: 'qqmusic'
+				},{
+					label: '电子',
+					value: '123',
+					source: 'qqmusic'
+				},{
+					label: '伤感',
+					value: '123',
+					source: 'qqmusic'
+				}],
+				current: 0
+			}
+		},
+		onLoad() {
+			this.getMix(0)
+		},
+		methods: {
+			changeTab (e) {
+				this.current = e.current
+				this.getMix(this.current)
+			},
+			pulldown (index) {
+				setTimeout(() => {
+					this.$refs['pulldown_' + index].success()
+				}, 1000)
+			},
+			getMix (index) {
+				setTimeout(() => {
+					this.$set(this.list[index], 'child', [1,2,3,4,5,6,7,8,9])
+					this.$set(this.list[index], 'loading', false)
+				}, 1000)
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.loading {
+		flex: 1;
+		height: 800rpx;
+		align-items: center;
+		justify-content: center;
+	}
+	.item {
+		flex-direction: row;
+		align-items: center;
+		padding-bottom: 30rpx;
+	}
+	.item .cover {
+		width: 150rpx;
+		height: 150rpx;
+	}
+	.item .info {
+		flex: 1;
+		height: 100rpx;
+		justify-content: space-between;
+		margin-left: 30rpx;
+	}
+	.item .info .title, .item .info .label {
+		font-size: 28rpx;
+	}
+</style>
