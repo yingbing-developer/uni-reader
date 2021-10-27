@@ -3,13 +3,27 @@
 import http from '@/plugins/request/index.js'
 import Config from '@/assets/js/config.js'
 import Utils from '@/assets/js/util.js'
-import Music from '@/assets/music/music.js'
+import { Single, Album } from '@/assets/music/music.js'
 
-const { MUSICURL, ERR_OK, ERR_FALSE, commonParams } = Config
+const { MUSICURL, ERR_OK, ERR_FALSE } = Config
 const { time2seconds } = Utils;
 
 const source = 'qqmusic';
 const href = MUSICURL[source].href;
+
+//QQ音乐请求常量
+const commonParams = {
+  g_tk: 5381,
+  loginUin: 0,
+  hostUin: 0,
+  format: 'json',
+  inCharset: 'utf8',
+  outCharset: 'utf-8',
+  notice: 0,
+  platform: 'yqq.json',
+  needNewCode: 0
+}
+	
 
 //转义html特殊字符
 const htmlDecodeByRegExp = function (str){ 
@@ -68,28 +82,28 @@ const search = function (data) {
 		}).then((res) => {
 			if ( res.data.code == 0 ) {
 				let songs = res.data.data.song.list;
-				let music = [];
+				let list = [];
 				for ( let i in songs ) {
 					// if ( songs[i].pay.payplay == 0 ) {
 						let singer = '';
 						for ( let j in songs[i].singer ) {
 							singer += songs[i].singer[j].name + (j < songs[i].singer.length ? ' ' : '')
 						}
-						const item = new Music({
+						const item = new Single({
 							path: songs[i].songmid,
 							lyric: songs[i].songid,
-							name: songs[i].songname,
+							title: songs[i].songname,
 							cover: `https://y.gtimg.cn/music/photo_new/T002R300x300M000${songs[i].albummid}.jpg?max_age=2592000`,
 							singer: singer,
 							source: source
 						})
-						music.push(item)
+						list.push(item)
 					// }
 				}
 				resolve({
 					code: ERR_OK,
 					data: {
-						list: music,
+						list: list,
 						source: source
 					}
 				})
@@ -97,6 +111,59 @@ const search = function (data) {
 			
 		}).catch((err) => {
 			resolve({
+				code: ERR_FALSE,
+				data: {
+					list: [],
+					source: source
+				}
+			})
+		})
+	})
+}
+
+/**
+ * 获取排行榜
+ *
+ **/
+const getToplist = function () {
+	const dataSync = {
+	    '-': '1577850668501',
+	    data: JSON.stringify({"comm":{"g_tk":5381,"uin":"","format":"json","inCharset":"utf-8","outCharset":"utf-8","notice":0,"platform":"h5","needNewCode":1,"ct":23,"cv":0},"topList":{"module":"musicToplist.ToplistInfoServer","method":"GetAll","param":{}}})
+	}
+	return new Promise((resolve, reject) => {
+		http.get('https://u.y.qq.com/cgi-bin/musicu.fcg', {
+			params: dataSync,
+			headers: {
+				referer: 'https://u.y.qq.com',
+				host: 'u.y.qq.com',
+			}
+		}).then((res) => {
+			let list = []
+			if ( res.data.code == 0 ) {
+				const group = res.data.topList.data.group
+				group.forEach(item => {
+					item.toplist.forEach(top => {
+						const item = new Album({
+							id: top.topId,
+							title: top.musichallTitle,
+							cover: top.frontPicUrl,
+							desc: top.intro?.replace(/<br>/g, '') || '',
+							source: source
+						})
+						list.push(item)
+					})
+				})	
+			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					list: list,
+					source: source
+				}
+			})
+			
+		}).catch((err) => {
+			reject({
 				code: ERR_FALSE,
 				data: {
 					list: [],
@@ -207,6 +274,7 @@ const getLyric = function (data) {
 export default {
 	namespaced: true,
 	search,
+	getToplist,
 	getPlayUrl,
 	getLyric,
 	source

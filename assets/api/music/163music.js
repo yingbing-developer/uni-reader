@@ -3,6 +3,7 @@
 import http from '@/plugins/request/index.js'
 import Config from '@/assets/js/config.js'
 import Utils from '@/assets/js/util.js'
+import { Single, Album } from '@/assets/music/music.js'
 
 const { MUSICURL, ERR_OK, ERR_FALSE } = Config
 const { time2seconds } = Utils;
@@ -25,33 +26,73 @@ const search = function (data) {
 			params: dataSync
 		}).then((res) => {
 			let songs = res.data.result.songs;
-			let music = [];
+			let list = [];
 			if ( res.data.code == 200 ) {
 				for ( let i in songs ) {
 					let singer = '';
 					for ( let j in songs[i].ar ) {
 						singer += songs[i].ar[j].name + (j < songs[i].ar.length ? ' ' : '')
 					}
-					music.push({
+					const item = new Single({
 						path: songs[i].id,
 						lyric: songs[i].id,
-						name: songs[i].name,
+						title: songs[i].name,
 						cover: songs[i].al.picUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
 						singer: singer || '未知歌手',
 						source: source
 					})
+					list.push(item)
 				}
 			}
 			resolve({
 				code: ERR_OK,
 				data: {
-					list: music,
+					list: list,
 					source: source
 				}
 			})
 			
 		}).catch((err) => {
 			resolve({
+				code: ERR_FALSE,
+				data: {
+					list: [],
+					source: source
+				}
+			})
+		})
+	})
+}
+
+/**
+ * 获取排行榜
+ *
+ **/
+const getToplist = function (data) {
+	return new Promise((resolve, reject) => {
+		http.get(href + '/toplist').then((res) => {
+			let list = []
+			if ( res.data.code == 200 ) {
+				res.data.list.forEach(top => {
+					const item = new Album({
+						id: top.id,
+						title: top.name,
+						cover: top.coverImgUrl,
+						desc: top.description?.replace(/<br>/g, '') || '',
+						source: source
+					})
+					list.push(item)
+				})
+			}
+			resolve({
+				code: ERR_OK,
+				data: {
+					list: list,
+					source: source
+				}
+			})
+		}).catch((err) => {
+			reject({
 				code: ERR_FALSE,
 				data: {
 					list: [],
@@ -147,6 +188,7 @@ const getLyric = function (data) {
 export default {
 	namespaced: true,
 	search,
+	getToplist,
 	getPlayUrl,
 	getLyric,
 	source

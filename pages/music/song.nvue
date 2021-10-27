@@ -19,7 +19,7 @@
 							<yb-no-data title="暂无数据" v-if="list[swiperSlot.index].child.length == 0 && !list[swiperSlot.index].loading" /></yb-no-data>
 						</view>
 					</cell>
-					<cell v-for="(item, index) in list[swiperSlot.index].child" :key="index">
+					<cell v-for="(item, index) in list[swiperSlot.index].child">
 						<view class="item padding-gap">
 							<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
 							<view class="info">
@@ -94,19 +94,19 @@
 			}
 		},
 		onLoad() {
-			this.getMix(0)
+			this.getList(0)
 		},
 		methods: {
 			changeTab (e) {
 				this.current = e.current
-				this.getMix(this.current)
+				this.getList(this.current)
 			},
 			pulldown (index) {
 				setTimeout(() => {
 					this.$refs['pulldown_' + index].success()
 				}, 1000)
 			},
-			getMix (index) {
+			getList (index) {
 				setTimeout(() => {
 					this.$set(this.list[index], 'child', [1,2,3,4,5,6,7,8,9])
 					this.$set(this.list[index], 'loading', false)
@@ -125,7 +125,6 @@
 
 <style scoped>
 	.loading {
-		flex: 1;
 		height: 800rpx;
 		align-items: center;
 		justify-content: center;

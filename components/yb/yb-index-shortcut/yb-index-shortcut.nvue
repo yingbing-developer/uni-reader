@@ -1,0 +1,99 @@
+<template>
+	<view class="yb-index-shortcut" @touchstart="ontouchstart" @touchmove="ontouchmove" ref="shortcut">
+		<text class="index" :style="{color: current == index ? activedColor : frontColor}" v-for="(item, index) in indexs" :key="index">{{item}}</text>
+	</view>
+</template>
+
+<script>
+	const dom = weex.requireModule('dom');
+	const itemHeight = uni.upx2px(35)
+	export default {
+		props: {
+			indexs: {
+				type: Array,
+				default () {
+					return new Array
+				}
+			},
+			activedColor: {
+				type: String,
+				default: '#FF3B30'
+			},
+			frontColor: {
+				type: String,
+				default: '#FAFAFA'
+			},
+			current: {
+				type: Number,
+				default: 0
+			}
+		},
+		data () {
+			return {
+				validArea: []
+			}
+		},
+		mounted () {
+			setTimeout(() => {
+				this.init()
+			}, 100)
+		},
+		methods: {
+			init () {
+				dom.getComponentRect(this.$refs.shortcut, (res) => {
+					const height = res.size.height;
+					const safeHeight = this.indexs.length * itemHeight
+					const top = (height - safeHeight) / 2
+					let arr = []
+					Object.keys(this.indexs).forEach(key => {
+						arr.push({
+							top: (key * itemHeight) + top,
+							bottom: ((parseInt(key) + 1) * itemHeight) + top
+						})
+					})
+					this.validArea = arr
+				})
+			},
+			ontouchstart (e) {
+				this.touchAction(e)
+			},
+			ontouchmove (e) {
+				this.touchAction(e)
+			},
+			touchAction (e) {
+				if ( e.touches.length == 1 ) {
+					const touch = e.touches[0]
+					const index = this.validArea.findIndex(item => touch.pageY >= item.top && touch.pageY < item.bottom)
+					if ( index > -1 && index != this.current ) {
+						this.$emit('change', index)
+					}
+				}
+			}
+		},
+		watch: {
+			indexs (newVal) {
+				setTimeout(() => {
+					this.init()
+				}, 100)
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.yb-index-shortcut {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		right: 0;
+		width: 50rpx;
+		background-color: rgba(0,0,0,0.4);
+		align-items: center;
+		justify-content: center;
+	}
+	.yb-index-shortcut .index {
+		font-size: 26rpx;
+		height: 35rpx;
+		line-height: 35rpx;
+	}
+</style>

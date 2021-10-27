@@ -8,14 +8,25 @@
 		:borderColor="skinColor.color_3"
 		:activedColor="skinColor.color_actived_1">
 			<template v-slot="{swiperSlot}">
-				<yb-index-list :data="list[swiperSlot.index].child" :headerBgColor="skinColor.color_theme_1">
+				<yb-index-list :data="list[swiperSlot.index].child" :headerBgColor="skinColor.color_theme_1" v-if="list[swiperSlot.index].child.length > 0">
+					<template slot="pulldown">
+						<yb-pulldown
+						v-if="!list[swiperSlot.index].loading"
+						:ref="'pulldown_' + swiperSlot.index"
+						:color="skinColor.color_1"
+						@pulldown="pulldown(swiperSlot.index)"></yb-pulldown>
+					</template>
 					<template v-slot="{indexItem}">
-						<view class="item" :style="{'border-color': skinColor.color_gap_1}">
+						<view class="item" :class="skinMode + '-actived'" :style="{'border-color': skinColor.color_gap_1}">
 							<rd-image lazyLoad class="cover" :src="indexItem.avatar" mode="aspectFill"></rd-image>
 							<text class="name" :style="{color: skinColor.color_1}">{{indexItem.label}}</text>
 						</view>
 					</template>
 				</yb-index-list>
+				<view class="loading" v-if="list[swiperSlot.index].child.length == 0">
+					<yb-loading :color="skinColor.color_3" size="70" title="加载中" v-if="list[swiperSlot.index].loading" /></yb-loading>
+					<yb-no-data title="暂无数据" v-if="list[swiperSlot.index].child.length == 0 && !list[swiperSlot.index].loading" /></yb-no-data>
+				</view>
 			</template>
 		</yb-swiper-list>
 		<music-panel :data="panelData" :visible.sync="panelShow"></music-panel>
@@ -79,19 +90,21 @@
 			}
 		},
 		onLoad() {
-			this.getMix(0)
+			this.getList(0)
 		},
 		methods: {
 			changeTab (e) {
 				this.current = e.current
-				this.getMix(this.current)
+				if ( this.list[this.current].child.length == 0 ) {
+					this.getList(this.current)
+				}
 			},
 			pulldown (index) {
 				setTimeout(() => {
 					this.$refs['pulldown_' + index].success()
 				}, 1000)
 			},
-			getMix (index) {
+			getList (index) {
 				setTimeout(() => {
 					let arr = []
 					this.indexs.forEach(item => {
@@ -121,7 +134,6 @@
 <style scoped>
 	.loading {
 		flex: 1;
-		height: 800rpx;
 		align-items: center;
 		justify-content: center;
 	}

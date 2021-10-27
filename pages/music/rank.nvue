@@ -1,22 +1,36 @@
 <template>
 	<view class="rank" :style="{'background-color': skinColor.color_bg_1}">
 		<yb-nav-bar :bgColor="skinColor.color_theme_1" :frontColor="skinColor.color_4" title="排行榜"></yb-nav-bar>
-		<list>
-			<cell>
-				<yb-gap :height="20"></yb-gap>
-			</cell>
-			<cell v-for="(item, index) in list">
-				<view class="item" :style="{'background-color': '#191919'}">
-					<rd-image class="cover" lazyLoad src="http://y.gtimg.cn/music/photo_new/T003R300x300M000003wU5Cn1QDVjQ.jpg" mode="aspectFill"></rd-image>
-					<view class="top-list">
-						<text
-						class="top-item"
-						v-for="(top, i) in 3" :key="i"
-						:style="{'color': '#f4f7f5'}">{{i + 1}}. 那一年 (Live)-大张伟/汪苏泷</text>
-					</view>
-				</view>
-			</cell>
-		</list>
+		<yb-swiper-list :tabs="tabs" @change="changeTab" :frontColor="skinColor.color_2"
+			:borderColor="skinColor.color_3" :activedColor="skinColor.color_actived_1">
+			<template v-slot="{swiperSlot}">
+				<list>
+					<cell>
+						<yb-gap :height="20"></yb-gap>
+					</cell>
+					<cell>
+						<view class="loading" v-if="list[swiperSlot.index].child.length == 0">
+							<yb-loading :color="skinColor.color_3" size="70" title="加载中"
+								v-if="list[swiperSlot.index].loading" />
+							</yb-loading>
+							<yb-no-data title="暂无数据"
+								v-if="list[swiperSlot.index].child.length == 0 && !list[swiperSlot.index].loading" />
+							</yb-no-data>
+						</view>
+					</cell>
+					<cell v-for="(item, index) in list[swiperSlot.index].child">
+						<view class="item" :style="{'background-color': skinColor.color_black}">
+							<rd-image class="cover" lazyLoad
+								:src="item.cover"
+								mode="aspectFill"></rd-image>
+							<view class="top-desc">
+								<text class="top-desc-text" :style="{'color': skinColor.color_white}">{{item.desc || item.title}}</text>
+							</view>
+						</view>
+					</cell>
+				</list>
+			</template>
+		</yb-swiper-list>
 	</view>
 </template>
 
@@ -24,30 +38,75 @@
 	import appMixin from '@/common/mixin/app.js';
 	export default {
 		mixins: [appMixin],
-		data () {
+		data() {
 			return {
-				list: ['飙升榜', '热歌榜', '新歌榜', '内地榜', '全球榜', '网络歌曲榜', '原创榜', '抖音排行榜']
+				list: [],
+				tabs: [],
+			}
+		},
+		computed: {
+			data () {
+				return JSON.parse(decodeURIComponent(getApp().globalData.$Route.query.data))
+			}
+		},
+		onLoad() {
+			const MUSICURL = getApp().globalData.$config.MUSICURL
+			Object.keys(MUSICURL).forEach(key => {
+				this.tabs.push({
+					label: MUSICURL[key].title,
+					source: key
+				})
+				this.list.push({
+					loading: true,
+					child: []
+				})
+			})
+			this.getList(0)
+		},
+		methods: {
+			changeTab (e) {
+				this.current = e.current
+				if ( this.list[this.current].loading ) {
+					this.getList(this.current)
+				}
+			},
+			getList (index) {
+				const dataIndex = this.data.findIndex(item => item.source == this.tabs[index].source)
+				setTimeout(() => {
+					this.$set(this.list[index], 'child', dataIndex > -1 ? this.data[dataIndex].list : [])
+					this.$set(this.list[index], 'loading', false)
+				}, 500)
 			}
 		}
 	}
 </script>
 
 <style>
- .item {
-	 margin: 0 20rpx 20rpx 20rpx;
-	 height: 200rpx;
-	 flex-direction: row;
- }
- .item .cover {
-	 width: 200rpx;
-	 height: 200rpx;
- }
- .item .top-list {
-	 padding: 0 40rpx;
-	 justify-content: center;
- }
- .item .top-list .top-item {
-	 font-size: 24rpx;
-	 line-height: 52rpx;
- }
+	.item {
+		margin: 0 20rpx 20rpx 20rpx;
+		height: 200rpx;
+		flex-direction: row;
+	}
+
+	.item .cover {
+		width: 200rpx;
+		height: 200rpx;
+	}
+
+	.item .top-desc {
+		padding: 0 40rpx;
+		justify-content: center;
+		flex: 1;
+	}
+	.top-desc-text {
+		font-size: 24rpx;
+		line-height: 52rpx;
+		lines: 3;
+	}
+
+	.loading {
+		height: 800rpx;
+		align-items: center;
+		justify-content: center;
+	}
 </style>

@@ -5,7 +5,9 @@ import SkinNight from "./night/skin.js"
 const colors = {
 	color_green: '#21C088',
 	color_red: '#FF3B30',
-	color_blue: '#2ca2f9'
+	color_blue: '#2ca2f9',
+	color_white: '#FAFAFA',
+	color_black: '#191919'
 }
 
 Object.keys(colors).forEach(key => {

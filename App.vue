@@ -7,6 +7,7 @@
 	import Utils from '@/assets/js/util.js'
 	import Config from '@/assets/js/config.js'
 	import Business from '@/assets/js/business.js'
+	import Api from '@/assets/api/index.js'
 	export default {
 		globalData: {
 			$Router: Router,
@@ -17,6 +18,7 @@
 			$utils: Utils,
 			$config: Config,
 			$business: Business,
+			$api: Api,
 		},  
 		onLaunch: function() {
 			console.log('App Launch')

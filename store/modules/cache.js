@@ -25,6 +25,7 @@ const mutations = {
 		uni.setStorageSync(IMAGECACHE, state.imageCache)
 	},
 	clearImageCache (state) {
+		state.imageCache = []
 		uni.removeStorageSync(IMAGECACHE)
 	}
 }

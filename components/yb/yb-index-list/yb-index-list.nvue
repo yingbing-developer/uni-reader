@@ -1,12 +1,13 @@
 <template>
 	<view class="yb-index-list">
 		<list @scroll="scroll">
+			<slot name="pulldown"></slot>
 			<header v-if="listSync.length > 0">
 				<view class="header-line" :style="{'background-color': headerBgColor}">
 					<text class="header-text" :style="{color: headerFrontColor}">{{listSync[currentIndex].index}}</text>
 				</view>
 			</header>
-			<cell v-for="(item, i) in listSync" @appear="onappear(i)" @disappear="ondisappear(i)">
+			<cell v-for="(item, i) in listSync" @appear="onappear(i)" @disappear="ondisappear(i)" ref="indexItem">
 				<view class="header-line" :style="{'background-color': headerBgColor}" v-if="i != 0">
 					<text class="header-text" :style="{color: headerFrontColor}">{{item.index}}</text>
 				</view>
@@ -15,10 +16,19 @@
 				</view>
 			</cell>
 		</list>
+		<yb-index-shortcut
+		v-if="showShortcut"
+		:actived-color="shortActivedColor"
+		:front-color="shortFrontColor"
+		:current="currentIndex"
+		:indexs="shortIndexs"
+		@change="scrollTo"></yb-index-shortcut>
 	</view>
 </template>
 
 <script>
+	const dom = weex.requireModule('dom');
+	const headerHeight = uni.upx2px(54)
 	export default {
 		props: {
 			data: {
@@ -34,6 +44,19 @@
 			headerFrontColor: {
 				type: String,
 				default: '#FAFAFA'
+			},
+			shortActivedColor: {
+				type: String,
+				default: '#FF3B30'
+			},
+			shortFrontColor: {
+				type: String,
+				default: '#FAFAFA'
+			},
+			//是否展示右边快捷跳转列表
+			showShortcut: {
+				type: Boolean,
+				default: true
 			}
 		},
 		data () {
@@ -42,6 +65,7 @@
 				currentIndex: 0,
 				direction: '',
 				oldOffsetY: 0,
+				shortIndexs: [],
 				indexs: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','#']
 			}
 		},
@@ -52,15 +76,22 @@
 			init () {
 				if ( this.data.length > 0 ) {
 					let list = []
+					let shortIndexs = []
 					this.indexs.forEach(index => {
 						const arr = this.data.filter(item => item.index == index)
 						list.push({
 							index: index,
 							child: arr
 						})
+						shortIndexs.push(index)
 					})
-					this.listSync = list;
+					this.shortIndexs = shortIndexs
+					this.listSync = list
 				}
+			},
+			scrollTo (current) {
+				dom.scrollToElement(this.$refs['indexItem'][current], {animated: false, offset: current == 0 ? -headerHeight : 0});
+				this.currentIndex = current
 			},
 			scroll (e) {
 				if ( e.contentOffset.y == 0 ) {
@@ -102,7 +133,9 @@
 		position: relative;
 	}
 	.header-line {
-		padding: 10rpx 40rpx;
+		padding: 0 40rpx;
+		height: 54rpx;
+		justify-content: center;
 	}
 	.header-line .header-text {
 		font-size: 28rpx;
