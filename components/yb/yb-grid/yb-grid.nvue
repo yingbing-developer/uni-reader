@@ -1,0 +1,55 @@
+<template>
+	<view class="yb-grid">
+		<view class="list" v-for="(child, i) in list" :key="i">
+			<view v-for="(item, index) in child" :key="index">
+				<slot :gridItem="{
+					detail: item,
+					index: parseInt(i * column) + parseInt(index)
+				}"></slot>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			data: {
+				type: Array,
+				default () {
+					return new Array
+				}
+			},
+			//列数
+			column: {
+				type: Number,
+				default: 3
+			},
+			//最大显示数量
+			count: {
+				type: Number,
+				default: 9
+			}
+		},
+		computed: {
+			list () {
+				const data = this.data.slice(0, this.count);
+				const row = data.length > 0 ? Math.ceil(data.length / this.column) : 0
+				const arr = new Array(row).fill(0)
+				let list = []
+				Object.keys(arr).forEach(key => {
+					const end = ((parseInt(key) + 1) * this.column) < this.count ? ((parseInt(key) + 1) * this.column) : this.count
+					list.push(data.slice(parseInt(key) * this.column, end))
+				})
+				return list
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.list {
+		flex-direction: row;
+		justify-content: space-between;
+	}
+</style>

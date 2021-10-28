@@ -4,7 +4,7 @@ import api_163music from './163music.js'
 import api_qqmusic from './qqmusic.js'
 
 const { getters } = Store;
-const { ADULTS } = Config;
+const { MUSICURL } = Config;
 
 const api = {
 	[api_163music.source]: api_163music,
@@ -19,21 +19,60 @@ export default {
 		const adult = getters['app/getAdult'];
 		let newArr = [];
 		Object.keys(api).forEach(key => {
-			if ( sources.indexOf(key) == -1 && !data.isLastPage[key] && (ADULTS.indexOf(key) == -1 || adult) ) {
+			if ( sources.indexOf(key) == -1 && !data.isLastPage[key] && (!MUSICURL[key].isAdult || adult) && MUSICURL[key].search ) {
 				newArr.push(api[key].search(data));
 			}
 		})
 		return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
 	},
 	
-	//获取音乐播放链接列表
-	getToplist (arr) {
+	//获取轮播图列表
+	getBannerList () {
 		const sources = getters['music/getMusicSourcesController'];
 		const adult = getters['app/getAdult'];
 		let newArr = [];
 		Object.keys(api).forEach(key => {
-			if ( arr.indexOf(key) > -1 && sources.indexOf(key) == -1 && (ADULTS.indexOf(key) == -1 || adult) ) {
+			if ( sources.indexOf(key) == -1 && (!MUSICURL[key].isAdult || adult) && MUSICURL[key].banner ) {
+				newArr.push(api[key].getBannerList());
+			}
+		})
+		return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
+	},
+	
+	//获取排行榜列表
+	getToplist () {
+		const sources = getters['music/getMusicSourcesController'];
+		const adult = getters['app/getAdult'];
+		let newArr = [];
+		Object.keys(api).forEach(key => {
+			if ( sources.indexOf(key) == -1 && (!MUSICURL[key].isAdult || adult) && MUSICURL[key].top ) {
 				newArr.push(api[key].getToplist());
+			}
+		})
+		return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
+	},
+	
+	//获取热门歌单
+	getHotDiscList () {
+		const sources = getters['music/getMusicSourcesController'];
+		const adult = getters['app/getAdult'];
+		let newArr = [];
+		Object.keys(api).forEach(key => {
+			if ( sources.indexOf(key) == -1 && (!MUSICURL[key].isAdult || adult) && MUSICURL[key].album ) {
+				newArr.push(api[key].getHotDiscList());
+			}
+		})
+		return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
+	},
+	
+	//获取新发单曲
+	getNewSongList () {
+		const sources = getters['music/getMusicSourcesController'];
+		const adult = getters['app/getAdult'];
+		let newArr = [];
+		Object.keys(api).forEach(key => {
+			if ( sources.indexOf(key) == -1 && (!MUSICURL[key].isAdult || adult) && MUSICURL[key].newSong ) {
+				newArr.push(api[key].getNewSongList());
 			}
 		})
 		return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))

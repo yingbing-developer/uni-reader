@@ -1,78 +1,134 @@
 <template>
 	<view class="music" :style="{'background-color': skinColor.color_bg_1}">
-		<swiper
-		:style="{'height': (statusBarHeight + 130) + 'px'}"
-		class="ad-swiper"
-		circular
-		:indicator-dots="true"
-		:indicator-color="skinColor.color_bg_1"
-		:indicator-active-color="skinColor.color_actived_1"
-		:autoplay="true"
-		:interval="3000"
-		:duration="1000">
-			<swiper-item v-for="(item, index) in 3" :key="index">
-				<rd-image lazyLoad class="ad" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
-			</swiper-item>
-		</swiper>
-		<list class="list">
-			<yb-pulldown ref="pulldown" :color="skinColor.color_1" @pulldown="pulldown"></yb-pulldown>
-			<cell>
-				<view class="singer-line opac-actived" :style="{'background-color': skinColor.color_theme_2}" @tap="app.$Router.push({path: '/pages/music/search'})">
-					<view class="singer-left">
-						<rd-icon name="search" color="#ffa916" size="50"></rd-icon>
-						<text class="singer-text" :style="{color: skinColor.color_1}">搜索歌曲/歌手</text>
-					</view>
-					<view class="go">
-						<text class="go-text">GO</text>
-					</view>
-				</view>
-			</cell>
-			<cell>
-				<view class="types">
-					<view class="type opac-actived"
-					v-for="(item, index) in hotRanks"
-					@tap="goRank(item)"
-					:key="index"
-					:style="{
-						'background-color': skinColor.color_theme_2,
-						'margin-right': ((parseInt(index / 4) + 1) * 4) - 1 == index ? '0' : '24rpx'
-					}">
-						<text class="type-text" :style="{color: skinColor.color_1}">{{item.title}}</text>
-						<rd-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1" @click="goRank(item)"></rd-icon>
-					</view>
-				</view>
-			</cell>
-			
-			<!-- 推荐歌单 -->
-			<rd-header title="推荐歌单"></rd-header>
-			<cell>
-				<rd-grid title="推荐歌单" :data="hotSheets" :recom-index="6" @more="app.$Router.push({path: '/pages/music/mix'})" @clickTo="goDetail(item)"></rd-grid>
-			</cell>
-			
-			<!-- 热门歌手 -->
-			<rd-header title="热门歌手"></rd-header>
-			<cell>
-				<view class="padding-gap">
-					<rd-title title="热门歌手" moreText="更多" @more="app.$Router.push({path: '/pages/music/singer'})"></rd-title>
-					<scroll-view :show-scrollbar="false" scroll-x="true" class="singers">
-						<view class="singer"
-						v-for="(item, index) in hotSingers" :key="index"
-						:style="{'margin-right': index == hotSingers.length - 1 ? 0 : '24rpx'}"
-						@tap="goDetail(item)">
-							<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
-							<text class="name" :style="{color: skinColor.color_1}" @tap="goDetail(item)">周杰伦</text>
+		<template v-if="!loading">
+			<swiper
+			:style="{'height': (statusBarHeight + 150) + 'px'}"
+			class="ad-swiper"
+			circular
+			:indicator-dots="true"
+			:indicator-color="skinColor.color_bg_1"
+			:indicator-active-color="skinColor.color_actived_1"
+			:autoplay="true"
+			:interval="3000"
+			:duration="1000">
+				<swiper-item v-for="(item, index) in banners" :key="index">
+					<rd-image lazyLoad class="ad" :src="item.cover" mode="aspectFill"></rd-image>
+				</swiper-item>
+			</swiper>
+			<list class="list">
+				<yb-pulldown ref="pulldown" :color="skinColor.color_1" @pulldown="pulldown"></yb-pulldown>
+				<cell>
+					<view class="singer-line opac-actived" :style="{'background-color': skinColor.color_theme_2}" @tap="app.$Router.push({path: '/pages/music/search'})">
+						<view class="singer-left">
+							<rd-icon name="search" color="#ffa916" size="50"></rd-icon>
+							<text class="singer-text" :style="{color: skinColor.color_1}">搜索歌曲/歌手</text>
 						</view>
-					</scroll-view>
-				</view>
-			</cell>
-			
-			<!-- 新歌速递 -->
-			<rd-header title="新歌速递"></rd-header>
-			<cell>
-				<rd-grid title="新歌速递" :data="hotSongs" :recom-index="6" @clickTo="goDetail(item)" @more="app.$Router.push({path: '/pages/music/song'})"></rd-grid>
-				<yb-gap></yb-gap>
-			</cell>
-		</list>
+						<view class="go">
+							<text class="go-text">GO</text>
+						</view>
+					</view>
+				</cell>
+				<cell>
+					<view class="types">
+						<view class="type opac-actived"
+						v-for="(item, index) in hotRanks"
+						@tap="goRank(item)"
+						:key="index"
+						:style="{
+							'background-color': skinColor.color_theme_2,
+							'margin-right': ((parseInt(index / 4) + 1) * 4) - 1 == index ? '0' : '24rpx'
+						}">
+							<text class="type-text" :style="{color: skinColor.color_1}">{{item.title}}</text>
+							<rd-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1" @click="goRank(item)"></rd-icon>
+						</view>
+					</view>
+				</cell>
+				
+				<!-- 推荐歌单 -->
+				<!-- 热门歌手 -->
+				<template v-if="hotDisc.length > 0">
+					<rd-header title="推荐歌单"></rd-header>
+					<cell>
+						<view class="padding-gap">
+							<rd-title title="推荐歌单" moreText="更多" @more="app.$Router.push({path: '/pages/music/mix'})"></rd-title>
+							<yb-grid :data="hotDisc" :count="3">
+								<template v-slot="{gridItem}">
+									<view class="gridItem">
+										<rd-image  border-radius="12" class="cover" :src="gridItem.detail.cover" mode="aspectFill"></rd-image>
+										<view class="num">
+											<rd-icon name="play-outline" :color="skinColor.color_4"></rd-icon>
+											<text class="num-text" :style="{color: skinColor.color_4}">{{gridItem.detail.num / 10000}}万</text>
+										</view>
+										<text class="name" :style="{color: skinColor.color_1}">{{gridItem.detail.title}}</text>
+									</view>
+								</template>
+							</yb-grid>
+						</view>
+					</cell>
+					<cell v-for="(item, index) in hotDisc.slice(3)">
+						<view class="cellItem padding-gap">
+							<rd-image lazyLoad border-radius="12" class="cover" :src="item.cover"></rd-image>
+							<view class="info">
+								<text class="title" :style="{color: skinColor.color_1}">{{item.title}}</text>
+								<text class="label" :style="{color: skinColor.color_3}">{{item.creator}}</text>
+							</view>
+						</view>
+					</cell>
+				</template>
+				
+				<!-- 热门歌手 -->
+				<template v-if="hotSingers.length > 0">
+					<rd-header title="热门歌手"></rd-header>
+					<cell>
+						<view class="padding-gap" >
+							<rd-title title="热门歌手" moreText="更多" @more="app.$Router.push({path: '/pages/music/singer'})"></rd-title>
+							<scroll-view :show-scrollbar="false" scroll-x="true" class="singers">
+								<view class="singer"
+								v-for="(item, index) in hotSingers" :key="index"
+								:style="{'margin-right': index == hotSingers.length - 1 ? 0 : '24rpx'}"
+								@tap="goDetail(item)">
+									<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
+									<text class="name" :style="{color: skinColor.color_1}" @tap="goDetail(item)">周杰伦</text>
+								</view>
+							</scroll-view>
+						</view>
+					</cell>
+				</template>
+				
+				<!-- 新歌速递 -->
+				<template v-if="newSongs.length > 0">
+					<rd-header title="新歌速递"></rd-header>
+					<cell>
+						<view class="padding-gap">
+							<rd-title title="新歌速递" moreText="更多" @more="app.$Router.push({path: '/pages/music/song'})"></rd-title>
+							<yb-grid :data="newSongs" :count="3">
+								<template v-slot="{gridItem}">
+									<view class="gridItem">
+										<rd-image  border-radius="12" class="cover" :src="gridItem.detail.cover" mode="aspectFill"></rd-image>
+										<view class="num">
+											<rd-icon name="play-outline" :color="skinColor.color_4"></rd-icon>
+											<text class="num-text" :style="{color: skinColor.color_4}">{{gridItem.detail.singer}}</text>
+										</view>
+										<text class="name" :style="{color: skinColor.color_1}">{{gridItem.detail.title}}</text>
+									</view>
+								</template>
+							</yb-grid>
+						</view>
+					</cell>
+					<cell v-for="(item, index) in newSongs.slice(3)">
+						<view class="cellItem padding-gap">
+							<rd-image lazyLoad border-radius="12" class="cover" :src="item.cover"></rd-image>
+							<view class="info">
+								<text class="title" :style="{color: skinColor.color_1}">{{item.title}}</text>
+								<text class="label" :style="{color: skinColor.color_3}">{{item.singer}}</text>
+							</view>
+						</view>
+					</cell>
+				</template>
+				<yb-pullup v-if="newSongs.length == 0" ref="pullup" :color="skinColor.color_1" @pullup="pullup"></yb-pullup>
+			</list>
+		</template>
+		<yb-list-loading v-else size="70" title="加载中"></yb-list-loading>
 	</view>
 </template>
 
@@ -86,14 +142,22 @@
 				statusBarHeight: 0,
 				hotRanks: [],//首页展示排行榜
 				toplist: [],//所有排行榜
-				hotSheets: [1,2,3,4,5,6,7],
-				hotSongs: [1,2,3,4,5,6,7],
-				hotSingers: [1,2,3,4,5,6]
+				banners: [],//轮播图
+				hotDisc: [],//热门歌单
+				newSongs: [],//新歌
+				hotSingers: [1,2,3,4,5,6],
+				loading: true
 			}
 		},
 		onLoad () {
 			this.statusBarHeight = uni.getSystemInfoSync().statusBarHeight
-			this.getToplist();
+			Promise.all([
+				this.getToplist(),
+				this.getBannerList(),
+				this.getHotDiscList()
+			]).then((ress) => {
+				this.loading = false
+			})
 		},
 		onShow () {
 			getApp().globalData.$business.setSkinColor();
@@ -115,17 +179,23 @@
 		},
 		methods: {
 			pulldown () {
+				Promise.all([
+					this.getToplist(),
+					this.getBannerList(),
+					this.getHotDiscList()
+				]).then((ress) => {
+					const index = ress.findIndex(res => !res)
+					index == -1 ? this.$refs.pulldown.success() : this.$refs.pulldown.fail()
+				})
 				setTimeout(() => {
 					this.$refs.pulldown.success()
 				}, 1000)
 			},
-			getToplist () {
-				const MUSICURL = getApp().globalData.$config.MUSICURL
-				let arr = []
-				Object.keys(MUSICURL).forEach(key => {
-					arr.push(key)
-				})
-				getApp().globalData.$api.music.getToplist(arr).then((ress) => {
+			pullup () {
+				this.getNewSongList()
+			},
+			async getToplist () {
+				return await getApp().globalData.$api.music.getToplist().then((ress) => {
 					let hotRanks = []
 					let toplist = []
 					ress.forEach((res, index) => {
@@ -153,6 +223,56 @@
 					})
 					this.hotRanks = hotRanks
 					this.toplist = toplist
+					return hotRanks.length > 0
+				})
+			},
+			async getBannerList () {
+				return await getApp().globalData.$api.music.getBannerList().then((ress) => {
+					let banners = []
+					ress.forEach((res, index) => {
+						if ( res.code == getApp().globalData.$config.ERR_OK ) {
+							res.data.list.forEach(item => {
+								banners.push(item)
+							})
+						}
+					})
+					this.banners = banners
+					return banners.length > 0
+				})
+			},
+			async getHotDiscList () {
+				return await getApp().globalData.$api.music.getHotDiscList().then((ress) => {
+					let hotDisc = []
+					ress.forEach((res, index) => {
+						if ( res.code == getApp().globalData.$config.ERR_OK ) {
+							res.data.list.forEach(item => {
+								hotDisc.push(item)
+							})
+						}
+					})
+					this.hotDisc = hotDisc
+					return hotDisc.length > 0
+				})
+			},
+			getNewSongList () {
+				getApp().globalData.$api.music.getNewSongList().then((ress) => {
+					let newSongs = []
+					ress.forEach((res, index) => {
+						if ( res.code == getApp().globalData.$config.ERR_OK ) {
+							res.data.list.forEach(item => {
+								newSongs.push(item)
+							})
+						}
+					})
+					
+					if ( newSongs.length > 0 ) {
+						this.$refs.pullup.success()
+					} else {
+						this.$refs.pullup.fail()
+					}
+					setTimeout(() => {
+						this.newSongs = newSongs
+					}, 200)
 				})
 			},
 			goDetail (item) {
@@ -248,7 +368,58 @@
 	.singers .singer .name {
 		font-size: 24rpx;
 		lines: 1;
+		text-overflow: ellipsis;
 		text-align: center;
 		margin: 10rpx 0;
+	}
+	
+	.gridItem {
+		position: relative;
+		width: 208rpx;
+	}
+	.gridItem .cover {
+		width: 208rpx;
+		height: 208rpx;
+	}
+	.gridItem .name {
+		font-size: 24rpx;
+		height: 66rpx;
+		lines: 2;
+		text-overflow: ellipsis;
+		margin-top: 15rpx;
+	}
+	.gridItem .num {
+		flex-direction: row;
+		align-items: center;
+		position: absolute;
+		bottom: 90rpx;
+		left: 10rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.gridItem .num .num-text {
+		font-size: 24rpx;
+		margin-left: 10rpx;
+	}
+	
+	.cellItem {
+		flex-direction: row;
+		align-items: center;
+		padding-bottom: 30rpx;
+	}
+	.cellItem .cover {
+		width: 150rpx;
+		height: 150rpx;
+	}
+	.cellItem .info {
+		flex: 1;
+		height: 100rpx;
+		justify-content: space-between;
+		margin-left: 30rpx;
+	}
+	.cellItem .info .title, .cellItem .info .label {
+		font-size: 28rpx;
+		text-overflow: ellipsis;
+		lines: 1;
 	}
 </style>

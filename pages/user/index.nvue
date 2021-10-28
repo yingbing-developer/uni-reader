@@ -11,7 +11,7 @@
 			return {
 			}
 		},
-		created() {
+		onShow() {
 			getApp().globalData.$business.setSkinColor();
 		}
 	}

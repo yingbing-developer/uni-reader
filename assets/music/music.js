@@ -9,17 +9,22 @@ export const Single = function (data) {
 	this.lyric = data.lyric
 	this.cover = data.cover || '/static/music/music-bg.jpg'
 	this.singer = data.singer || '未知歌手'
+	this.desc = data.desc || '暂无简介'
 	this.isCollection = isCollection(this.id)
 	this.type = 'single'//单曲类型
 	this.source = data.source
 }
 
 export const Album = function (data) {
-	this.id = data.id
+	this.id = data.albumId + '_' + data.source
+	this.albumId = data.albumId
 	this.title = data.title
 	this.cover = data.cover || '/static/music/music-bg.jpg'
 	this.desc = data.desc
-	this.type = 'album'//歌单类型
+	this.song = data.song || []
+	this.creator = data.creator || ''
+	this.num = data.num || 0
+	this.type = data.type //type包含 top:<排行榜> banner:<轮播图> album:<歌单>
 	this.isCollection = isCollection(this.id)
 	this.source = data.source
 }

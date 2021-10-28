@@ -51,10 +51,10 @@
 		},
 		onLoad() {
 			const MUSICURL = getApp().globalData.$config.MUSICURL
-			Object.keys(MUSICURL).forEach(key => {
+			this.data.forEach(item => {
 				this.tabs.push({
-					label: MUSICURL[key].title,
-					source: key
+					label: MUSICURL[item.source].title,
+					source: item.source
 				})
 				this.list.push({
 					loading: true,

@@ -6,17 +6,16 @@
 				'margin': ((parseInt(index / 3) + 1) * 3) - 2 == index ? '0 24rpx 24rpx 24rpx' : '0 0 24rpx 0'
 			}" v-for="(item, index) in list" :key="index"
 			@tap="clickTo(item, index)">
-				<rd-image @click="clickTo(item, index)" lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
+				<rd-image @click="clickTo(item, index)" lazyLoad border-radius="12" class="cover" :src="item.cover" mode="aspectFill"></rd-image>
 				<view class="num">
 					<slot :item="item">
-						<rd-icon name="play" :color="skinColor.color_4"></rd-icon>
-						<text class="num-text" :style="{color: skinColor.color_4}">495.3万</text>
+						<rd-icon name="play-outline" :color="skinColor.color_4"></rd-icon>
+						<text class="num-text" :style="{color: skinColor.color_4}">{{item.num / 10000}}万</text>
 					</slot>
 				</view>
-				<text class="name" :style="{color: skinColor.color_1}">减压助眠纯音乐好梦</text>
+				<text class="name" :style="{color: skinColor.color_1}">{{item.title}}</text>
 			</view>
 		</view>
-		<rd-image v-if="recom > -1" @click="clickTo(recom, recomIndex)" lazyLoad border-radius="12" class="recom" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
 	</view>
 </template>
 
@@ -46,19 +45,11 @@
 			max: {
 				type: Number,
 				default: 6
-			},
-			//底部推荐索引(-1表示不显示推荐)
-			recomIndex: {
-				type: Number,
-				default: -1
 			}
 		},
 		computed: {
 			list () {
 				return this.data.slice(0, this.max)
-			},
-			recom () {
-				return this.recomIndex > -1 ? this.data[this.recomIndex] : false
 			}
 		},
 		methods: {
