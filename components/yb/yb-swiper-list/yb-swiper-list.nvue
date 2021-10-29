@@ -10,10 +10,10 @@
 			'border-color': borderColor
 		}">
 			<view class="tab" v-for="(item, index) in tabs" :key="index" :id="'yb-tab_' + index" @tap="changeTab(index)">
-				<text class="tab-text" :style="{color: index == current ? activedColor : frontColor}">{{item.label}}</text>
+				<text class="tab-text" :style="{color: index == currentSync ? activedColor : frontColor}">{{item.label}}</text>
 			</view>
 		</scroll-view>
-		<swiper class="swiper" :current="current" skip-hidden-item-layout :interval="3000" :duration="1000" @change="swiperChange">
+		<swiper class="swiper" :current="currentSync" skip-hidden-item-layout :interval="3000" :duration="1000" @change="swiperChange">
 			<swiper-item v-for="(item, index) in tabs" :key="index">
 				<view class="swiper-item">
 					<slot :swiperSlot="{
@@ -46,18 +46,31 @@
 			activedColor: {
 				type: String,
 				default: '#2196F5'
+			},
+			current: {
+				type: Number,
+				default: 0
 			}
 		},
 		data () {
 			return {
-				current: 0,
+				currentSync: 0,
 				scrollId: ''
 			}
 		},
+		created() {
+			this.currentSync = this.current
+		},
 		methods: {
 			changeTab (index) {
-				this.current = index
+				if ( this.currentSync != index ) {
+					this.$emit('change', {
+						current: index
+					})
+				}
+				this.currentSync = index
 				this.scrollId = 'yb-tab_' + (index - 1 >= 0 ? index - 1 : 0)
+				
 			},
 			swiperChange (e) {
 				this.changeTab(e.detail.current)
@@ -65,10 +78,7 @@
 		},
 		watch: {
 			current (newVal) {
-				this.$emit('change', {
-					current: newVal,
-					detail: this.tabs[newVal]
-				})
+				this.currentSync = newVal
 			}
 		}
 	}

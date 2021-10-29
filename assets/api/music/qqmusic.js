@@ -5,7 +5,8 @@ import Config from '@/assets/js/config.js'
 import Utils from '@/assets/js/util.js'
 import {
 	Single,
-	Album
+	Album,
+	Singer
 } from '@/assets/music/music.js'
 
 import Sign from '@/assets/other/qqSign.js'
@@ -202,7 +203,7 @@ export default {
 		const dataSync = {
 			'-': '1577850668501',
 			data: JSON.stringify({
-				"comm": Object.assign(commonParams, {
+				"comm": Object.assign({}, commonParams, {
 					"ct": 23,
 					"cv": 0
 				}),
@@ -257,13 +258,13 @@ export default {
 			})
 		})
 	},
-	
+
 	/**
 	 * 获取热门歌单
 	 *
 	 **/
 	getHotDiscList() {
-		const dataSync = Object.assign(commonParams, {
+		const dataSync = Object.assign({}, commonParams, {
 			picmid: 1,
 			rnd: 0.660100644751829,
 			categoryId: 10000000,
@@ -303,7 +304,7 @@ export default {
 						source: source
 					}
 				})
-	
+
 			}).catch((err) => {
 				resolve({
 					code: ERR_FALSE,
@@ -315,15 +316,23 @@ export default {
 			})
 		})
 	},
-	
+
 	/**
 	 * 获取最新歌曲
 	 *
 	 **/
 	getNewSongList() {
 		const dataValue = {
-		  'comm': { 'ct': 24 },
-		  'new_song': { 'module': 'newsong.NewSongServer', 'method': 'get_new_song_info', 'param': { 'type': 5 } },
+			'comm': {
+				'ct': 24
+			},
+			'new_song': {
+				'module': 'newsong.NewSongServer',
+				'method': 'get_new_song_info',
+				'param': {
+					'type': 5
+				}
+			},
 		}
 		const sign = Sign(dataValue)
 		const dataSync = Object.assign({
@@ -367,7 +376,123 @@ export default {
 						source: source
 					}
 				})
+
+			}).catch((err) => {
+				resolve({
+					code: ERR_FALSE,
+					data: {
+						list: [],
+						source: source
+					}
+				})
+			})
+		})
+	},
 	
+	/**
+	 * 获取歌手类型
+	 *
+	 **/
+	getSingerType() {
+		return new Promise((resolve) => {
+			const list = [{
+				title: '内地',
+				typeId: '200',
+				source: source
+			},{
+				title: '港台',
+				typeId: '2',
+				source: source
+			},{
+				title: '欧美',
+				typeId: '5',
+				source: source
+			},{
+				title: '日本',
+				typeId: '4',
+				source: source
+			},{
+				title: '韩国',
+				typeId: '3',
+				source: source
+			}]
+			resolve({
+				code: ERR_OK,
+				data: {
+					list: list,
+					source: source
+				}
+			})
+		})
+	},
+	
+	/**
+	 * 获取热门歌手
+	 *
+	 **/
+	getHotSinger() {
+		return new Promise((resolve) => {
+			this.getSinger({
+				area: -100
+			}).then((res) => {
+				resolve({
+					code: res.code,
+					data: {
+						list: res.data.list.slice(0, 10),
+						source: source
+					}
+				})
+			}).catch((err) => {
+				resolve({
+					code: ERR_FALSE,
+					data: {
+						list: [],
+						source: source
+					}
+				})
+			})
+		})
+	},
+
+	/**
+	 * 获取歌手
+	 * @param {Object} data = {area: 地区} 
+	 **/
+	getSinger(data) {
+		const dataSync = Object.assign({
+			'-': 'getUCGI' + Math.random() * Math.pow(10, 17)
+		}, commonParams, {
+			data: JSON.stringify({"comm":{"ct":24,"cv":0},"singerList":{"module":"Music.SingerListServer","method":"get_singer_list","param":{"area": parseInt(data.area),"sex":-100,"genre":-100,"index":-100,"sin":0,"cur_page":1}}})
+		})
+		return new Promise((resolve) => {
+			http.get(href + '/cgi-bin/musicu.fcg', {
+				params: dataSync,
+				headers: {
+					referer: href,
+					host: href.replace('https://', ''),
+				}
+			}).then((res) => {
+				let list = []
+				if (res.data.code == 0) {
+					const group = res.data.singerList.data.singerlist
+					group.forEach(singer => {
+						const item = new Singer({
+							singerId: singer.singer_mid,
+							title: singer.singer_name,
+							cover: singer.singer_pic,
+							source: source
+						})
+						list.push(item)
+					})
+				}
+				resolve({
+					code: ERR_OK,
+					data: {
+						list: list,
+						source: source
+					}
+				})
+
 			}).catch((err) => {
 				resolve({
 					code: ERR_FALSE,

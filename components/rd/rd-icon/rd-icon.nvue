@@ -1,5 +1,6 @@
 <template>
-	<text class="iconfont" :style="styleObj" @tap="onTap">{{icons[name]}}</text>
+	<text class="iconfont" :style="styleObj" @tap="onTap" v-if="enableClick">{{icons[name]}}</text>
+	<text class="iconfont" :style="styleObj" v-else>{{icons[name]}}</text>
 </template>
 
 <script>
@@ -19,6 +20,10 @@
 			color: {
 				type: String,
 				default: ''
+			},
+			enableClick: {
+				type: Boolean,
+				default: false
 			}
 		},
 		computed: {

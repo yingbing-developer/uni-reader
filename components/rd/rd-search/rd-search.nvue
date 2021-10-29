@@ -2,7 +2,7 @@
 	<view class="search" :style="{'background-color': skinColor.color_bg_1}">
 		<yb-gap-bar></yb-gap-bar>
 		<view class="search-box">
-			<rd-icon class="back opac-actived" name="arrow-left" size="50" :color="skinColor.color_1" @click="app.$Router.back()"></rd-icon>
+			<rd-icon enableClick class="back opac-actived" name="arrow-left" size="50" :color="skinColor.color_1" @click="app.$Router.back()"></rd-icon>
 			<view class="search-left" :style="{'background-color': skinColor.color_gap_1}">
 				<rd-icon name="search" :color="skinColor.color_1" size="35"></rd-icon>
 				<input class="input" type="text" :placeholder="placeholder" v-model="keyword" :style="{'color': skinColor.color_1}" />

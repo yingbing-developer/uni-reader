@@ -17,6 +17,8 @@
 			</swiper>
 			<list class="list">
 				<yb-pulldown ref="pulldown" :color="skinColor.color_1" @pulldown="pulldown"></yb-pulldown>
+				
+				
 				<cell>
 					<view class="singer-line opac-actived" :style="{'background-color': skinColor.color_theme_2}" @tap="app.$Router.push({path: '/pages/music/search'})">
 						<view class="singer-left">
@@ -28,24 +30,54 @@
 						</view>
 					</view>
 				</cell>
-				<cell>
-					<view class="types">
-						<view class="type opac-actived"
-						v-for="(item, index) in hotRanks"
-						@tap="goRank(item)"
-						:key="index"
-						:style="{
-							'background-color': skinColor.color_theme_2,
-							'margin-right': ((parseInt(index / 4) + 1) * 4) - 1 == index ? '0' : '24rpx'
-						}">
-							<text class="type-text" :style="{color: skinColor.color_1}">{{item.title}}</text>
-							<rd-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1" @click="goRank(item)"></rd-icon>
+				
+				<!-- 音乐模块 -->
+				<!-- <rd-header title="网易云音乐"></rd-header> -->
+				<cell v-for="(module, i) in modules" :key="i">
+					<template v-if="module.hotTop.length > 0 || module.hotSinger.length > 0">
+						<rd-type :title="module.title" />
+						<yb-gap></yb-gap>
+						<!-- 排行榜 -->
+						<view class="types" v-if="module.hotTop.length > 0">
+							<view class="type opac-actived"
+							v-for="(item, index) in module.hotTop"
+							@tap="goRank(item)"
+							:key="index"
+							:style="{
+								'background-color': skinColor.color_theme_2,
+								'margin-right': ((parseInt(index / 4) + 1) * 4) - 1 == index ? '0' : '24rpx'
+							}">
+								<text class="type-text" :style="{color: skinColor.color_1}">{{item.title}}</text>
+								<rd-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1"></rd-icon>
+							</view>
 						</view>
-					</view>
+						<view class="padding-gap" v-if="module.hotSinger.length > 0">
+							<rd-title title="热门歌手" moreText="更多"
+							@more="app.$Router.push({
+								path: '/pages/music/singer',
+								query: {
+									source: module.source,
+									title: module.title
+								}
+							})"></rd-title>
+							<yb-grid :data="module.hotSinger" :count="4" :column="4">
+								<template v-slot="{gridItem}">
+									<view class="singer">
+										<rd-image lazyLoad border-radius="12" class="cover" :src="gridItem.detail.cover" mode="aspectFill"></rd-image>
+										<text class="name" :style="{color: skinColor.color_1}">{{gridItem.detail.title}}</text>
+									</view>
+								</template>
+							</yb-grid>
+						</view>
+					</template>
+				</cell>
+				
+				<cell>
+					<yb-gap :height="40"></yb-gap>
+					<rd-type title="聚合推荐" />
 				</cell>
 				
 				<!-- 推荐歌单 -->
-				<!-- 热门歌手 -->
 				<template v-if="hotDisc.length > 0">
 					<rd-header title="推荐歌单"></rd-header>
 					<cell>
@@ -72,25 +104,6 @@
 								<text class="title" :style="{color: skinColor.color_1}">{{item.title}}</text>
 								<text class="label" :style="{color: skinColor.color_3}">{{item.creator}}</text>
 							</view>
-						</view>
-					</cell>
-				</template>
-				
-				<!-- 热门歌手 -->
-				<template v-if="hotSingers.length > 0">
-					<rd-header title="热门歌手"></rd-header>
-					<cell>
-						<view class="padding-gap" >
-							<rd-title title="热门歌手" moreText="更多" @more="app.$Router.push({path: '/pages/music/singer'})"></rd-title>
-							<scroll-view :show-scrollbar="false" scroll-x="true" class="singers">
-								<view class="singer"
-								v-for="(item, index) in hotSingers" :key="index"
-								:style="{'margin-right': index == hotSingers.length - 1 ? 0 : '24rpx'}"
-								@tap="goDetail(item)">
-									<rd-image lazyLoad border-radius="12" class="cover" src="https://www.kugou.com/ts/Public/static/img/banner_download2.png" mode="aspectFill"></rd-image>
-									<text class="name" :style="{color: skinColor.color_1}" @tap="goDetail(item)">周杰伦</text>
-								</view>
-							</scroll-view>
 						</view>
 					</cell>
 				</template>
@@ -125,7 +138,7 @@
 						</view>
 					</cell>
 				</template>
-				<yb-pullup v-if="newSongs.length == 0" ref="pullup" :color="skinColor.color_1" @pullup="pullup"></yb-pullup>
+				<yb-pullup ref="pullup" :color="skinColor.color_1" @pullup="pullup"></yb-pullup>
 			</list>
 		</template>
 		<yb-list-loading v-else size="70" title="加载中"></yb-list-loading>
@@ -140,21 +153,30 @@
 		data () {
 			return {
 				statusBarHeight: 0,
-				hotRanks: [],//首页展示排行榜
+				modules: [],//音乐模块展示
 				toplist: [],//所有排行榜
 				banners: [],//轮播图
 				hotDisc: [],//热门歌单
 				newSongs: [],//新歌
-				hotSingers: [1,2,3,4,5,6],
 				loading: true
 			}
 		},
 		onLoad () {
 			this.statusBarHeight = uni.getSystemInfoSync().statusBarHeight
+			const MUSICURL = getApp().globalData.$config.MUSICURL
+			Object.keys(MUSICURL).forEach(key => {
+				this.modules.push({
+					title: MUSICURL[key].title,
+					source: key,
+					hotSinger: MUSICURL[key].singer ? [] : null,
+					hotTop: MUSICURL[key].top ? [] : null
+				})
+			})
 			Promise.all([
 				this.getToplist(),
 				this.getBannerList(),
-				this.getHotDiscList()
+				this.getHotDiscList(),
+				this.getHotSinger()
 			]).then((ress) => {
 				this.loading = false
 			})
@@ -182,7 +204,8 @@
 				Promise.all([
 					this.getToplist(),
 					this.getBannerList(),
-					this.getHotDiscList()
+					this.getHotDiscList(),
+					this.getHotSinger()
 				]).then((ress) => {
 					const index = ress.findIndex(res => !res)
 					index == -1 ? this.$refs.pulldown.success() : this.$refs.pulldown.fail()
@@ -196,34 +219,26 @@
 			},
 			async getToplist () {
 				return await getApp().globalData.$api.music.getToplist().then((ress) => {
-					let hotRanks = []
 					let toplist = []
 					ress.forEach((res, index) => {
 						if ( res.code == getApp().globalData.$config.ERR_OK ) {
-							if ( index < 2 ) {
-								const hot = res.data.list.filter((item, key) => {
-									if ( index == 0 ) {
-										return key < 3
-									} else {
-										return key >= 7 && key <= 10
-									}
-								})
-								hotRanks = hotRanks.concat(hot)
-								const top = res.data.list.filter((item, key) => item.title.indexOf('MV') == -1)
-								toplist.push({
-									list: top,
-									source: res.data.source
-								})
-							}
-							
+							const hot = res.data.list.filter(item => item.title.length < 6 && item.title.indexOf('MV') == -1)
+							const hotRanks = hot.slice(0, 7)
+							hotRanks.push({
+								title: '更多',
+								source: res.data.source
+							})
+							const moduleIndex = this.modules.findIndex(module => module.source == res.data.source)
+							this.modules[moduleIndex].hotTop = hotRanks
+							const top = res.data.list.filter((item, key) => item.title.indexOf('MV') == -1)
+							toplist.push({
+								list: top,
+								source: res.data.source
+							})
 						}
 					})
-					hotRanks.push({
-						title: '更多'
-					})
-					this.hotRanks = hotRanks
 					this.toplist = toplist
-					return hotRanks.length > 0
+					return toplist.length > 0
 				})
 			},
 			async getBannerList () {
@@ -254,6 +269,19 @@
 					return hotDisc.length > 0
 				})
 			},
+			async getHotSinger () {
+				return await getApp().globalData.$api.music.getHotSinger().then((ress) => {
+					let status = false
+					ress.forEach((res, index) => {
+						if ( res.code == getApp().globalData.$config.ERR_OK ) {
+							const moduleIndex = this.modules.findIndex(module => module.source == res.data.source)
+							this.modules[moduleIndex].hotSinger = res.data.list
+							status = res.data.list.length > 0
+						}
+					})
+					return status
+				})
+			},
 			getNewSongList () {
 				getApp().globalData.$api.music.getNewSongList().then((ress) => {
 					let newSongs = []
@@ -264,15 +292,12 @@
 							})
 						}
 					})
-					
 					if ( newSongs.length > 0 ) {
-						this.$refs.pullup.success()
+						this.$refs.pullup.finish()
 					} else {
 						this.$refs.pullup.fail()
 					}
-					setTimeout(() => {
-						this.newSongs = newSongs
-					}, 200)
+					this.newSongs = newSongs
 				})
 			},
 			goDetail (item) {
@@ -288,6 +313,7 @@
 					getApp().globalData.$Router.push({
 						path: '/pages/music/rank',
 						query: {
+							source: item.source,
 							data: encodeURIComponent(JSON.stringify(this.toplist))
 						}
 					})
@@ -355,17 +381,14 @@
 		font-size: 24rpx;
 	}
 	
-	.singers {
-		flex-direction: row;
-	}
-	.singers .singer {
+	.singer {
 		width: 160rpx;
 	}
-	.singers .singer .cover {
+	.singer .cover {
 		width: 160rpx;
 		height: 200rpx;
 	}
-	.singers .singer .name {
+	.singer .name {
 		font-size: 24rpx;
 		lines: 1;
 		text-overflow: ellipsis;
@@ -422,4 +445,5 @@
 		text-overflow: ellipsis;
 		lines: 1;
 	}
+	
 </style>

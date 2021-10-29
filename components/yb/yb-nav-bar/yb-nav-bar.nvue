@@ -1,12 +1,12 @@
 <template>
 	<view class="nav-bar" :style="{'background-color': bgColor}">
-		<view class="bar" :style="{'height': barHeight + 'px'}" v-if="gapShow"></view>
+		<yb-gap-bar v-if="gapShow"></yb-gap-bar>
 		<view class="nav">
 			<slot>
 				<view class="left">
 					<slot name="left">
 						<view class="back" v-if="backShow" @tap="back">
-							<c-icon name="arrow-left" :size="45" :color="frontColor"></c-icon>
+							<rd-icon name="arrow-left" size="50" :color="frontColor"></rd-icon>
 						</view>
 					</slot>
 				</view>
@@ -25,7 +25,6 @@
 </template>
 
 <script>
-	import CIcon from '@/components/c-icon/c-icon.nvue'
 	export default {
 		props: {
 			bgColor: {
@@ -49,23 +48,12 @@
 				default: true
 			}
 		},
-		data () {
-			return {
-				barHeight: 0
-			}
-		},
-		created () {
-			this.barHeight = uni.getSystemInfoSync().statusBarHeight
-		},
 		methods: {
 			back () {
 				uni.navigateBack({
 					delta: 1
 				})
 			}
-		},
-		components: {
-			CIcon
 		}
 	}
 </script>

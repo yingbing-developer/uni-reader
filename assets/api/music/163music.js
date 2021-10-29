@@ -3,7 +3,7 @@
 import http from '@/plugins/request/index.js'
 import Config from '@/assets/js/config.js'
 import Utils from '@/assets/js/util.js'
-import { Single, Album } from '@/assets/music/music.js'
+import { Single, Album, Singer } from '@/assets/music/music.js'
 
 const { MUSICURL, ERR_OK, ERR_FALSE } = Config
 const { time2seconds } = Utils;
@@ -149,7 +149,7 @@ export default {
 						const item = new Album({
 							albumId: top.id,
 							title: top.name,
-							cover: top.coverImgUrl,
+							cover: top.coverImgUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
 							desc: top.description?.replace(/<br>/g, '') || '',
 							type: 'top',
 							source: source
@@ -194,7 +194,7 @@ export default {
 						const item = new Album({
 							albumId: top.id,
 							title: top.name,
-							cover: top.coverImgUrl,
+							cover: top.coverImgUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
 							desc: top.description,
 							num: top.playCount,
 							creator: top.creator.nickname,
@@ -225,7 +225,7 @@ export default {
 	
 	/**
 	 * 获取最新歌曲
-	 *
+	 * 
 	 **/
 	getNewSongList () {
 		return new Promise((resolve) => {
@@ -247,6 +247,130 @@ export default {
 							title: song.name,
 							cover: song.album.picUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
 							singer: singer || '未知歌手',
+							source: source
+						})
+						list.push(item)
+					})
+				}
+				resolve({
+					code: ERR_OK,
+					data: {
+						list: list,
+						source: source
+					}
+				})
+			}).catch((err) => {
+				resolve({
+					code: ERR_FALSE,
+					data: {
+						list: [],
+						source: source
+					}
+				})
+			})
+		})
+	},
+	
+	/**
+	 * 获取歌手类型
+	 *
+	 **/
+	getSingerType() {
+		return new Promise((resolve) => {
+			const list = [{
+				title: '华语',
+				typeId: '7',
+				source: source
+			},{
+				title: '欧美',
+				typeId: '96',
+				source: source
+			},{
+				title: '日本',
+				typeId: '8',
+				source: source
+			},{
+				title: '韩国',
+				typeId: '16',
+				source: source
+			},{
+				title: '其它',
+				typeId: '0',
+				source: source
+			}]
+			resolve({
+				code: ERR_OK,
+				data: {
+					list: list,
+					source: source
+				}
+			})
+		})
+	},
+	
+	/**
+	 * 获取热门歌手
+	 *
+	 **/
+	getHotSinger () {
+		return new Promise((resolve) => {
+			http.get(href + '/top/artists', {
+				params: {
+					limit: 10
+				}
+			}).then((res) => {
+				let list = []
+				if ( res.data.code == 200 ) {
+					res.data.artists.forEach(singer => {
+						const item = new Singer({
+							singerId: singer.id,
+							title: singer.name,
+							cover: singer.picUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
+							source: source
+						})
+						list.push(item)
+					})
+				}
+				resolve({
+					code: ERR_OK,
+					data: {
+						list: list,
+						source: source
+					}
+				})
+			}).catch((err) => {
+				resolve({
+					code: ERR_FALSE,
+					data: {
+						list: [],
+						source: source
+					}
+				})
+			})
+		})
+	},
+	
+	/**
+	 * 获取歌手
+	 * @param {Object} data = {area: 地区} 
+	 **/
+	getSinger (data) {
+		return new Promise((resolve) => {
+			http.get(href + '/artist/list', {
+				params: {
+					limit: 80,
+					initial: -1,
+					type: -1,
+					area: data.area
+				}
+			}).then((res) => {
+				let list = []
+				if ( res.data.code == 200 ) {
+					res.data.artists.forEach(singer => {
+						const item = new Singer({
+							singerId: singer.id,
+							title: singer.name,
+							cover: singer.picUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
 							source: source
 						})
 						list.push(item)

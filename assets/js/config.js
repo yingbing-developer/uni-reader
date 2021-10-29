@@ -47,9 +47,9 @@ export default {
 	},
 	//音乐网站链接
 	MUSICURL: {
-		'qqmusic': {
-			title: 'QQ音乐',
-			href: 'https://u.y.qq.com',
+		'163music': {
+			title: '网易云音乐',
+			href: 'https://autumnfish.cn',
 			search: true,//是否有搜索功能
 			banner: true,//是否有banner功能
 			album: true,//是否有歌单功能
@@ -57,9 +57,9 @@ export default {
 			top: true,//是否有排行榜功能
 			newSong: true//是否有新歌首发功能
 		},
-		'163music': {
-			title: '网易云音乐',
-			href: 'https://autumnfish.cn',
+		'qqmusic': {
+			title: 'QQ音乐',
+			href: 'https://u.y.qq.com',
 			search: true,//是否有搜索功能
 			banner: true,//是否有banner功能
 			album: true,//是否有歌单功能

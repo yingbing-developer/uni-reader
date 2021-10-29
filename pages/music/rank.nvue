@@ -1,7 +1,7 @@
 <template>
 	<view class="rank" :style="{'background-color': skinColor.color_bg_1}">
 		<yb-nav-bar :bgColor="skinColor.color_theme_1" :frontColor="skinColor.color_4" title="排行榜"></yb-nav-bar>
-		<yb-swiper-list :tabs="tabs" @change="changeTab" :frontColor="skinColor.color_2"
+		<yb-swiper-list :tabs="tabs" :current="current" @change="changeTab" :frontColor="skinColor.color_2"
 			:borderColor="skinColor.color_3" :activedColor="skinColor.color_actived_1">
 			<template v-slot="{swiperSlot}">
 				<list>
@@ -61,7 +61,9 @@
 					child: []
 				})
 			})
-			this.getList(0)
+			const tabIndex = this.tabs.findIndex(tab => tab.source == getApp().globalData.$Route.query.source) || 0
+			this.current = tabIndex
+			this.getList(tabIndex)
 		},
 		methods: {
 			changeTab (e) {

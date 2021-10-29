@@ -78,21 +78,36 @@ export default {
 		return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
 	},
 	
-	//获取音乐播放链接列表
-	getPlayUrl (data) {
-		return Object.keys(api).map(key => {
-			if ( data.source == key ) {
-				return api[key].getPlayUrl(data)
+	//获取热门歌手
+	getHotSinger () {
+		const sources = getters['music/getMusicSourcesController'];
+		const adult = getters['app/getAdult'];
+		let newArr = [];
+		Object.keys(api).forEach(key => {
+			if ( sources.indexOf(key) == -1 && (!MUSICURL[key].isAdult || adult) && MUSICURL[key].singer ) {
+				newArr.push(api[key].getHotSinger());
 			}
 		})
+		return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
+	},
+	
+	//获取歌手类型
+	getSingerType (data) {
+		return api[data.source].getSingerType()
+	},
+	
+	//获取分类歌手
+	getSinger (data) {
+		return api[data.source].getSinger(data)
+	},
+	
+	//获取音乐播放链接列表
+	getPlayUrl (data) {
+		return api[data.source].getPlayUrl()
 	},
 	
 	//获取音乐歌词
 	getLyric (data) {
-		return Object.keys(api).map(key => {
-			if ( data.source == key ) {
-				return api[key].getLyric(data)
-			}
-		})
+		return api[data.source].getLyric()
 	}
 }

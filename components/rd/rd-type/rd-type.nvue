@@ -1,0 +1,37 @@
+<template>
+	<view class="rd-type">
+		<view class="hr" :style="{'background-color': skinColor.color_3}"></view>
+		<text class="type-title" :style="{color: skinColor.color_3}"> {{title}} </text>
+		<view class="hr" :style="{'background-color': skinColor.color_3}"></view>
+	</view>
+</template>
+
+<script>
+	import appMixin from '@/common/mixin/app.js';
+	export default {
+		mixins: [appMixin],
+		props: {
+			title: {
+				type: String,
+				default: ''
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.rd-type {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+	.rd-type .hr {
+		width: 150rpx;
+		height: 1rpx;
+	}
+	.type-title {
+		text-align: center;
+		padding: 60rpx 0;
+		font-size: 30rpx;
+	}
+</style>

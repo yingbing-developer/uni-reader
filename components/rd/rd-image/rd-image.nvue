@@ -1,11 +1,11 @@
 <template>
-	<view class="c-image" @tap="onTap">
+	<view class="c-image">
 		<image @load="load" @error="error" ref="image"
 			class="c-img" :lazyLoad="lazyLoad" :src="url" :mode="mode"
 			:style="{borderRadius: borderRadius + 'rpx'}"></image>
 		<view class="img-mask" :style="{opacity: maskOpac, borderRadius: borderRadius + 'rpx'}"
 			v-if="enableMask"></view>
-		<view class="longpress" @longpress="preview" v-if="enablePreview"></view>
+		<view class="longpress" @longpress="preview" @tap="onTap" v-if="enablePreview || enableClick"></view>
 		<view class="error" v-if="isError">
 			<text class="error-text"
 				:style="{'font-size': errorSize + 'rpx', color: skinColor.color_1}">加载失败!</text>
@@ -89,7 +89,13 @@
 				type: Boolean,
 				default: false
 			},
+			//开启预览图片
 			enablePreview: {
+				type: Boolean,
+				default: false
+			},
+			//开启点击事件
+			enableClick: {
 				type: Boolean,
 				default: false
 			}
@@ -129,7 +135,9 @@
 		},
 		methods: {
 			onTap () {
-				this.$emit('click')
+				if ( this.enableClick ) {
+					this.$emit('click')
+				}
 			},
 			async selectCache () {
 				const caches = this.imageCache;

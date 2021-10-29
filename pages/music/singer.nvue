@@ -1,6 +1,6 @@
 <template>
 	<view class="mix" :style="{'background-color': skinColor.color_bg_1}">
-		<yb-nav-bar :bgColor="skinColor.color_theme_1" :frontColor="skinColor.color_4" title="歌手列表"></yb-nav-bar>
+		<yb-nav-bar :bgColor="skinColor.color_theme_1" :frontColor="skinColor.color_4" :title="title + ' - 歌手'"></yb-nav-bar>
 		<yb-swiper-list
 		:tabs="tabs"
 		@change="changeTab"
@@ -18,8 +18,8 @@
 					</template>
 					<template v-slot="{indexItem}">
 						<view class="item" :class="skinMode + '-actived'" :style="{'border-color': skinColor.color_gap_1}">
-							<rd-image lazyLoad class="cover" :src="indexItem.avatar" mode="aspectFill"></rd-image>
-							<text class="name" :style="{color: skinColor.color_1}">{{indexItem.label}}</text>
+							<rd-image lazyLoad class="cover" :src="indexItem.cover" mode="aspectFill"></rd-image>
+							<text class="name" :style="{color: skinColor.color_1}">{{indexItem.title}}</text>
 						</view>
 					</template>
 				</yb-index-list>
@@ -35,62 +35,40 @@
 
 <script>
 	import appMixin from '@/common/mixin/app.js';
+	import pinyin from '@/assets/other/pinyin.js'
 	export default {
 		mixins: [appMixin],
 		data () {
 			return {
-				list: [{
-					loading: true,
-					child: []
-				},{
-					loading: true,
-					child: []
-				},{
-					loading: true,
-					child: []
-				},{
-					loading: true,
-					child: []
-				},{
-					loading: true,
-					child: []
-				},{
-					loading: true,
-					child: []
-				}],
-				tabs: [{
-					label: '内地',
-					value: '123',
-					source: 'qqmusic'
-				},{
-					label: '港台',
-					value: '123',
-					source: 'qqmusic'
-				},{
-					label: '华语',
-					value: '123',
-					source: 'qqmusic'
-				},{
-					label: '欧美',
-					value: '123',
-					source: 'qqmusic'
-				},{
-					label: '日本',
-					value: '123',
-					source: 'qqmusic'
-				},{
-					label: '韩国',
-					value: '123',
-					source: 'qqmusic'
-				}],
+				list: [],
+				tabs: [],
 				current: 0,
 				panelData: '',
-				panelShow: false,
-				indexs: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','#']
+				panelShow: false
 			}
 		},
 		onLoad() {
-			this.getList(0)
+			this.getType().then(status => {
+				if ( status ) {
+					let list = []
+					this.tabs.forEach(tab => {
+						list.push({
+							loading: true,
+							child: []
+						})
+					})
+					this.list = list
+					this.getList(0)
+				}
+			})
+		},
+		computed: {
+			source () {
+				return getApp().globalData.$Route.query.source
+			},
+			title () {
+				return getApp().globalData.$Route.query.title
+			}
 		},
 		methods: {
 			changeTab (e) {
@@ -99,26 +77,52 @@
 					this.getList(this.current)
 				}
 			},
-			pulldown (index) {
-				setTimeout(() => {
-					this.$refs['pulldown_' + index].success()
-				}, 1000)
+			pulldown (current) {
+				this.getList(current).then(status => {
+					if ( status ) {
+						this.$refs['pulldown_' + current].success()
+					} else {
+						this.$refs['pulldown_' + current].fail()
+					}
+				}).catch(() => {
+					this.$refs['pulldown_' + current].fail()
+				})
 			},
-			getList (index) {
-				setTimeout(() => {
-					let arr = []
-					this.indexs.forEach(item => {
-						for ( let i = 0; i < 5; i++ ) {
-							arr.push({
-								label: '周杰伦',
-								avatar: 'https://y.qq.com/music/photo_new/T001R500x500M0000025NhlN2yWrP4.jpg?max_age=2592000',
-								index: item
+			async getType () {
+				return await getApp().globalData.$api.music.getSingerType({source: this.source}).then((res) => {
+					if ( res.code == getApp().globalData.$config.ERR_OK ) {
+						let tabs = []
+						res.data.list.forEach(item => {
+							tabs.push({
+								label: item.title,
+								value: item.typeId,
+								source: item.source
 							})
-						}
-					})
-					this.$set(this.list[index], 'child', arr)
-					this.$set(this.list[index], 'loading', false)
-				}, 1000)
+						})
+						this.tabs = tabs
+					}
+					return this.tabs.length > 0
+				})
+			},
+			async getList (current) {
+				let arr = []
+				return await getApp().globalData.$api.music.getSinger({
+					source: this.tabs[current].source,
+					area: this.tabs[current].value,
+				}).then((res) => {
+					let list = []
+					if ( res.code == getApp().globalData.$config.ERR_OK ) {
+						list = res.data.list.map(item => {
+							return Object.assign(item, {
+								index: pinyin.chineseToInitials(pinyin.chineseToPinYin(item.title.slice(0, 1))) || '#'
+							})
+						})
+					}
+					this.$set(this.list[current], 'child', list)
+					this.$set(this.list[current], 'loading', false)
+					return list.length > 0
+				})
+				
 			},
 			showMore () {
 				this.panelData = {

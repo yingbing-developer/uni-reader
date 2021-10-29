@@ -1,6 +1,7 @@
 <template>
 	<loading class="loading" :display="display" @loading="loadmore" v-if="!isFinish">
 		<view class="indicator-text">
+			<text class="indicator-symbol" :style="{color: color}" v-if="!refreshing">↑</text>
 			<text class="refresh-text" :style="{color: color}">{{loadingText}}</text>
 		</view>
 		<loading-indicator v-if="showIndicator" class="loading-indicator" animating :style="{color: color}"></loading-indicator>
@@ -24,7 +25,7 @@
 				//正在刷新中？
 				refreshing: false,
 				//等待提示文字
-				loadingText: '加载更多',
+				loadingText: '上拉加载',
 				isFinish: false
 			}
 		},
@@ -45,7 +46,7 @@
 				this.showIndicator = false;
 				this.display = 'hide';
 				setTimeout(() => {
-					this.loadingText = '加载更多'
+					this.loadingText = '上拉加载'
 					this.refreshing = false;
 					this.display = 'show';
 					this.isFinish = true;
@@ -65,7 +66,7 @@
 			reset () {
 				this.display = 'hide';
 				setTimeout(() => {
-					this.loadingText = '加载更多'
+					this.loadingText = '上拉加载'
 					this.refreshing = false;
 					this.display = 'show';
 				}, 500)
@@ -73,7 +74,7 @@
 			loadmore () {
 				this.refreshing = true;
 				this.showIndicator = true;
-				this.loadingText = '加载更多'
+				this.loadingText = '正在加载'
 				//延迟0.5秒后再抛出事件
 				setTimeout(() => {
 					this.$emit('pullup');

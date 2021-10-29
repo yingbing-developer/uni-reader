@@ -79,11 +79,13 @@
 					let shortIndexs = []
 					this.indexs.forEach(index => {
 						const arr = this.data.filter(item => item.index == index)
-						list.push({
-							index: index,
-							child: arr
-						})
-						shortIndexs.push(index)
+						if ( arr.length > 0 ) {
+							list.push({
+								index: index,
+								child: arr
+							})
+							shortIndexs.push(index)
+						}
 					})
 					this.shortIndexs = shortIndexs
 					this.listSync = list
