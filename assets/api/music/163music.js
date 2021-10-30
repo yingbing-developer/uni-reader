@@ -177,53 +177,6 @@ export default {
 	},
 	
 	/**
-	 * 获取热门歌单
-	 *
-	 **/
-	getHotDiscList () {
-		return new Promise((resolve) => {
-			http.get(href + '/top/playlist', {
-				params: {
-					limit: 6,
-					offset: 0
-				}
-			}).then((res) => {
-				let list = []
-				if ( res.data.code == 200 ) {
-					res.data.playlists.forEach(top => {
-						const item = new Album({
-							albumId: top.id,
-							title: top.name,
-							cover: top.coverImgUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
-							desc: top.description,
-							num: top.playCount,
-							creator: top.creator.nickname,
-							type: 'album',
-							source: source
-						})
-						list.push(item)
-					})
-				}
-				resolve({
-					code: ERR_OK,
-					data: {
-						list: list,
-						source: source
-					}
-				})
-			}).catch((err) => {
-				resolve({
-					code: ERR_FALSE,
-					data: {
-						list: [],
-						source: source
-					}
-				})
-			})
-		})
-	},
-	
-	/**
 	 * 获取最新歌曲
 	 * 
 	 **/
@@ -371,6 +324,87 @@ export default {
 							singerId: singer.id,
 							title: singer.name,
 							cover: singer.picUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
+							source: source
+						})
+						list.push(item)
+					})
+				}
+				resolve({
+					code: ERR_OK,
+					data: {
+						list: list,
+						source: source
+					}
+				})
+			}).catch((err) => {
+				resolve({
+					code: ERR_FALSE,
+					data: {
+						list: [],
+						source: source
+					}
+				})
+			})
+		})
+	},
+	
+	/**
+	 * 获取热门歌单
+	 *
+	 **/
+	getHotDiscList () {
+		return new Promise((resolve) => {
+			this.getDiscList({
+				order: 'hot',
+				cat: '全部',
+				limit: 6
+			}).then((res) => {
+				resolve({
+					code: res.code,
+					data: {
+						list: res.data.list,
+						source: source
+					}
+				})
+			}).catch((err) => {
+				resolve({
+					code: ERR_FALSE,
+					data: {
+						list: [],
+						source: source
+					}
+				})
+			})
+		})
+	},
+	
+	/**
+	 * 获取歌单
+	 * @param {Object} data = {参数} 
+	 * @param {String} order = {new or hot} 
+	 * @param {Number} limit = {请求数量} 
+	 * @param {String} cat = {分类} 
+	 **/
+	getDiscList (data) {
+		return new Promise((resolve) => {
+			http.get(href + '/top/playlist', {
+				params: {
+					order: data.order,
+					limit: data.limit,
+					cat: data.cat
+				}
+			}).then((res) => {
+				let list = []
+				if ( res.data.code == 200 ) {
+					res.data.playlists.forEach(top => {
+						const item = new Album({
+							albumId: top.id,
+							title: top.name,
+							cover: top.coverImgUrl + '?imageView&thumbnail=360y360&quality=75&tostatic=0',
+							desc: top.description,
+							num: top.playCount,
+							creator: top.creator.nickname,
+							type: 'album',
 							source: source
 						})
 						list.push(item)

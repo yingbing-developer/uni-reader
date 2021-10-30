@@ -1,8 +1,8 @@
 import http from '@/plugins/request/index.js'
 import xhr from '@/plugins/xhr/index.js'
 import Utils from '@/assets/js/util.js'
-import HTMLParser from '@/assets/js/html-parse.js'
-import gb2312 from '@/assets/js/gb2312.js'
+import HTMLParser from '@/assets/other/html-parse.js'
+import gb2312 from '@/assets/other/gb2312.js'
 import Store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
 import Config from '@/assets/js/config.js'
 

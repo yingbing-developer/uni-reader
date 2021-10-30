@@ -1,5 +1,5 @@
 import http from '@/plugins/request/index.js'
-import HTMLParser from '@/assets/js/html-parse.js'
+import HTMLParser from '@/assets/other/html-parse.js'
 import Store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
 import Utils from '@/assets/js/util.js'
 import Config from '@/assets/js/config.js'

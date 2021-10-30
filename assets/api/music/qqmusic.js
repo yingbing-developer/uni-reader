@@ -260,64 +260,6 @@ export default {
 	},
 
 	/**
-	 * 获取热门歌单
-	 *
-	 **/
-	getHotDiscList() {
-		const dataSync = Object.assign({}, commonParams, {
-			picmid: 1,
-			rnd: 0.660100644751829,
-			categoryId: 10000000,
-			sortId: 5,
-			sin: 0,
-			ein: 19
-		})
-		return new Promise((resolve) => {
-			http.get('https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg', {
-				params: dataSync,
-				headers: {
-					referer: 'https://c.y.qq.com',
-					host: 'c.y.qq.com',
-				}
-			}).then((res) => {
-				let list = []
-				if (res.data.code == 0) {
-					const group = res.data.data.list
-					group.forEach(top => {
-						const item = new Album({
-							albumId: top.dissid,
-							title: top.dissname,
-							cover: top.imgurl,
-							desc: top.dissname,
-							num: top.listennum,
-							creator: top.creator.name,
-							type: 'album',
-							source: source
-						})
-						list.push(item)
-					})
-				}
-				resolve({
-					code: ERR_OK,
-					data: {
-						list: list,
-						source: source
-					}
-				})
-
-			}).catch((err) => {
-				resolve({
-					code: ERR_FALSE,
-					data: {
-						list: [],
-						source: source
-					}
-				})
-			})
-		})
-	},
-
-	/**
 	 * 获取最新歌曲
 	 *
 	 **/
@@ -493,6 +435,140 @@ export default {
 					}
 				})
 
+			}).catch((err) => {
+				resolve({
+					code: ERR_FALSE,
+					data: {
+						list: [],
+						source: source
+					}
+				})
+			})
+		})
+	},
+	
+	/**
+	 * 获取热门歌单
+	 *
+	 **/
+	getHotDiscList() {
+		const dataSync = Object.assign({}, commonParams, {
+			picmid: 1,
+			rnd: 0.660100644751829,
+			categoryId: 10000000,
+			sortId: 5,
+			sin: 0,
+			ein: 19
+		})
+		return new Promise((resolve) => {
+			http.get('https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg', {
+				params: dataSync,
+				headers: {
+					referer: 'https://c.y.qq.com',
+					host: 'c.y.qq.com',
+				}
+			}).then((res) => {
+				let list = []
+				if (res.data.code == 0) {
+					const group = res.data.data.list
+					group.forEach(top => {
+						const item = new Album({
+							albumId: top.dissid,
+							title: top.dissname,
+							cover: top.imgurl,
+							desc: top.dissname,
+							num: top.listennum,
+							creator: top.creator.name,
+							type: 'album',
+							source: source
+						})
+						list.push(item)
+					})
+				}
+				resolve({
+					code: ERR_OK,
+					data: {
+						list: list,
+						source: source
+					}
+				})
+	
+			}).catch((err) => {
+				resolve({
+					code: ERR_FALSE,
+					data: {
+						list: [],
+						source: source
+					}
+				})
+			})
+		})
+	},
+	
+	/**
+	 * 获取歌单
+	 * @param {Object} data = {参数} 
+	 * @param {String} order = {new or hot} 
+	 * @param {Number} limit = {请求数量} 
+	 * @param {String} cat = {分类} 
+	 **/
+	getDiscList(data) {
+		const dataValue = {
+			"comm": {
+				"ct": 24
+			},
+			"playlist": {
+				"param": {
+					"caller": "0",
+					"category_id": 3,
+					"size": 20,
+					"page": 0,
+					"use_page": 1
+				},
+				"method": "get_category_content",
+				"module": "music.playlist.PlayListCategory"
+			}
+		}
+		const sign = Sign(dataValue)
+		const dataSync = Object.assign({
+			'-': 'recom' + (Math.random() + '').replace('0.', ''),
+			sign: sign
+		}, commonParams, {
+			data: dataValue
+		})
+		return new Promise((resolve) => {
+			http.get(href + '/cgi-bin/musics.fcg', {
+				params: dataSync,
+				headers: {
+					referer: href,
+					host: href.replace('https://', ''),
+				}
+			}).then((res) => {
+				let list = []
+				if (res.data.code == 0) {
+					const group = res.data.data.list
+					group.forEach(top => {
+						const item = new Album({
+							albumId: top.dissid,
+							title: top.dissname,
+							cover: top.imgurl,
+							desc: top.dissname,
+							num: top.listennum,
+							creator: top.creator.name,
+							type: 'album',
+							source: source
+						})
+						list.push(item)
+					})
+				}
+				resolve({
+					code: ERR_OK,
+					data: {
+						list: list,
+						source: source
+					}
+				})
+	
 			}).catch((err) => {
 				resolve({
 					code: ERR_FALSE,
