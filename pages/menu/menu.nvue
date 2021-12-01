@@ -6,32 +6,34 @@
 	@touchend="touchend">
 		<!-- 遮罩层 -->
 		<view class="mask" ref="mask" @tap="maskHide"></view>
-		<view class="popup" :style="{'background-color': skinColor.color_bg_1}" ref="popup"
+		<view class="popup"
+		ref="popup"
+		:style="{'background-color': skinColor.menuBgColor}"
 		@touchmove.stop.prevent="">
 			<view class="top-img">
 				<c-image class="bg" src="@/static/menuBack.png" mode="aspectFill"></c-image>
 			</view>
 			<!-- 列表切换 -->
-			<view class="list" :class="skinMode + '-actived'" :style="{'background-color': current == index ? skinColor.color_gap_1 : ''}" @tap="changeCurrent(index)" v-for="(item, index) in navs" :key="index">
+			<view class="list" :class="skinColor.activedName" :style="{'background-color': current == index ? skinColor.menuActiveBgColor : ''}" @tap="changeCurrent(index)" v-for="(item, index) in navs" :key="index">
 				<view class="icon">
-					<c-icon :name="item.icon" :size="item.size" :color="current == index ? skinColor.color_actived_1 : skinColor.color_5"></c-icon>
+					<c-icon :name="item.icon" :size="item.size" :color="current == index ? skinColor.menuActiveColor : skinColor.menuIconColor"></c-icon>
 				</view>
-				<text class="title" :style="{'color': current == index ? skinColor.color_actived_1 : skinColor.color_5}">{{item.title}}</text>
+				<text class="title" :style="{color: current == index ? skinColor.menuActiveColor : skinColor.menuTitleColor}">{{item.title}}</text>
 			</view>
-			<view class="hr" :style="{'background-color': skinColor.color_gap_1}"></view>
+			<view class="hr" :style="{'background-color': skinColor.gapColor}"></view>
 			<!-- 夜间模式切换 -->
-			<view class="list" :class="skinMode + '-actived'" @tap="changeMode">
+			<view class="list" :class="skinColor.activedName" @tap="changeMode">
 				<view class="icon">
-					<c-icon :name="modeIcon" size="37.5" :color="skinColor.color_5"></c-icon>
+					<c-icon :name="modeIcon" size="37.5" :color="skinColor.menuIconColor"></c-icon>
 				</view>
-				<text class="title" :style="{'color': skinColor.color_1}">{{modeName}}</text>
+				<text class="title" :style="{color: skinColor.menuTitleColor}">{{modeName}}</text>
 			</view>
 			<!-- 功能页面 -->
-			<view class="list" :class="skinMode + '-actived'" v-for="(item, index) in options" :key="index" @tap="clickOptions(item)">
+			<view class="list" :class="skinColor.activedName" v-for="(item, index) in options" :key="index" @tap="clickOptions(item)">
 				<view class="icon">
-					<c-icon :name="item.icon" :size="item.size" :color="skinColor.color_5"></c-icon>
+					<c-icon :name="item.icon" :size="item.size" :color="skinColor.menuIconColor"></c-icon>
 				</view>
-				<text class="title" :style="{'color': skinColor.color_1}">{{item.title}}</text>
+				<text class="title" :style="{color: skinColor.menuTitleColor}">{{item.title}}</text>
 			</view>
 		</view>
 	</view>
@@ -41,9 +43,9 @@
 	const animation = weex.requireModule('animation');
 	import CIcon from '@/components/c-icon/c-icon.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
-	import appMixin from '@/common/mixin/app.js'
+	import { skinMixin } from '@/common/mixin/index.js'
 	export default {
-		mixins: [appMixin],
+		mixins: [skinMixin],
 		props: {
 			value: {
 				type: Number,

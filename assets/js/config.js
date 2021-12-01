@@ -7,12 +7,7 @@ export default {
 		},
 		'bamxs': {
 			title: '八毛小说',
-			href: 'http://m.bamxs.com',
-			isAdult: true//是否属于青壮年内容
-		},
-		'xquge': {
-			title: '笔趣阁',
-			href: 'https://www.xquge.com'
+			href: 'http://m.bamxs.com'
 		}
 	},
 	
@@ -36,38 +31,45 @@ export default {
 		},
 		'loli': {
 			title: '写真网',
-			href: 'https://cosplayporn.cc',
-			isAdult: true//是否属于青壮年内容
+			href: 'https://cosplayporn.cc'
 		},
 		'wnacg': {
 			title: '绅士漫画',
-			href: 'https://hentaicomic.org',
-			isAdult: true//是否属于青壮年内容
+			href: 'https://hentaicomic.org'
 		}
 	},
 	//音乐网站链接
 	MUSICURL: {
-		'163music': {
-			title: '网易云音乐',
-			href: 'https://autumnfish.cn',
-			search: true,//是否有搜索功能
-			banner: true,//是否有banner功能
-			album: true,//是否有歌单功能
-			singer: true,//是否有歌手功能
-			top: true,//是否有排行榜功能
-			newSong: true//是否有新歌首发功能
-		},
 		'qqmusic': {
 			title: 'QQ音乐',
-			href: 'https://u.y.qq.com',
-			search: true,//是否有搜索功能
-			banner: true,//是否有banner功能
-			album: true,//是否有歌单功能
-			singer: true,//是否有歌手功能
-			top: true,//是否有排行榜功能
-			newSong: true//是否有新歌首发功能
+			href: 'https://c.y.qq.com'
+		},
+		'163music': {
+			title: '网易云音乐',
+			href: 'https://autumnfish.cn'
 		}
 	},
+	
+	//青壮年内容
+	ADULTS: [
+		'loli',
+		'wnacg',
+		'bamxs'
+	],
+	
+	//QQ音乐请求常量
+	commonParams: {
+	  g_tk: 5381,
+	  loginUin: 0,
+	  hostUin: 0,
+	  format: 'json',
+	  inCharset: 'utf8',
+	  outCharset: 'utf-8',
+	  notice: 0,
+	  platform: 'yqq.json',
+	  needNewCode: 0
+	},
+	
 	
 	//请求成功编码
 	ERR_OK: 200,

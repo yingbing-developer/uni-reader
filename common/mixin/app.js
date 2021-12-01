@@ -1,23 +1,15 @@
-import { mapGetters, mapMutations, mapActions } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 const appMixin = {
 	computed: {
 		...mapGetters({
 			getAdult: 'app/getAdult',
-			getAdultPwd: 'app/getAdultPwd',
-			skinMode: 'app/skinMode',
-			skinColor: 'app/skinColor'
-		}),
-		app () {
-			return getApp().globalData
-		}
+			getAdultPwd: 'app/getAdultPwd'
+		})
 	},
 	methods: {
 		...mapMutations({
 			setAdult: 'app/setAdult',
 			setAdultPwd: 'app/setAdultPwd'
-		}),
-		...mapActions({
-			changeSkin: 'app/changeSkinAction'
 		})
 	}
 }

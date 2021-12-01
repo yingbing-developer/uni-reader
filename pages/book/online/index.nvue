@@ -1,42 +1,41 @@
 <template>
-	<view class="search" :style="{'background-color': skinColor.color_bg_1}">
-		<nav-bar title="在线小说" :bgColor="skinColor.color_theme_1" :titleColor="skinColor.color_4">
+	<view class="search" :style="{'background-color': skinColor.bgColor}">
+		<nav-bar title="在线小说" :bgColor="skinColor.navColor" :titleColor="skinColor.iconColor">
 		</nav-bar>
 		<c-search @confirm="setNameFilter" close-clear></c-search>
 		
 		<!-- 小说列表 -->
-		<list-scroll ref="list" @scroll="scroll" :line-height="270" :list="list" @loadmore="loadmore">
+		<list-scroll ref="list" @scroll="scroll" :line-height="200" :list="list" @loadmore="loadmore">
 			<no-data slot="fixed" v-if="list.length <= 0" :title="noDataTitle"></no-data>
 			<!-- 列表顶部 用于返回顶部 -->
 			<view slot="listTop" ref="listTop"></view>
 			<template v-slot="{item}">
-				<view @tap="readBook(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.color_gap_1}">
-					<view class="comic-list-icon" elevation="3">
+				<view @tap="readBook(item.path)" @longpress="showAction(item.path)" class="comic-list" :style="{'border-bottom-color': skinColor.gapColor}">
+					<view class="comic-list-icon">
 						<c-image class="comic-image" :src="item.image" mode="aspectFill"></c-image>
 					</view>
 					<view class="comic-list-right">
 						<view class="comic-lr-line comic-title-line">
-							<text class="comic-list-title" :style="{'color': skinColor.color_1}">{{item.name}}</text>
+							<text class="comic-list-title" :style="{'color': skinColor.titleColor}">{{item.name}}</text>
+							<text class="comic-list-source" :style="{'color': skinColor.menuTitleColor}">{{BOOKURL[item.source].title}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text
-							class="comic-list-sub"
-							:style="{
-								'color': skinColor.color_3
-							}">作者：{{item.author}}&nbsp;&nbsp;|&nbsp;&nbsp;类别：{{item.type}}&nbsp;&nbsp;|&nbsp;&nbsp;来源：{{BOOKURL[item.source].title}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">作者：{{item.author}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="comic-list-desc" :style="{'color': skinColor.color_2}">简介：{{item.desc}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">更新：{{item.status}}</text>
 						</view>
 						<view class="comic-lr-line">
-							<text class="badge" :class="item.status == 1 ? 'badge-brown' : 'badge-green'">{{item.status == 1 ? '连载中' : '已完结'}}</text>
-							<text class="badge" :class="isLead(item.path) > -1 ? 'badge-red' : 'badge-grey'">{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">状态：{{isLead(item.path) > -1 ? '已导入' : '未导入'}}</text>
+						</view>
+						<view class="comic-lr-line">
+							<text class="comic-list-text" :style="{'color': skinColor.menuTitleColor}">简介：{{item.desc}}</text>
 						</view>
 					</view>
 				</view>
 			</template>
-			<view slot="listBottom" class="comic-loading" v-if="isLastPage && list.length > 0"><text class="comic-loading-text" :style="{'color': skinColor.color_1}">没有更多了</text></view>
-			<loading slot="loading" class="comic-loading" v-if="list.length >= 6 && !isLastPage"><text class="comic-loading-text" :style="{'color': skinColor.color_1}">加载中...</text></loading>
+			<view slot="listBottom" class="comic-loading" v-if="isLastPage && list.length > 0"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">没有更多了</text></view>
+			<loading slot="loading" class="comic-loading" v-if="list.length >= 6 && !isLastPage"><text class="comic-loading-text" :style="{'color': skinColor.titleColor}">加载中...</text></loading>
 		</list-scroll>
 		
 		<!-- 气泡弹窗 -->
@@ -48,8 +47,8 @@
 		  
 		<view class="fixed">
 			<view @tap="scrollTop">
-				<fixed-button :color="skinColor.color_theme_1" :show="Math.abs(oldOffsetY) > 300">
-					<c-icon name="top" size="40" :color="skinColor.color_4"></c-icon>
+				<fixed-button :show="Math.abs(oldOffsetY) > 300">
+					<c-icon name="top" size="40" :color="skinColor.iconColor"></c-icon>
 				</fixed-button>
 			</view>
 		</view>
@@ -57,7 +56,7 @@
 </template>
 
 <script>
-	import appMixin from '@/common/mixin/app.js'
+	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import { getBook } from '@/common/online/getBook.js'
@@ -70,7 +69,7 @@
 	import NoData from '@/components/no-data/no-data.nvue'
 	const dom = weex.requireModule('dom');
 	export default {
-		mixins: [appMixin, bookMixin, bookcertifyMixin],
+		mixins: [skinMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				//漫画列表
@@ -345,8 +344,8 @@
 		flex-direction: row;
 		border-bottom-width: 1px;
 		border-bottom-style: solid;
-		height: 270rpx;
 		padding: 20rpx;
+		height: 200rpx;
 		position: relative;
 	}
 	.comic-list-icon {
@@ -356,12 +355,13 @@
 		position: relative;
 	}
 	.comic-image {
-		width: 180rpx;
-		height: 230rpx;
+		width: 150rpx;
+		height: 200rpx;
 	}
 	.comic-list-right {
 		flex: 1;
-		margin-left: 30rpx;
+		justify-content: space-between;
+		margin-left: 20rpx;
 	}
 	.comic-list-right-back {
 		flex-direction: row;
@@ -369,56 +369,28 @@
 	}
 	.comic-lr-line {
 		flex-direction: row;
+		justify-content: space-between;
 		align-items: center;
 	}
 	.comic-list-title {
 		flex: 1;
 		font-size: 30rpx;
-		font-weight: bold;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.comic-list-source {
+		font-size: 30rpx;
 		lines: 1;
 		text-overflow: ellipsis;
 	}
 	.comic-lt-right {
 		width: 70rpx;
 	}
-	.comic-list-desc {
+	.comic-list-text {
 		flex: 1;
-		font-size: 22rpx;
-		lines: 3;
-		text-overflow: ellipsis;
-		margin-top: 16rpx;
-		line-height: 34rpx;
-		height: 98rpx;
-	}
-	.comic-list-sub {
-		font-size: 20rpx;
+		font-size: 24rpx;
 		lines: 1;
-		flex: 1;
 		text-overflow: ellipsis;
-		margin-top: 24rpx;
-	}
-	.badge {
-		padding: 5rpx 10rpx;
-		border-radius: 4rpx;
-		font-size: 20rpx;
-		margin-right: 10rpx;
-		margin-top: 3rpx;
-	}
-	.badge-brown {
-		border: 1px solid #fcc121;
-		color: #fcc121;
-	}
-	.badge-green {
-		border: 1px solid #21C088;
-		color: #21C088;
-	}
-	.badge-red {
-		border: 1px solid #FF3B30;
-		color: #FF3B30;
-	}
-	.badge-grey {
-		border: 1px solid #999999;
-		color: #999999;
 	}
 	.comic-loading {
 		align-items: center;

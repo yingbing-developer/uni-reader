@@ -12,11 +12,7 @@ const getters = {
 
 const mutations = {
 	addImageCache (state, obj) {
-		const index = state.imageCache.findIndex(cache => cache.key == obj.key)
-		if ( index > -1 )
-			state.imageCache[index] = obj;
-		else
-			state.imageCache.push(obj);
+		state.imageCache.push(obj);
 		uni.setStorageSync(IMAGECACHE, state.imageCache)
 	},
 	removeImageCache (state, key) {
@@ -25,7 +21,6 @@ const mutations = {
 		uni.setStorageSync(IMAGECACHE, state.imageCache)
 	},
 	clearImageCache (state) {
-		state.imageCache = []
 		uni.removeStorageSync(IMAGECACHE)
 	}
 }

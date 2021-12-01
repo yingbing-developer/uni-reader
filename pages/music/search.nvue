@@ -1,121 +1,243 @@
 <template>
-	<rd-search placeholder="搜索歌曲/歌手" :keywords="keywords" :records="records" @change="change">
-		<list class="result" v-if="keyword" :style="{'background-color': skinColor.color_bg_1}">
-			<yb-list-no-data title="暂无搜索数据" v-if="results.length == 0 && !loading" />
-			<yb-list-loading size="80" :color="skinColor.color_3" title="搜索中" v-if="loading" />
-			<cell v-for="(item, index) in results">
-				<view class="item" :style="{'border-color': skinColor.color_gap_1}">
-					<view class="item-left">
-						<rd-icon name="person" size="34" :color="skinColor.color_1" v-if="item.type == 'singer'"></rd-icon>
-						<rd-icon name="music" size="34" :color="skinColor.color_1" v-else></rd-icon>
-						<view>
-							<text class="label" :style="{color: skinColor.color_1}">{{item.label}}</text>
-							<text class="label sub" :style="{color: skinColor.color_3}" v-if="item.singer">{{item.singer}}</text>
-						</view>
-					</view>
-					<view class="item-right">
-						<rd-icon class="icon opac-actived" name="more-horizontal" size="32" :color="skinColor.color_3"></rd-icon>
-					</view>
-				</view>
-			</cell>
-		</list>
-	</rd-search>
+	<view class="search">
+		<file-list
+		title="添加音乐"
+		suffix="flac,m4a,ogg,ape,amr,wma,wav,mp3,aac"
+		:pathHistory="pathHistory"
+		:contrastList="pushList"
+		@clickFile="clickFile"
+		@updatePath="updatePath"
+		@pushFile="pushFile"
+		@popFile="popFile"
+		@checkChange="checkChange"
+		@deleteFile="deleteFile"></file-list>
+		<view class="btn-box" :style="{'border-top-color': skinColor.gapColor}" v-if="checkList.length > 0">
+			<c-button class="btn" title="导入选中歌曲" @click="pushFile(checkList)"></c-button>
+		</view>
+	</view>
 </template>
 
 <script>
-	import appMixin from '@/common/mixin/app.js'
+	import { skinMixin } from '@/common/mixin/index.js'
+	import musicMixin from '@/common/mixin/music.js'
+	import CButton from '@/components/c-button/c-button.nvue'
+	import FileList from '@/components/fileList/fileList.nvue';
 	export default {
-		mixins: [appMixin],
+		mixins: [skinMixin, musicMixin],
 		data () {
 			return {
-				keyword: '',
-				loading: false,
-				keywords: ['反方向的钟', '阿姨莫', '失忆', '五十年以后', '一路生化', '孤城', '陶氏幺幺', '它山和', '最爱'],
-				records: ['反方向的钟', '阿姨莫', '失忆', '五十年以后', '一路生化', '孤城', '陶氏幺幺', '它山和', '最爱', '反方向的钟', '阿姨莫', '失忆', '五十年以后', '一路生化', '孤城', '陶氏幺幺', '它山和', '最爱'],
-				results: []
+				checkList: []
 			}
 		},
 		computed: {
-			
+			playRecord () {
+				return this.getMusicPlayRecord;
+			},
+			playStatus () {
+				return this.getMusicPlayStatus;
+			},
+			pathHistory () {
+				return this.musicPathHistory;
+			},
+			pushList () {
+				return this.playList;
+			}
 		},
 		methods: {
-			search (keyword) {
-				this.keyword = keyword
-				this.loading = true;
-				setTimeout(() => {
-					this.results = [{
-						label: '周杰伦',
-						type: 'singer'
-					},{
-						label: '蝴蝶梦',
-						type: 'song',
-						singer: '周杰伦'
-					},{
-						label: '青花瓷',
-						type: 'song',
-						singer: '周杰伦'
-					},{
-						label: '稻香',
-						type: 'song',
-						singer: '周杰伦'
-					},{
-						label: '和蔼的情人',
-						type: 'song',
-						singer: '周杰伦'
-					},{
-						label: '疯子一群',
-						type: 'song',
-						singer: '周杰伦'
-					}]
-					this.loading = false;
-				}, 500)
-			},
-			change (keyword) {
-				this.keyword = keyword
-				if ( keyword ) {
-					this.results = []
-					this.search(keyword)
+			clickFile (obj) {
+				console.log(obj);
+				let flag = this.isLead(obj.path);
+				//如果这首歌已经导入了直接播放
+				if ( flag > -1 ) {
+					this.changeMusic(obj.path);
 				} else {
-					this.results = []
+					let music = [];
+					music.push({
+						name: obj.name,
+						path: obj.path
+					});
+					this.addMusic(music);
+					this.$nextTick(() => {
+						let index = this.isLead(obj.path);
+						if ( index > -1 ) {
+							this.changeMusic(obj.path)
+						} else {
+							plus.nativeUI.toast("文件导入失败！", {verticalAlign: 'bottom'});
+						}
+					})
 				}
+			},
+			changeMusic (path) {
+				if ( this.playRecord != path ) {
+					this.updateMusicPlayRecord(path);
+				}
+				getApp().globalData.$Router.push({path: '/pages/music/player', animationType: 'fade-in'});
+			},
+			//导入文件
+			pushFile (arr) {
+				let list = [];
+				let err = 0;
+				let len = arr.length;
+				for ( let i = 0; i < len; i++ ) {
+					//根据文件路径判断文件有没有被导入过
+					if ( this.isLead(arr[i].path) == -1 ) {
+						list.push({
+							name: arr[i].name,
+							path: arr[i].path
+						});
+					} else {
+						err++;
+					}
+				}
+				this.addMusic(list);
+				if ( err == 0 ) {
+					uni.showToast({
+						title: '添加成功'
+					})
+				} else {
+					uni.showToast({
+						title: '成功导入' + (arr.length - err) + '个文件，' + '有' + err + '个文件导入失败',
+						icon: 'none'
+					})
+				}
+				this.checkList = [];
+			},
+			popFile (arr) {
+				let err = 0;
+				let len = arr.length;
+				for ( let i = 0; i < len; i++ ) {
+					//根据文件路径判断文件有没有被导入过
+					if ( this.isLead(arr[i].path) > -1 ) {
+						this.deleteMusic(arr[i].path);
+					} else {
+						err++;
+					}
+				}
+				if ( err == 0 ) {
+					uni.showToast({
+						title: '导出成功'
+					})
+				} else {
+					uni.showToast({
+						title: '成功导出' + (arr.length - err) + '个文件，' + '有' + err + '个文件导出失败',
+						icon: 'none'
+					})
+				}
+			},
+			//删除文件时触发此事件，用于清除已导入的文件
+			deleteFile (arr) {
+				for ( let i in arr ) {
+					let index = this.isLead(arr[i]);
+					if ( index > -1 ) {
+						this.deleteMusic(arr[i]);
+					}
+				}
+			},
+			checkChange (arr) {
+				this.checkList = arr;
+			},
+			updatePath (path) {
+				this.updateMusicPath(path);
+			},
+			//根据文件路径判断当前文件是否已经导入,返回下标
+			isLead (path) {
+				return getApp().globalData.$utils.indexOf(this.playList, 'path', path);
 			}
+		},
+		onBackPress(event) {
+			// //气泡菜单打开时,先关闭气泡菜单
+			// if ( this.$refs.bubble.isShow ) {
+			// 	this.$refs.bubble.hide();
+			// 	return true;
+			// }
+			// return false;
+		},
+		components: {
+			FileList,
+			CButton
 		}
 	}
 </script>
 
-<style scoped>	
-	.result {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-	}
-	.result .item {
-		padding: 20rpx 55rpx;
-		border-bottom-width: 1rpx;
+<style scoped>
+	.nav-right {
 		flex-direction: row;
+		flex: 1;
+		justify-content: flex-end;
 		align-items: center;
+	}
+	.nav-text {
+		font-size: 30rpx;
+		margin-right: 22.5rpx;
+		text-overflow: ellipsis;
+		lines: 1;
+	}
+	.list {
+		flex-direction: row;
+		border-bottom-width: 1px;
+		border-bottom-style: solid;
+		padding-left: 15rpx;
+		padding-right: 15rpx;
+		padding-top: 15rpx;
+		padding-bottom: 15rpx;
+		height: 108rpx;
+	}
+	.list-icon {
+		justify-content: center;
+		align-items: center;
+		margin-right: 15rpx;
+		width: 75rpx;
+	}
+	.list-right {
+		flex: 1;
 		justify-content: space-between;
 	}
-	.result .item .label {
-		font-size: 28rpx;
-		margin-left: 10rpx;
-		flex: 1;
+	.list-right-back {
+		flex-direction: row;
+		align-items: center;
 	}
-	.result .item .sub {
+	.lr-top {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.list-title {
+		flex: 1;
+		font-size: 30rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.lt-right {
+		width: 70rpx;
+	}
+	.lr-bottom {
+		flex-direction: row;
+		justify-content: space-between;
+	}
+	.list-text {
 		font-size: 24rpx;
 	}
-	.result .item .item-left {
-		flex-direction: row;
-		align-items: center;
-		flex: 1;
+	.btn-box {
+		padding: 15rpx 30rpx;
+		border-top-width: 1px;
+		border-top-style: solid;
 	}
-	.result .item .item-right {
-		flex-direction: row;
+	.btn {
+		height: 75rpx;
+		justify-content: center;
 		align-items: center;
+		background-color: #007AFF;
 	}
-	.result .item .item-right .icon {
-		margin-left: 20rpx;
+	.btn-text {
+		font-size: 27rpx;
+		color: #F1F1F1;
+	}
+	.fixed {
+		position: fixed;
+		bottom: 20px;
+		right: 20px;
+		width: 90rpx;
+		align-items: center;
+		justify-content: flex-end;
 	}
 </style>

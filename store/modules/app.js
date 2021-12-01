@@ -1,10 +1,8 @@
-import { ADULT, ADULTPWD, SKIN } from '../config.js'
-import SkinColor from '@/assets/skin/index.js'
+import { ADULT, ADULTPWD } from '../config.js'
 
 const state = {
 	adult: uni.getStorageSync(ADULT) || false, //青壮年模式
-	adultPwd: uni.getStorageSync(ADULTPWD) || '', //青壮年模式密码
-	skin: uni.getStorageSync(SKIN) || 'default' //皮肤
+	adultPwd: uni.getStorageSync(ADULTPWD) || '' //青壮年模式密码
 }
 
 const getters = {
@@ -13,12 +11,6 @@ const getters = {
 	},
 	getAdultPwd (state) {
 		return state.adultPwd
-	},
-	skinMode (state) {
-		return state.skin
-	},
-	skinColor (state) {
-		return SkinColor[state.skin]
 	}
 }
 
@@ -30,19 +22,6 @@ const mutations = {
 	setAdultPwd (state, pwd) {
 		state.adultPwd = pwd;
 		uni.setStorageSync(ADULTPWD, pwd)
-	},
-	//改变皮肤模式
-	changeSkin (state, skin) {
-		state.skin = skin;
-		uni.setStorageSync(SKIN, skin)
-	}
-}
-
-const actions = {
-	//改变皮肤模式
-	changeSkinAction ({commit}, skin) {
-		commit('changeSkin', skin)
-		getApp().globalData.$business.setSkinColor()
 	}
 }
 
@@ -50,6 +29,5 @@ export default {
     namespaced: true,
     state,
     getters,
-    mutations,
-	actions
+    mutations
 }

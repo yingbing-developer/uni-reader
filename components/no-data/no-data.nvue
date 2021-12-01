@@ -10,7 +10,7 @@
 		props: {
 			title: {
 				type: String,
-				default: '暂无数据!'
+				default: '你还没有导入书籍'
 			},
 			position: {
 				type: String,

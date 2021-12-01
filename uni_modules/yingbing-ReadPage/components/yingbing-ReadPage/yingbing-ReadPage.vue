@@ -277,8 +277,7 @@
 					const dataSync = {
 						contents: this.contents,
 						start: parseInt(data.start),
-						currentChapter: parseInt(data.currentChapter),
-						title: data.title || null
+						currentChapter: parseInt(data.currentChapter)
 					}
 					if ( this.pageType == 'scroll' ) {
 						this.$refs.scrollPage.init(dataSync)

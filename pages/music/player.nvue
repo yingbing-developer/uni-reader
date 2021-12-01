@@ -1,23 +1,24 @@
 <template>
-	<view class="player" :style="{'background-color': skinColor.color_bg_1}" @touchmove.stop.prevent="">
-		<c-image class="background" defaultSrc="@/static/music/music-bg.jpg" :enableMask="false" :src="bgImage" mode="aspectFill"></c-image>
+	<view class="player" :style="{'background-color': skinColor.menuBgColor}" @touchmove.stop.prevent="">
+		<c-image class="background" defaultSrc="@/static/music/music-bg.jpg" :enableMask="false" :src="musicInfo ? musicInfo.image : '@/static/music/music-bg.jpg'" mode="aspectFill"></c-image>
+		<view class="bg-mask"></view>
 		<view class="wrapper">
 			<gap-bar></gap-bar>
 			<view class="top" ref="top">
 				<view class="back" @tap="hide">
-					<music-icon class="back-icon" name="back" size="40" :color="skinColor.color_4"></music-icon>
+					<music-icon class="back-icon" name="back" size="40" :color="skinColor.iconColor"></music-icon>
 				</view>
 				<view class="title">
-					<text class="subtitle music-name" :style="{color: skinColor.color_4}">{{musicInfo ? musicInfo.name : '暂无歌曲'}}</text>
-					<text class="subtitle singer-name" :style="{color: skinColor.color_4}">{{musicInfo ? musicInfo.singer : '未知歌手'}}</text>
+					<text class="subtitle music-name" :style="{color: skinColor.iconColor}">{{musicInfo ? musicInfo.name : '暂无歌曲'}}</text>
+					<text class="subtitle singer-name" :style="{color: skinColor.iconColor}">{{musicInfo ? musicInfo.singer : '未知歌手'}}</text>
 				</view>
 				<view class="right">
 					<view class="tr-icon">
-						<music-icon name="collection" size="38" :color="skinColor.color_4"></music-icon>
+						<music-icon name="collection" size="38" :color="skinColor.iconColor"></music-icon>
 					</view>
 				</view>
 			</view>
-			<swiper class="swiper" :indicator-dots="true" :indicator-active-color="skinColor.color_4" :duration="500">
+			<swiper class="swiper" :indicator-dots="true" :indicator-active-color="skinColor.iconColor" :duration="500">
 				
 				<!-- cd封面 -->
 				<swiper-item>
@@ -28,7 +29,7 @@
 							</view>
 						</view>
 						<view class="lyric-lines" ref="lyricLines">
-							<text class="lyric-line-text" :style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.color_1}">{{lyricNowTitle}}</text>
+							<text class="lyric-line-text" :style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{lyricNowTitle}}</text>
 						</view>
 					</view>
 				</swiper-item>
@@ -41,39 +42,39 @@
 							v-for="(item, index) in playLyric"
 							class="lyric-line-text"
 							:id="'lyric-line-' + index"
-							:style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.color_1}">{{item.title}}</text>
+							:style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{item.title}}</text>
 						</scroll-view>
 						<view class="no-lyric" v-else>
-							<text class="lyric-line-text" :style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.color_1}">{{musicInfo ? musicInfo.name : '暂无歌曲'}}</text>
+							<text class="lyric-line-text" :style="{color: lyricNowIndex == index ? '#d43c33' : skinColor.titleColor}">{{musicInfo ? musicInfo.name : '暂无歌曲'}}</text>
 						</view>
 					</view>
 				</swiper-item>
 			</swiper>
 			<view class="control" ref="control">
 				<view class="progress-line">
-					<text class="progress-num" :style="{color: skinColor.color_1}">{{playTime | minutesFormat}}</text>
+					<text class="progress-num" :style="{color: skinColor.titleColor}">{{playTime | minutesFormat}}</text>
 					<c-progress class="progress" :disable="musicDuration == 0" :height="9" :itemSize="30" activeColor="#d43c33" :value="musicProgress" @input="updateTime" itemShow></c-progress>
-					<text class="progress-num" :style="{color: skinColor.color_1}">{{musicDuration | minutesFormat}}</text>
+					<text class="progress-num" :style="{color: skinColor.titleColor}">{{musicDuration | minutesFormat}}</text>
 				</view>
 				<view class="control-line">
 					<view class="control-box" @tap="changeMode">
-						<music-icon name="sequence" size="50" :color="skinColor.color_4" v-if="playMode == 'loop'"></music-icon>
-						<music-icon name="loop" size="50" :color="skinColor.color_4" v-if="playMode == 'once'"></music-icon>
-						<music-icon name="random" size="50" :color="skinColor.color_4" v-if="playMode == 'random'"></music-icon>
+						<music-icon name="sequence" size="50" :color="skinColor.iconColor" v-if="playMode == 'loop'"></music-icon>
+						<music-icon name="loop" size="50" :color="skinColor.iconColor" v-if="playMode == 'once'"></music-icon>
+						<music-icon name="random" size="50" :color="skinColor.iconColor" v-if="playMode == 'random'"></music-icon>
 					</view>
 					<view class="control-box" @tap="changeMusic(-1)">
-						<music-icon name="prev" size="55" :color="skinColor.color_4"></music-icon>
+						<music-icon name="prev" size="55" :color="skinColor.iconColor"></music-icon>
 					</view>
 					<view class="control-box" @tap="playPause">
-						<music-icon name="play" size="70" :color="skinColor.color_4" v-if="!playStatus"></music-icon>
-						<music-icon name="pause" size="70" :color="skinColor.color_4" v-if="playStatus"></music-icon>
+						<music-icon name="play" size="70" :color="skinColor.iconColor" v-if="!playStatus"></music-icon>
+						<music-icon name="pause" size="70" :color="skinColor.iconColor" v-if="playStatus"></music-icon>
 					</view>
 					<view class="control-box" @tap="changeMusic(1)">
-						<music-icon name="next" size="55" :color="skinColor.color_4"></music-icon>
+						<music-icon name="next" size="55" :color="skinColor.iconColor"></music-icon>
 					</view>
 					<view class="control-box" @tap="setMusicLyricShow(!lyricShow)">
-						<view class="lyric-box" :style="{'border-color': lyricShow ? '#d43c33' : skinColor.color_4}">
-							<text class="lyric-text" :style="{color: lyricShow ? '#d43c33' : skinColor.color_4}">词</text>
+						<view class="lyric-box" :style="{'border-color': lyricShow ? '#d43c33' : skinColor.iconColor}">
+							<text class="lyric-text" :style="{color: lyricShow ? '#d43c33' : skinColor.iconColor}">词</text>
 						</view>
 					</view>
 				</view>
@@ -87,20 +88,19 @@
 	import MusicIcon from '@/components/music-icon/music-icon.nvue'
 	import CImage from '@/components/c-image/c-image.nvue'
 	import CProgress from '@/components/progress/progress.nvue'
-	import appMixin from '@/common/mixin/app.js';
+	import { skinMixin } from '@/common/mixin/index.js';
 	import musicMixin from '@/common/mixin/music.js'
 	import lyricMixin from '@/common/mixin/lyric.js';
 	import musiccertifyMixin from '@/common/mixin/musiccertify.js'
 	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [appMixin, lyricMixin, musicMixin, musiccertifyMixin],
+		mixins: [skinMixin, lyricMixin, musicMixin, musiccertifyMixin],
 		data () {
 			return {
 				duration: 400,
 				delay: 200,
 				cdRotate: 0,
-				cdStart: 0,
-				bgImage: ''
+				cdStart: 0
 			}
 		},
 		computed: {
@@ -123,9 +123,6 @@
 		},
 		onLoad () {
 			uni.$emit('musicBtn-down');
-			const BlurImage = uni.requireNativePlugin('YingBingNativePlugin-BlurImage');
-			const url = plus.io.convertLocalFileSystemURL('/static/music/music-bg.jpg')
-			this.bgImage = BlurImage.blur(url, 0.5, 30);
 		},
 		onReady() {
 			this.show();
@@ -341,7 +338,15 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		opacity: 0.6;
+		opacity: 0.1;
+	}
+	.bg-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-image: linear-gradient(to bottom right, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
 	}
 	.wrapper {
 		position: fixed;

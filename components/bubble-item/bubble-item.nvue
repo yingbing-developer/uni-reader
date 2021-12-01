@@ -1,13 +1,13 @@
 <template>
-	<view class="bubble-item" :class="skinMode + '-actived'" @tap="onTap">
-		<text class="list-text" :style="{color: skinColor.color_2}">{{title}}</text>
+	<view class="bubble-item" :class="skinColor.activedName" @tap="onTap">
+		<text class="list-text" :style="{color: skinColor.menuTitleColor}">{{title}}</text>
 	</view>
 </template>
 
 <script>
-	import appMixin from '@/common/mixin/app.js'
+	import { skinMixin } from '@/common/mixin/index.js'
 	export default {
-		mixins: [appMixin],
+		mixins: [skinMixin],
 		props: {
 			title: {
 				type: String,

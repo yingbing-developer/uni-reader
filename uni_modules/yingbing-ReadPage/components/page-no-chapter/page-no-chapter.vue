@@ -18,14 +18,14 @@
 		'color': color,
 		'padding-left': slide + 'px',
 		'padding-right': slide + 'px',
-		'padding-top': topGap + 'px',
+		'border-top': `${topGap}px solid ${bgColor}`,
 		'padding-bottom': bottomGap + 'px',
 		'background': bgColor}"
 		v-if="pageType == 'scroll'"></view>
 		
 		
-		<div class="loading" v-if="initLoading" :style="{background: bgColor, 'font-size': fontSize + 'px'}">
-			<page-refresh :color="color">正在加载内容</page-refresh>
+		<div class="loading" v-if="initLoading" :style="{background: bgColor, color: color}">
+			<page-refresh>正在加载内容</page-refresh>
 		</div>
 	</view>
 </template>
@@ -84,7 +84,6 @@
 		},
 		data () {
 			return {
-				title: '',
 				content: '',
 				start: 0,
 				loading: false,//等待内容请求
@@ -119,7 +118,6 @@
 			init (data) {
 				this.content = data.content;
 				this.start = data.start
-				this.title = data.title
 				this.restart = true;
 				this.getCatalog(this.content);
 			},
@@ -145,13 +143,8 @@
 						return start >= chapter.start
 					}
 				})
-				if ( chapterIndex > -1 ) {
-					e.currentInfo.chapter = this.chapters[chapterIndex].chapter
-					e.currentInfo.title = this.chapters[chapterIndex].title
-				} else {
-					e.currentInfo.chapter = this.chapters[0].chapter
-					e.currentInfo.title = this.chapters[0].title
-				}
+				e.currentInfo.chapter = this.chapters[chapterIndex].chapter
+				e.currentInfo.title = this.chapters[chapterIndex].title
 				this.$emit('currentChange', e.currentInfo);
 			},
 			//重置部分变量，方便下次使用
@@ -176,11 +169,7 @@
 						chapter: chapter
 					})
 				}
-				this.chapters = catalog.length > 0 ? catalog : [{
-					chapter: 1,
-					start: 0,
-					title: this.title || '整章'
-				}];
+				this.chapters = catalog;
 				this.$emit('setCatalog', catalog);
 			}
 		}

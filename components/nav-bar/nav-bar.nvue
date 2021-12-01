@@ -1,18 +1,17 @@
 <template>
 	<view class="nav-bar" :style="{'background-color': bgColor}">
-		<view class="bar" :style="{'height': barHeight + 'px'}" v-if="gapShow"></view>
+		<view class="bar" :style="{'height': barHeight}" v-if="gapShow"></view>
 		<view class="nav">
 			<view class="left">
+				<view class="back" v-if="backShow" @tap="back">
+					<c-icon name="arrow-left" :size="45" :color="backColor"></c-icon>
+				</view>
 				<slot name="left">
-					<view class="back" v-if="backShow" @tap="back">
-						<c-icon name="arrow-left" :size="45" :color="frontColor"></c-icon>
-					</view>
 				</slot>
 			</view>
 			<view class="center">
-				<slot name="center">
-					<text class="title" :style="{'color': frontColor}">{{title}}</text>
-				</slot>
+				<text class="title" :style="{'color': titleColor}">{{title}}</text>
+				<slot name="center"></slot>
 			</view>
 			<view class="right">
 				<slot name="right">
@@ -34,13 +33,17 @@
 				type: Boolean,
 				default: true
 			},
-			frontColor: {
+			backColor: {
 				type: String,
 				default: '#FFFFFF'
 			},
 			title: {
 				type: String,
 				default: ''
+			},
+			titleColor: {
+				type: String,
+				default: '#FFFFFF'
 			},
 			gapShow: {
 				type: Boolean,
@@ -49,17 +52,22 @@
 		},
 		data () {
 			return {
-				barHeight: 0
+				barHeight: ''
 			}
 		},
 		created () {
-			this.barHeight = uni.getSystemInfoSync().statusBarHeight
+			this.init();
 		},
 		methods: {
-			back () {
-				uni.navigateBack({
-					delta: 1
+			init () {
+				uni.getSystemInfo({
+					success: (res) => {//根据状态栏高度, 进行导航栏顶部适配
+						this.barHeight = `${res.statusBarHeight + 4}px`;
+					}
 				})
+			},
+			back () {
+				getApp().globalData.$Router.back();
 			}
 		},
 		components: {
@@ -97,9 +105,6 @@
 		justify-content: flex-start;
 		align-items: center;
 		margin-right: 60rpx;
-	}
-	.back:active {
-		opacity: 0.5;
 	}
 	.title {
 		font-size: 35rpx;

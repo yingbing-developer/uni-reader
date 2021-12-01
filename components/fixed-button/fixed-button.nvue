@@ -1,20 +1,18 @@
 <template>
-	<view ref="button" :style="{'background-color': color}" v-if="isShow" elevation="3" class="button">
+	<view ref="button" v-if="isShow" elevation="3" class="button" :style="{'background-color': skinColor.itemColor}">
 		<slot></slot>
 	</view>
 </template>
 
 <script>
 	const animation = weex.requireModule('animation');
+	import { skinMixin } from '@/common/mixin/index.js'
 	export default {
+		mixins: [skinMixin],
 		props: {
 			show: {
 				type: Boolean,
 				default: true
-			},
-			color: {
-				type: String,
-				default: '#2196F5'
 			}
 		},
 		data () {

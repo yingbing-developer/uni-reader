@@ -1,8 +1,7 @@
 import http from '@/plugins/request/index.js'
-import xhr from '@/plugins/xhr/index.js'
 import Utils from '@/assets/js/util.js'
-import HTMLParser from '@/assets/other/html-parse.js'
-import gb2312 from '@/assets/other/gb2312.js'
+import HTMLParser from '@/assets/js/html-parse.js'
+import gb2312 from '@/assets/js/gb2312.js'
 import Store from '@/store' // 获取 Vuex Store 实例，注意是**实例**，而不是 vuex 这个库
 import Config from '@/assets/js/config.js'
 
@@ -12,7 +11,6 @@ const { getters } = Store;
 
 const tag1 = 'baoshuu';
 const tag2 = 'bamxs';
-const tag3 = 'xquge';
 
 
 //获取小说列表
@@ -27,9 +25,6 @@ export function getBook (data) {
 	if ( sources.indexOf(tag2) == -1 && !data.isLastPage[tag2] && (ADULTS.indexOf(tag2) == -1 || adult) ) {
 		newArr.push(getBamxs(data));
 	}
-	// if ( sources.indexOf(tag3) == -1 && !data.isLastPage[tag3] && (ADULTS.indexOf(tag3) == -1 || adult) ) {
-	// 	newArr.push(getXquge(data));
-	// }
 	return Promise.all(newArr.map((promise)=>promise.catch((e)=>{promise.resolve(e)})))
 }
 //获取小说详情信息
@@ -77,24 +72,20 @@ function getBaoshuu (data) {
 			let list = [];
 			if ( arr ) {
 				for ( let i = 0; i < arr.length; i++ ) {
-					const h1 = arr[i].match(/<h1[^>]*>*([\s\S]*?)<\/h1>/ig);
-					const a = h1[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
-					const path = a[1].match(/href=\"*(\S*)\"/)[1];
-					const tag = a[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/)[1];
-					let name = a[1].match(/<a[^>]*>*([\s\S]*?)<\/a>/)[1];
-					const redNameStr = name.match(/<font[^>]*>*([\s\S]*?)<\/font>/);
-					if ( redNameStr ) name = name.replace(redNameStr[0], redNameStr[1])
-					let desc = arr[i].match(/<p[^>]*>*([\s\S]*?)<\/p>/)[1];
-					const redDescStr = desc.match(/<font[^>]*>*([\s\S]*?)<\/font>/);
-					if ( redDescStr ) desc = desc.replace(redDescStr[0], redDescStr[1])
+					let h1 = arr[i].match(/<h1[^>]*>*([\s\S]*?)<\/h1>/ig);
+					let a = h1[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
+					let tag = HTMLParser(a[0])[0];//将html字符串转化为html数组
+					a[1] = a[1].replace('<font color="red">', '');
+					a[1] = a[1].replace('</font>', '');
+					let nameObj = HTMLParser(a[1])[0];//将html字符串转化为html数组
+					let desc = arr[i].match(/<p[^>]*>*([\s\S]*?)<\/p>/);
 					list.push({
 						image: '/static/cover/cover_default.jpg',
-						name: name,
-						type: tag || '其它',
-						author: '不详',
-						desc: desc ? desc.replace('简介：', '') : '暂无介绍',
-						status: 2,
-						path: path,
+						name: '【' + tag.children[0].text + '】' + nameObj.children[0].text,
+						author: '暂无',
+						desc: desc[1] || '暂无介绍',
+						status: '已完结',
+						path: nameObj.attrs.href,
 						source: tag1
 					})
 				}
@@ -144,7 +135,7 @@ function getBaoshuuInfo (href) {
 //获取手机宝书网站的小说详情
 function getBaoshuuDetails (href) {
 	return new Promise((resolve, reject) => {
-		xhr.get(href, {
+		getApp().globalData.$xhr.get(href, {
 			mimeType: 'text/html;charset=gb2312',
 			headers: {
 				Referer: BOOKURL[tag1].href,
@@ -192,7 +183,7 @@ function getBaoshuuDetails (href) {
 //获取手机宝书网站的小说章节
 function getBaoshuuChapters (href) {
 	return new Promise((resolve, reject) => {
-		xhr.get(href, {
+		getApp().globalData.$xhr.get(href, {
 			mimeType: 'text/html;charset=gb2312',
 			headers: {
 				Referer: BOOKURL[tag1].href,
@@ -231,7 +222,7 @@ function getBaoshuuContent (data) {
 	return new Promise((resolve, reject) => {
 		let arr = [];
 		for ( let i in data ) {
-			arr.push(xhr.get(data[i].url, {
+			arr.push(getApp().globalData.$xhr.get(data[i].url, {
 				mimeType: 'text/html;charset=gb2312',
 				headers: {
 					Referer: BOOKURL[tag1].href,
@@ -273,7 +264,7 @@ function getBamxs (data) {
 		page: data.page[tag2]
 	}
 	return new Promise((resolve, reject) => {
-		xhr.postget(BOOKURL[tag2].href + '/search.asp', {
+		getApp().globalData.$xhr.postget(BOOKURL[tag2].href + '/search.asp', {
 			params: dataSync,
 			mimeType: 'text/html;charset=gb2312',
 			headers: {
@@ -299,7 +290,6 @@ function getBamxs (data) {
 								name = name.replace(regExp, redNameStr[1])
 							} 
 							const spans = main[0].match(/<span[^>]*>*([\s\S]*?)<\/span>/ig)
-							const type = spans[0].match(/<span[^>]*>*([\s\S]*?)<\/span>/)[1]
 							let author = spans[1].match(/<span[^>]*>*([\s\S]*?)<\/span>/)[1]
 							author = author.match(/作者:*([\s\S]*?)时间/)[1]
 							const redAuthorStr = author.match(/<font[^>]*>*([\s\S]*?)<\/font>/)
@@ -308,23 +298,14 @@ function getBamxs (data) {
 								author = author.replace(regExp, redAuthorStr[1])
 							} 
 							const desc = spans[2].match(/<span[^>]*>*([\s\S]*?)<\/span>/)[1]
-							const imgTexts = desc.match(/<img[^>]*>/ig);
-							if ( imgTexts ) {
-								imgTexts.forEach(imgText => {
-									const pinyin = imgText.match(/in\/*(\S*).jpg/)[1];
-									const regExp = new RegExp(`${imgText}`, 'g');
-									desc = desc.replace(regExp, pinyin);
-								})
-							}
 							const a = img[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/)[0]
 							const href = removeUrl(a.match(/href=\"*(\S*)\"/)[1])
 							list.push({
 								image: BOOKURL[tag2].href + imgSrc,
-								name: name,
+								name: name ,
 								author: author || '暂无作者',
 								desc: desc || '暂无介绍',
-								type: type || '其它',
-								status: 2,
+								status: '已完结',
 								path: BOOKURL[tag2].href + '/' + href,
 								source: tag2
 							})
@@ -354,7 +335,7 @@ function getBamxs (data) {
 //获取八毛小说网的小说信息
 function getBamxsInfo (href) {
 	return new Promise((resolve, reject) => {
-		xhr.get(href, {
+		getApp().globalData.$xhr.get(href, {
 			mimeType: 'text/html;charset=gb2312',
 			headers: {
 				Referer: BOOKURL[tag2].href,
@@ -428,7 +409,7 @@ function getBamxsContent (data) {
 	return new Promise((resolve, reject) => {
 		let arr = [];
 		for ( let i in data ) {
-			arr.push(xhr.get(data[i].url, {
+			arr.push(getApp().globalData.$xhr.get(data[i].url, {
 				mimeType: 'text/html;charset=gb2312',
 				headers: {
 					Referer: BOOKURL[tag2].href,
@@ -464,71 +445,6 @@ function getBamxsContent (data) {
 			resolve(contents)
 		}).catch(() => {
 			reject('')
-		})
-	})
-}
-
-//获取笔趣阁网站的小说列表
-function getXquge (data) {
-	let dataSync = {
-		search: data.title,
-		m: 2,
-		ChannelID: 0,
-		page: data.page[tag1]
-	}
-	return new Promise((resolve, reject) => {
-		http.postget(BOOKURL[tag3].href + '/search', {
-			params: dataSync,
-			headers: {
-				Referer: BOOKURL[tag1].href,
-				Host: BOOKURL[tag1].href.replace('http://', ''),
-				Charset: 'gb2312',//自定义字符格式
-				Cookie: 'UM_distinctid=1783b0d7fe43f8-0224fcecd87da9-376b4502-1fa400-1783b0d7fe59f7; READHISTORY=1; Hm_lvt_fed71f7d1edb5bacb3fe60e703a761aa=1629376402,1629415930,1629810834,1629845299; CNZZDATA1276437823=1507837864-1615895385-%7C1630353326',
-			}
-		}).then((res) => {
-			let str = replaceStr(res.data);//解析html字符
-			let all = str.match(/<div[^>]*class=([""]?)sslist\1[^>]*>*([\s\S]*?)<\/div>/ig);//正则匹配所有小说内容
-			let arr = all[0].match(/<li[^>]*>*([\s\S]*?)<\/p>/ig);//正则匹配所有小说内容
-			let list = [];
-			if ( arr ) {
-				for ( let i = 0; i < arr.length; i++ ) {
-					const h1 = arr[i].match(/<h1[^>]*>*([\s\S]*?)<\/h1>/ig);
-					const a = h1[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/ig);
-					const path = a[1].match(/href=\"*(\S*)\"/)[1];
-					const tag = a[0].match(/<a[^>]*>*([\s\S]*?)<\/a>/)[1];
-					let name = a[1].match(/<a[^>]*>*([\s\S]*?)<\/a>/)[1];
-					const redNameStr = name.match(/<font[^>]*>*([\s\S]*?)<\/font>/);
-					if ( redNameStr ) name = name.replace(redNameStr[0], redNameStr[1])
-					let desc = arr[i].match(/<p[^>]*>*([\s\S]*?)<\/p>/)[1];
-					const redDescStr = desc.match(/<font[^>]*>*([\s\S]*?)<\/font>/);
-					if ( redDescStr ) desc = desc.replace(redDescStr[0], redDescStr[1])
-					list.push({
-						image: '/static/cover/cover_default.jpg',
-						name: name,
-						type: tag,
-						author: '不详',
-						desc: desc ? desc.replace('简介：', '') : '暂无介绍',
-						status: 2,
-						path: path,
-						source: tag1
-					})
-				}
-			}
-			resolve({
-				code: ERR_OK,
-				data: {
-					list: list,
-					source: tag1
-				}
-			})
-		}).catch((err) => {
-			resolve({
-				code: ERR_FALSE,
-				data: {
-					list: [],
-					source: tag1
-				}
-			})
 		})
 	})
 }

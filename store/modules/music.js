@@ -3,17 +3,15 @@ const { indexOf, suffix, dateFormat, removeSuffix, randomString } = Utils;
 
 import {
 MUSICPATH,
-MUSICCOLLECTION,
-MUSICPLAYLIST,
+PLAYLIST,
 PLAYMODE,
 PLAYRECORD,
 MUSICSOURCES,
 MUSICLYRICSHOW } from '../config.js'
 
 const state = {
-	playList: uni.getStorageSync(MUSICPLAYLIST) || [],//播放列表
 	musicPath: uni.getStorageSync(MUSICPATH) || '', //默认访问的本地音乐资源路径
-	collectionList: uni.getStorageSync(MUSICCOLLECTION) || [], //音乐收藏列表
+	musicPlayList: uni.getStorageSync(PLAYLIST) || [], //音乐播放列表
 	musicPlayMode: uni.getStorageSync(PLAYMODE) || 'loop', //音乐播放模式 loop => 循环播放 once => 单曲循环 random => 乱序播放
 	musicPlayRecord: uni.getStorageSync(PLAYRECORD) || '', //音乐播放记录
 	musicLyricShow: uni.getStorageSync(MUSICLYRICSHOW) || false, //控制歌词显示
@@ -21,14 +19,11 @@ const state = {
 }
 
 const getters = {
-	getPlayList (state) {
-		return state.playList;
-	},
 	musicPathHistory (state) {
 		return state.musicPath
 	},
-	getCollection (state) {
-		return state.collectionList
+	playList (state) {
+		return state.musicPlayList
 	},
 	getMusicPlayMode (state) {
 		return state.musicPlayMode
@@ -45,43 +40,36 @@ const getters = {
 }
 
 const mutations = {
-	//添加播放列表
-	addPlayList (state, musics) {
-		for ( let i in musics ) {
-			state.playList.push(musics[i])
+	//新增歌曲
+	addMusic (state, music) {
+		for ( let i in music ) {
+			state.musicPlayList.push({
+				name: removeSuffix(music[i].name),
+				image: music[i].image ? music[i].image : '/static/music/music-bg.jpg',
+				singer: music[i].singer || '未知歌手' ,
+				path: music[i].path,
+				lyric: music[i].lyric || false,
+				source: music[i].source ? music[i].source : 'local'
+			})
 		}
-		uni.setStorageSync(MUSICPLAYLIST, state.playList);
+		uni.setStorageSync(PLAYLIST, state.musicPlayList);
 	},
-	removePlayList (state, id) {
-		const index = state.playList.findIndex(music => music.id == id)
-		if ( index > -1 ) {
-			state.playList.splice(index ,1)
-			uni.setStorageSync(MUSICPLAYLIST, state.playList);
-		}
-	},
-	clearPlayList (state) {
-		state.playList = []
-		uni.removeStorageSync(MUSICPLAYLIST)
-	},
-	//新增收藏列表
-	addCollection (state, musics) {
-		for ( let i in musics ) {
-			state.collectionList.push(musics[i])
-		}
-		uni.setStorageSync(MUSICCOLLECTION, state.collectionList);
-	},
-	//删除指定收藏歌曲
-	removeCollection (state, id) {
-		const index = state.collectionList.findIndex(collection => collection.id == id)
-		if ( index > -1 ) {
-			state.collectionList.splice(index, 1);
-			uni.setStorageSync(MUSICCOLLECTION, state.collectionList)
+	//删除指定歌曲
+	deleteMusic (state, path) {
+		let flag = indexOf(state.musicPlayList, 'path', path);
+		if ( flag > -1 ) {
+			state.musicPlayList.splice(flag, 1);
+			uni.setStorageSync(PLAYLIST, state.musicPlayList)
 		}
 	},
-	//清空所有收藏歌曲
-	clearCollection (state, type) {
-		state.collectionList = [];
-		uni.removeStorageSync(MUSICCOLLECTION)
+	//清空所有歌曲
+	clearMusic (state, type) {
+		state.musicPlayList = [];
+		uni.setStorageSync(PLAYLIST, state.musicPlayList);
+		state.musicPlayRecord = '';
+		uni.setStorageSync(PLAYRECORD, state.musicPlayRecord);
+		state.musicPlayTime = 0;
+		state.musicPlayDuration = 0;
 	},
 	//更新音乐播放记录
 	updateMusicPlayRecord (state, record) {

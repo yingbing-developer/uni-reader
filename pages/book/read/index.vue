@@ -1,12 +1,12 @@
 <template>
-	<view class="read" :style="{filter: 'brightness(' + light + '%)', 'background-color': skinColor.color_read_bg}">
+	<view class="read" :style="{filter: 'brightness(' + light + '%)', 'background-color': skinColor.readBackColor}">
 		<yingbing-ReadPage
 		ref="page"
 		:page-type="pageType"
 		:font-size="fontSize"
 		:line-height="lineHeight"
-		:color="skinColor.color_read_text"
-		:bg-color="skinColor.color_read_bg"
+		:color="skinColor.readTextColor"
+		:bg-color="skinColor.readBackColor"
 		:slide="40"
 		:top-gap="barHeight"
 		:bottom-gap="barHeight"
@@ -19,16 +19,21 @@
 		@preload="preloadContent"
 		@loadmore="loadmoreContent">
 		</yingbing-ReadPage>
+		
+		<!-- 触摸区域 -->
+		<!-- <view class="touch-box touch-menu" @tap="openSettingNvue" @longpress="openEditNvue">
+			菜单
+		</view> -->
 	</view>
 </template>
 
 <script>
-	import appMixin from '@/common/mixin/app.js'
+	import { skinMixin } from '@/common/mixin/index.js'
 	import bookMixin from '@/common/mixin/book.js';
 	import bookcertifyMixin from '@/common/mixin/bookcertify.js';
 	import { getBookContent } from '@/common/online/getBook.js';
 	export default {
-		mixins: [appMixin, bookMixin, bookcertifyMixin],
+		mixins: [skinMixin, bookMixin, bookcertifyMixin],
 		data () {
 			return {
 				//文本内容
@@ -242,8 +247,7 @@
 				if ( this.bookInfo.source == 'local' ) {
 					page.init({
 						content: this.bookContent,
-						start: this.record.position || 0,
-						title: this.bookInfo.name
+						start: this.record.position || 0
 					})
 				} else {
 					page.init({
@@ -308,10 +312,8 @@
 					isReaded =  e.end >= this.bookContent.length - 1;
 					pageInfo = {
 						progress: parseFloat(((e.start / this.bookContent.length) * 100).toFixed(2)),
-						title: e.title,
+						title: this.bookInfo.name,
 						chapter: e.chapter,
-						start: e.start,
-						end: e.end,
 						text: e.text
 					}
 				} else {
@@ -348,12 +350,13 @@
 			},
 			//打开编辑子窗体
 			openEditNvue () {
+				console.log('点击');
 				if ( this.bookInfo.source != 'local' ) {
 					return;
 				}
-				let content = this.bookContent.substr(this.pageInfo.start, this.pageInfo.end);
+				let content = this.bookContent.substr(this.bookPageInfo.start, this.bookPageInfo.end);
 				uni.navigateTo({
-					url: `/modules/edit?content=${encodeURIComponent(content)}&start=${this.pageInfo.start}&end=${this.pageInfo.end}`,
+					url: `/modules/edit?content=${encodeURIComponent(content)}&start=${this.currentPage.start}&end=${this.currentPage.end}`,
 					complete: (res) => {
 						setTimeout(() => {
 							uni.$on('edit-btn', (data) => {
@@ -410,5 +413,27 @@
 	.read {
 		min-height: 100vh;
 		font-family: '微软雅黑';
+	}
+	.touch-box  {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: fixed;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 200rpx;
+		height: 200rpx;
+		border: 5rpx dashed #FFFFFF;
+		color: #333;
+		font-size: 30rpx;
+		background-color: rgba(255,255,255,0.4);
+		font-weight: bold;
+		opacity: 0;
+		z-index: 10;
+	}
+	.touch-menu {
+		left: 50%;
+		transform: translate(-50%, -50%);
+		border-radius: 20rpx;
 	}
 </style>

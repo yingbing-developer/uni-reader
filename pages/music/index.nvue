@@ -1,441 +1,308 @@
 <template>
-	<view class="music" :style="{'background-color': skinColor.color_bg_1}">
-		<template v-if="!loading">
-			<swiper
-			:style="{'height': (statusBarHeight + 150) + 'px'}"
-			class="ad-swiper"
-			circular
-			:indicator-dots="true"
-			:indicator-color="skinColor.color_bg_1"
-			:indicator-active-color="skinColor.color_actived_1"
-			:autoplay="true"
-			:interval="3000"
-			:duration="1000">
-				<swiper-item v-for="(item, index) in banners" :key="index">
-					<rd-image lazyLoad class="ad" :src="item.cover" mode="aspectFill"></rd-image>
-				</swiper-item>
-			</swiper>
-			<list class="list">
-				<yb-pulldown ref="pulldown" :color="skinColor.color_1" @pulldown="pulldown"></yb-pulldown>
-				<cell>
-					<view class="singer-line opac-actived" :style="{'background-color': skinColor.color_theme_2}" @tap="app.$Router.push({path: '/pages/music/search'})">
-						<view class="singer-left">
-							<rd-icon name="search" color="#ffa916" size="50"></rd-icon>
-							<text class="singer-text" :style="{color: skinColor.color_1}">搜索歌曲/歌手</text>
-						</view>
-						<view class="go">
-							<text class="go-text">GO</text>
-						</view>
+	<view class="music">
+		<view class="mask" ref="mask" @tap="hide"></view>
+		<view class="popup" ref="popup" @touchmove.stop.prevent="" :style="{'background-color': skinColor.bgColor }">
+			<view class="top" :style="{'border-color': skinColor.gapColor}">
+				<view class="mode" @tap="changeMode">
+					<c-icon name="loop" size="40" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'loop'"></c-icon>
+					<c-icon name="once" size="40" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'once'"></c-icon>
+					<c-icon name="random" size="40" :color="skinColor.menuIconColor" v-if="getMusicPlayMode == 'random'"></c-icon>
+					<text class="modeName" :style="{color: skinColor.menuIconColor}">{{modeName}}</text>
+				</view>
+				<view class="top-right">
+					<view class="tr-icon" @tap="routePush('/pages/music/online')">
+						<c-icon name="network" size="38" :color="skinColor.menuIconColor"></c-icon>
 					</view>
-				</cell>
-				
-				<!-- 音乐模块 -->
-				<!-- <rd-header title="网易云音乐"></rd-header> -->
-				<cell v-for="(module, i) in modules" :key="i">
-					<template v-if="module.hotTop.length > 0 || module.hotSinger.length > 0">
-						<!-- <rd-type :title="module.title" /> -->
-						<view class="padding-gap" v-if="module.hotSinger.length > 0">
-							<rd-title :title="module.title" moreText="更多"
-							@more="app.$Router.push({
-								path: '/pages/music/singer',
-								query: {
-									source: module.source,
-									title: module.title
-								}
-							})"></rd-title>
-							<yb-grid :data="module.hotSinger" :count="4" :column="4">
-								<template v-slot="{gridItem}">
-									<view class="singer">
-										<rd-image lazyLoad border-radius="12" class="cover" :src="gridItem.detail.cover" mode="aspectFill"></rd-image>
-										<text class="name" :style="{color: skinColor.color_1}">{{gridItem.detail.title}}</text>
-									</view>
-								</template>
-							</yb-grid>
-						</view>
-						<yb-gap></yb-gap>
-						<!-- 排行榜 -->
-						<view class="types" v-if="module.hotTop.length > 0">
-							<view class="type opac-actived"
-							v-for="(item, index) in module.hotTop"
-							@tap="goRank(item)"
-							:key="index"
-							:style="{
-								'background-color': skinColor.color_theme_2,
-								'margin-right': ((parseInt(index / 4) + 1) * 4) - 1 == index ? '0' : '24rpx'
-							}">
-								<text class="type-text" :style="{color: skinColor.color_1}">{{item.title}}</text>
-								<rd-icon name="arrow-right" v-if="index == 7" :color="skinColor.color_1"></rd-icon>
+					<view class="tr-icon" @tap="routePush('/pages/music/search')">
+						<c-icon name="search" size="38" :color="skinColor.menuIconColor"></c-icon>
+					</view>
+					<view class="tr-icon" @tap="hide">
+						<c-icon name="delete" size="28" :color="skinColor.menuTitleColor"></c-icon>
+					</view>
+				</view>
+			</view>
+			<list-scroll column-width="680" :list="listSync" :lineHeight="80" ref="musicList">
+				<template v-slot="{item}">
+					<view class="list" :class="skinColor.activedName" @tap="goPlayer(item.path)">
+						<text class="list-name" :style="{color: playRecord == item.path ? '#d43c33' : skinColor.menuTitleColor}">{{item.name}}</text>
+						<view class="list-right">
+							<view class="list-icon" @tap.stop="playMusic(item.path)">
+								<c-icon name="pause" size="37" color="#d43c33" v-if="playStatus && playRecord == item.path"></c-icon>
+								<c-icon name="play" size="35" color="#d43c33" v-else></c-icon>
 							</view>
-						</view>
-						
-						<!-- 推荐歌单 -->
-						<rd-type title="推荐歌单"></rd-type>
-						<view class="cellItem padding-gap" v-for="(item, index) in module.hotDisc.slice(0, 3)" :key="index">
-							<rd-image lazyLoad border-radius="12" class="cover" :src="item.cover"></rd-image>
-							<view class="info">
-								<text class="title" :style="{color: skinColor.color_1}">{{item.title}}</text>
-								<text class="label" :style="{color: skinColor.color_3}">{{item.creator}}</text>
+							<view class="list-icon" @tap.stop="deleteItem(item.path)">
+								<c-icon name="waste-fill" size="28" color="#d43c33"></c-icon>
 							</view>
-						</view>
-					</template>
-				</cell>
-				
-				<!-- 推荐歌单 -->
-				<!-- <template v-if="hotDisc.length > 0">
-					<rd-header title="推荐歌单"></rd-header>
-					<cell>
-						<view class="padding-gap">
-							<rd-title title="推荐歌单" moreText="更多" @more="app.$Router.push({path: '/pages/music/mix'})"></rd-title>
-							<yb-grid :data="hotDisc" :count="3">
-								<template v-slot="{gridItem}">
-									<view class="gridItem">
-										<rd-image  border-radius="12" class="cover" :src="gridItem.detail.cover" mode="aspectFill"></rd-image>
-										<view class="num">
-											<rd-icon name="play-outline" :color="skinColor.color_4"></rd-icon>
-											<text class="num-text" :style="{color: skinColor.color_4}">{{gridItem.detail.num / 10000}}万</text>
-										</view>
-										<text class="name" :style="{color: skinColor.color_1}">{{gridItem.detail.title}}</text>
-									</view>
-								</template>
-							</yb-grid>
-						</view>
-					</cell>
-					<cell v-for="(item, index) in hotDisc.slice(3)">
-						<view class="cellItem padding-gap">
-							<rd-image lazyLoad border-radius="12" class="cover" :src="item.cover"></rd-image>
-							<view class="info">
-								<text class="title" :style="{color: skinColor.color_1}">{{item.title}}</text>
-								<text class="label" :style="{color: skinColor.color_3}">{{item.creator}}</text>
-							</view>
-						</view>
-					</cell>
-				</template> -->
-				
-				<!-- 新歌速递 -->
-				<!-- <template v-if="newSongs.length > 0">
-					<rd-header title="新歌速递"></rd-header>
-					<cell>
-						<view class="padding-gap">
-							<rd-title title="新歌速递" moreText="更多" @more="app.$Router.push({path: '/pages/music/song'})"></rd-title>
-							<yb-grid :data="newSongs" :count="3">
-								<template v-slot="{gridItem}">
-									<view class="gridItem">
-										<rd-image  border-radius="12" class="cover" :src="gridItem.detail.cover" mode="aspectFill"></rd-image>
-										<view class="num">
-											<rd-icon name="play-outline" :color="skinColor.color_4"></rd-icon>
-											<text class="num-text" :style="{color: skinColor.color_4}">{{gridItem.detail.singer}}</text>
-										</view>
-										<text class="name" :style="{color: skinColor.color_1}">{{gridItem.detail.title}}</text>
-									</view>
-								</template>
-							</yb-grid>
-						</view>
-					</cell>
-					<cell v-for="(item, index) in newSongs.slice(3)">
-						<view class="cellItem padding-gap">
-							<rd-image lazyLoad border-radius="12" class="cover" :src="item.cover"></rd-image>
-							<view class="info">
-								<text class="title" :style="{color: skinColor.color_1}">{{item.title}}</text>
-								<text class="label" :style="{color: skinColor.color_3}">{{item.singer}}</text>
-							</view>
-						</view>
-					</cell>
+						</view>	
+					</view>
 				</template>
-				<yb-pullup ref="pullup" :color="skinColor.color_1" @pullup="pullup"></yb-pullup> -->
-			</list>
-		</template>
-		<yb-list-loading v-else size="70" title="加载中"></yb-list-loading>
+			</list-scroll>
+			<no-data position="absolute" title="没有导入的歌曲哦!" v-if="listSync.length <= 0"></no-data>
+			<view class="add" @touchmove.stop.prevent="">
+				<view class="add-btn" :style="{'border-color': skinColor.menuTitleColor}" @tap="clear">
+					<text class="add-text" :style="{color: skinColor.menuTitleColor}">清除全部歌曲</text>
+				</view>
+			</view>
+		</view>
 	</view>
 </template>
 
 <script>
+	import ListScroll from '@/components/list-scroll/list-scroll.nvue'
+	import CIcon from '@/components/c-icon/c-icon.nvue'
+	import CProgress from '@/components/progress/progress.nvue'
+	import NoData from '@/components/no-data/no-data.nvue'
+	import { skinMixin } from '@/common/mixin/index.js';
+	import musicMixin from '@/common/mixin/music.js'
+	import musiccertifyMixin from '@/common/mixin/musiccertify.js'
 	import appMixin from '@/common/mixin/app.js';
-	import createOb from '@/js_sdk/overall-btn/index.js'
+	const animation = weex.requireModule('animation');
 	export default {
-		mixins: [appMixin],
+		mixins: [skinMixin, musicMixin, musiccertifyMixin, appMixin],
 		data () {
 			return {
-				statusBarHeight: 0,
-				modules: [],//音乐模块展示
-				loading: true,
+				anima: {
+					opac: 0.4,
+					duration: 400
+				},
+				height: 800
 			}
-		},
-		onLoad () {
-			this.statusBarHeight = uni.getSystemInfoSync().statusBarHeight
-			const MUSICURL = getApp().globalData.$config.MUSICURL
-			Object.keys(MUSICURL).forEach(key => {
-				this.modules.push({
-					title: MUSICURL[key].title,
-					source: key,
-					hotSinger: MUSICURL[key].singer ? [] : null,
-					hotTop: MUSICURL[key].top ? [] : null,
-					topList: MUSICURL[key].top ? [] : null,
-					hotDisc: MUSICURL[key].album ? [] : null,
-					newSongs: MUSICURL[key].newSong ? [] : null,
-				})
-			})
-			Promise.all([
-				this.getToplist(),
-				this.getBannerList(),
-				this.getHotDiscList(),
-				this.getHotSinger()
-			]).then((ress) => {
-				this.loading = false
-			})
-		},
-		onShow () {
-			getApp().globalData.$business.setSkinColor();
 		},
 		onReady() {
-			const ob = createOb({
-				size: uni.upx2px(60),
-				left: uni.getSystemInfoSync().windowWidth - 50,
-				top: uni.getSystemInfoSync().windowHeight - 60,
-				opacity: 0.3,
-				border: 1,
-				touch: true,
-				func: (e) => {
-					ob.draw(this.skinMode == 'night' ? '日' : '夜')
-					this.changeSkin(this.skinMode == 'night' ? 'default' : 'night')
-				}
-			})
-			ob.show();
+			this.show();
+		},
+		computed: {
+			listSync () {
+				return this.playList.filter((item) => {
+					if ( getApp().globalData.$config.ADULTS.indexOf(item.source) == -1 || this.getAdult ) {
+						return item
+					}
+				});
+			},
+			playStatus () {
+				return this.getMusicPlayStatus;
+			},
+			modeName () {
+				return this.getMusicPlayMode == 'loop' ? '顺序播放' : this.getMusicPlayMode == 'once' ? '单曲循环' : '随机播放';
+			},
+			playRecord () {
+				return this.getMusicPlayRecord;
+			}
 		},
 		methods: {
-			pulldown () {
-				Promise.all([
-					this.getToplist(),
-					this.getBannerList(),
-					this.getHotDiscList(),
-					this.getHotSinger()
-				]).then((ress) => {
-					const index = ress.findIndex(res => !res)
-					index == -1 ? this.$refs.pulldown.success() : this.$refs.pulldown.fail()
+			show () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: this.anima.opac
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
 				})
-			},
-			// pullup () {
-			// 	this.getNewSongList()
-			// },
-			async getToplist () {
-				return await getApp().globalData.$api.music.getToplist().then((ress) => {
-					let status = false
-					ress.forEach((res, index) => {
-						if ( res.code == getApp().globalData.$config.ERR_OK ) {
-							const hot = res.data.list.filter(item => item.title.length < 6 && item.title.indexOf('MV') == -1)
-							const hotRanks = hot.slice(0, 7)
-							hotRanks.push({
-								title: '更多',
-								source: res.data.source
-							})
-							const moduleIndex = this.modules.findIndex(module => module.source == res.data.source)
-							this.modules[moduleIndex].hotTop = hotRanks
-							const top = res.data.list.filter((item, key) => item.title.indexOf('MV') == -1)
-							this.modules[moduleIndex].topList = top
-							status = top.length > 0
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateY(0)',
+						opacity: 1
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, () => {
+					setTimeout(() => {
+						let index = getApp().globalData.$utils.indexOf(this.playList, 'path', this.playRecord);
+						if ( index > -1) {
+							this.$refs.musicList.scrollTo(index);
 						}
-					})
-					return status
+					}, 200)
 				})
 			},
-			async getBannerList () {
-				return await getApp().globalData.$api.music.getBannerList().then((ress) => {
-					let banners = []
-					ress.forEach((res, index) => {
-						if ( res.code == getApp().globalData.$config.ERR_OK ) {
-							res.data.list.forEach(item => {
-								banners.push(item)
-							})
-						}
-					})
-					this.banners = banners
-					return banners.length > 0
+			hide () {
+				animation.transition(this.$refs.mask, {
+				    styles: {
+						opacity: '0'
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				})
+				animation.transition(this.$refs.popup, {
+				    styles: {
+						transform: 'translateY(' + Math.abs(this.height) + 'rpx)',
+						opacity: 0
+				    },
+				    duration: this.anima.duration, //ms
+				    timingFunction: 'ease',
+				    needLayout:false,
+				    delay: 0 //ms
+				}, () => {
+					getApp().globalData.$Router.back();
 				})
 			},
-			async getHotDiscList () {
-				return await getApp().globalData.$api.music.getHotDiscList().then((ress) => {
-					let status = false
-					ress.forEach((res, index) => {
-						if ( res.code == getApp().globalData.$config.ERR_OK ) {
-							const moduleIndex = this.modules.findIndex(module => module.source == res.data.source)
-							this.modules[moduleIndex].hotDisc = res.data.list
-							status = res.data.list.length > 0
-						}
-					})
-					return status
-				})
-			},
-			async getHotSinger () {
-				return await getApp().globalData.$api.music.getHotSinger().then((ress) => {
-					let status = false
-					ress.forEach((res, index) => {
-						if ( res.code == getApp().globalData.$config.ERR_OK ) {
-							const moduleIndex = this.modules.findIndex(module => module.source == res.data.source)
-							this.modules[moduleIndex].hotSinger = res.data.list
-							status = res.data.list.length > 0
-						}
-					})
-					return status
-				})
-			},
-			async getNewSongList () {
-				return await getApp().globalData.$api.music.getNewSongList().then((ress) => {
-					let status = false
-					ress.forEach((res, index) => {
-						if ( res.code == getApp().globalData.$config.ERR_OK ) {
-							const moduleIndex = this.modules.findIndex(module => module.source == res.data.source)
-							this.modules[moduleIndex].newSongs = res.data.list
-							status = res.data.list.length > 0
-						}
-					})
-					return status
-				})
-			},
-			goDetail (item) {
-				getApp().globalData.$Router.push({
-					path: '/pages/music/detail',
-					query: {
-						item: encodeURIComponent(JSON.stringify({name: '歌单'}))
+			//清空歌曲
+			clear () {
+				getApp().globalData.$dom.confirm('操作提示', '确认清空歌曲列表吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.clearMusic();
 					}
-				})
+				});
 			},
-			goRank (item) {
-				if ( item.title == '更多' ) {
-					const moduleIndex = this.modules.findIndex(module => module.source == item.source)
-					getApp().globalData.$Router.push({
-						path: '/pages/music/rank',
-						query: {
-							title: this.modules[moduleIndex].title,
-							source: item.source,
-							data: encodeURIComponent(JSON.stringify(this.modules[moduleIndex].topList))
-						}
+			//删除指定歌曲
+			deleteItem (path) {
+				let index = getApp().globalData.$utils.indexOf(this.playList, 'path', path);
+				getApp().globalData.$dom.confirm('操作提示', '确认删除 ' + this.playList[index].name + ' 吗？').then((res) => {
+					if ( res == 'confirm' ) {
+						this.deleteMusic(path);
+					}
+				});
+			},
+			//改变播放模式
+			changeMode () {
+				switch(this.getMusicPlayMode)
+				{
+				    case 'loop':
+				        this.changeMusicPlayMode('once');
+				        break;
+				    case 'once':
+				        this.changeMusicPlayMode('random');
+				        break;
+				    default:
+				        this.changeMusicPlayMode('loop');
+						break;
+				}
+			},
+			goPlayer (path) {
+				if ( this.playRecord != path ) {
+					this.updateMusicPlayRecord(path);
+				}
+				getApp().globalData.$Router.push({
+					path: '/pages/music/player',
+					animationType: 'fade-in'
+				});
+			},
+			playMusic (path) {
+				if ( this.playRecord == path ) {
+					uni.$emit('change-status', {
+						status: !this.playStatus
 					})
 				} else {
-					this.goDetail(item)
+					this.updateMusicPlayRecord(path)
 				}
+			},
+			//更新时间
+			updateTime (percent) {
+				uni.$emit('update-time', {
+					time: (percent / 100) * this.musicDuration
+				})
+			},
+			routePush (url) {
+				const pages = getCurrentPages();
+				let bol = pages.some((item) => {
+					return item.$page.path == url;
+				})
+				if ( bol ) {
+					return;
+				}
+				getApp().globalData.$Router.push({ path: url });
 			}
+		},
+		onBackPress (event) {
+			if ( event.from == 'backbutton' ) {
+				this.hide();
+				return true;
+			}
+			return false
+		},
+		components: {
+			ListScroll,
+			CIcon,
+			NoData,
+			CProgress
 		}
 	}
 </script>
 
 <style scoped>
-	.ad-swiper {
-		height: 200rpx;
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		opacity: 0;
+		background-color: #000000;
 	}
-	.ad-swiper .ad {
-		flex: 1;
+	.popup {
+		position: fixed;
+		bottom: 200rpx;
+		left: 35rpx;
+		right: 35rpx;
+		height: 800rpx;
+		transform: translateY(800rpx);
+		opacity: 0;
+		border-radius: 20rpx;
 	}
-	.singer-line {
-		height: 120rpx;
-		margin: 24rpx 30rpx;
-		border-radius: 16rpx;
-		padding: 0 30rpx;
+	.top {
 		flex-direction: row;
-		align-items: center;
 		justify-content: space-between;
+		align-items: center;
+		padding: 20rpx 30rpx;
+		border-bottom-width: 1px;
 	}
-	.singer-line .singer-left {
+	.top-right {
 		flex-direction: row;
 		align-items: center;
 	}
-	.singer-line .singer-text {
-		font-weight: bold;
-		font-size: 36rpx;
-		margin-left: 45rpx;
+	.tr-icon {
+		margin-left: 20rpx;
 	}
-	.singer-line .go {
-		width: 80rpx;
-		height: 80rpx;
-		border-radius: 80rpx;
-		background: linear-gradient(to bottom, #ffdca0, #ffab1f);
-		align-items: center;
-		justify-content: center;
-	}
-	.singer-line .go .go-text {
-		font-weight: bold;
-		font-size: 38rpx;
-		color: #fff;
-	}
-	.types {
-		flex-direction: row;
-		justify-content: center;
-		flex-wrap: wrap;
-		padding: 0 30rpx;
-	}
-	.types .type {
-		width: 150rpx;
-		height: 64rpx;
+	.mode {
 		flex-direction: row;
 		align-items: center;
-		justify-content: center;
-		margin: 0 0 24rpx 0;
 	}
-	.types .type .type-text {
-		font-size: 24rpx;
-	}
-	
-	.singer {
-		width: 160rpx;
-	}
-	.singer .cover {
-		width: 160rpx;
-		height: 200rpx;
-	}
-	.singer .name {
-		font-size: 24rpx;
-		lines: 1;
-		text-overflow: ellipsis;
-		text-align: center;
-		margin: 10rpx 0;
-	}
-	
-	.gridItem {
-		position: relative;
-		width: 208rpx;
-	}
-	.gridItem .cover {
-		width: 208rpx;
-		height: 208rpx;
-	}
-	.gridItem .name {
-		font-size: 24rpx;
-		height: 66rpx;
-		lines: 2;
-		text-overflow: ellipsis;
-		margin-top: 15rpx;
-	}
-	.gridItem .num {
-		flex-direction: row;
-		align-items: center;
-		position: absolute;
-		bottom: 90rpx;
-		left: 10rpx;
-		lines: 1;
-		text-overflow: ellipsis;
-	}
-	.gridItem .num .num-text {
-		font-size: 24rpx;
-		margin-left: 10rpx;
-	}
-	
-	.cellItem {
-		flex-direction: row;
-		align-items: center;
-		padding-bottom: 30rpx;
-	}
-	.cellItem .cover {
-		width: 150rpx;
-		height: 150rpx;
-	}
-	.cellItem .info {
-		flex: 1;
-		height: 100rpx;
-		justify-content: space-between;
-		margin-left: 30rpx;
-	}
-	.cellItem .info .title, .cellItem .info .label {
+	.modeName {
 		font-size: 28rpx;
-		text-overflow: ellipsis;
-		lines: 1;
+		margin-left: 15rpx;
 	}
-	
+	.list {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		height: 80rpx;
+		padding: 0 30rpx;
+	}
+	.list-right {
+		flex-direction: row;
+		align-items: center;
+	}
+	.list-icon {
+		margin-left: 20rpx;
+	}
+	.list-name {
+		flex: 1;
+		font-size: 28rpx;
+		lines: 1;
+		text-overflow: ellipsis;
+	}
+	.add {
+		align-items: center;
+		padding: 30rpx 0;
+	}
+	.add-btn {
+		width: 220rpx;
+		height: 60rpx;
+		border-radius: 60rpx;
+		justify-content: center;
+		align-items: center;
+		border-width: 1px;
+		border-style: solid;
+	}
+	.add-text {
+		font-size: 28rpx;
+	}
+	.close-text {
+		font-size: 25rpx;
+	}
 </style>

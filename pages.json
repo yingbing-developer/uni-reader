@@ -1,10 +1,9 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-		//小说主页
 		{
-			"path": "pages/book/index"
+			"path": "pages/index/index"
 		},
-		// 本地小说添加页
+		//本地小说添加页
 		{
 			"path": "pages/book/search/index"
 		},
@@ -40,10 +39,6 @@
 				}
 			}
 		},
-		//漫画主页
-		{
-			"path": "pages/comic/index"
-		},
 		//本地漫画添加页
 		{
 			"path": "pages/comic/search/index"
@@ -68,47 +63,16 @@
 		{
 			"path": "pages/about/index"
 		},
-		//音乐首页
-		{
-			"path": "pages/music/index"
-		},
-		//音乐歌单分类列表
-		{
-			"path": "pages/music/mix"
-		},
-		//音乐新歌分类列表
-		{
-			"path": "pages/music/song"
-		},
-		//音乐歌手分类列表
-		{
-			"path": "pages/music/singer"
-		},
-		//音乐排行榜列表
-		{
-			"path": "pages/music/rank"
-		},
-		//音乐详情页
-		{
-			"path": "pages/music/detail"
-		},
 		//音乐播放页面
 		{
 			"path": "pages/music/player",
 			"style": {
-				"backgroundColor": "transparent",
-				"app-plus": {
-					"bounce":"none",
-					"animationType": "fade-in",
-					"background": "transparent", // 背景透明
-					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
-					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
-				}
+				"backgroundColor": "transparent"
 			}
 		},
 		//音乐播放列表
 		{
-			"path": "pages/music/playlist",
+			"path": "pages/music/index",
 			"style": {
 				"backgroundColor": "transparent",
 				"app-plus": {
@@ -120,7 +84,7 @@
 				}
 			}
 		},
-		//搜索音乐
+		//添加音乐
 		{
 			"path": "pages/music/search"
 		},
@@ -128,16 +92,11 @@
 		{
 			"path": "pages/music/online"
 		},
-		//个人
-		{
-			"path": "pages/user/index"
-		},
 		//确认弹窗
 		{
 			"path": "modules/confirm",
 			"style": {
 				"backgroundColor": "transparent",
-				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -152,22 +111,6 @@
 			"path": "modules/actionSheet",
 			"style": {
 				"backgroundColor": "transparent",
-				"navigationStyle": "custom",
-				"app-plus": {
-					"bounce":"none",
-					"animationType": "fade-in",
-					"background": "transparent", // 背景透明
-					"backgroundColor": "rgba(0,0,0,0)", // 背景透明
-					"popGesture": "none" // 关闭IOS屏幕左边滑动关闭当前页面的功能
-				}
-			}
-		},
-		//操作面版
-		{
-			"path": "modules/actionPanel",
-			"style": {
-				"backgroundColor": "transparent",
-				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -182,7 +125,6 @@
 			"path": "modules/edit",
 			"style": {
 				"backgroundColor": "transparent",
-				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -197,7 +139,6 @@
 			"path": "modules/catalog",
 			"style": {
 				"backgroundColor": "transparent",
-				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -212,7 +153,6 @@
 			"path": "modules/security",
 			"style": {
 				"backgroundColor": "transparent",
-				"navigationStyle": "custom",
 				"app-plus": {
 					"bounce":"none",
 					"animationType": "fade-in",
@@ -225,44 +165,11 @@
 	],
 	"globalStyle": {
 		"disableScroll": true, // 不嵌套 scroller
-		"navigationStyle":"custom",
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "white",
+		"navigationBarBackgroundColor": "transparent",
 		"app-plus": {
 			"titleNView": false
-		}
-	},
-	"tabBar": {
-		"color": "#666666",
-		"selectedColor": "#2ca2f9",
-		"borderStyle": "black",
-		"backgroundColor": "#FAFAFA",
-		"list": [{
-			"pagePath": "pages/book/index",
-			"iconPath": "static/tabbar/book_default.png",
-			"selectedIconPath": "static/tabbar/book_default-actived.png",
-			"text": "小说"
-		},{
-			"pagePath": "pages/comic/index",
-			"iconPath": "static/tabbar/comic_default.png",
-			"selectedIconPath": "static/tabbar/comic_default-actived.png",
-			"text": "漫画"
-		},{
-			"pagePath": "pages/music/index",
-			"iconPath": "static/tabbar/music_default.png",
-			"selectedIconPath": "static/tabbar/music_default-actived.png",
-			"text": "音乐"
-		},{
-			"pagePath": "pages/user/index",
-			"iconPath": "static/tabbar/user_default.png",
-			"selectedIconPath": "static/tabbar/user_default-actived.png",
-			"text": "我的"
-		}]
-	},
-	"easycom": {
-		"autoscan": true, //是否自动扫描组件
-		"custom": { //自定义扫描规则
-			"^yb-(.*)": "@/components/yb/yb-$1/yb-$1.nvue",
-			"^rd-(.*)": "@/components/rd/rd-$1/rd-$1.nvue",
-			"^music-(.*)": "@/components/music/music-$1/music-$1.nvue"
 		}
 	},
 	"condition" : { //模式配置，仅开发期间生效
