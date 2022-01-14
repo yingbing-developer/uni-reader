@@ -4,10 +4,6 @@ export default {
 		'baoshuu': {
 			title: '手机宝书',
 			href: 'http://m.baoshuu.com'
-		},
-		'bamxs': {
-			title: '八毛小说',
-			href: 'http://m.bamxs.com'
 		}
 	},
 	
@@ -17,10 +13,6 @@ export default {
 			title: 'mangaBz',
 			href: 'http://www.mangabz.com'
 		},
-		// '18comic': {
-		// 	title: '禁漫天堂',
-		// 	href: 'https://18comic2.art'
-		// },
 		'sixmh': {
 			title: '6漫画',
 			href: 'http://m.sixmh7.com'
@@ -28,14 +20,6 @@ export default {
 		'dmzj': {
 			title: '动漫之家',
 			href: 'https://www.dmzj.com'
-		},
-		'loli': {
-			title: '写真网',
-			href: 'https://cosplayporn.cc'
-		},
-		'wnacg': {
-			title: '绅士漫画',
-			href: 'https://hentaicomic.org'
 		}
 	},
 	//音乐网站链接
@@ -51,11 +35,7 @@ export default {
 	},
 	
 	//青壮年内容
-	ADULTS: [
-		'loli',
-		'wnacg',
-		'bamxs'
-	],
+	ADULTS: [],
 	
 	//QQ音乐请求常量
 	commonParams: {
